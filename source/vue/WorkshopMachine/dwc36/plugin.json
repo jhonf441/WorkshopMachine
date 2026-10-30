@@ -1,0 +1,19 @@
+{
+  "id": "WorkshopMachine",
+  "name": "Machine",
+  "author": "jhonf441",
+  "version": "1.7.0",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/jhonf441/WorkshopMachine",
+  "tags": [
+    "machine",
+    "calibration"
+  ],
+  "dwcVersion": "3.6",
+  "dwcDependencies": [
+    "WorkshopService"
+  ],
+  "sbcRequired": true,
+  "sbcDsfVersion": "3",
+  "data": {}
+}
