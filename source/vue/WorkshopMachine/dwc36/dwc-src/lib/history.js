@@ -35,15 +35,15 @@ export function stateView(state) {
 	return Object.assign({ state: s, textKey: 'history.state_' + s }, STATE_VIEW[s])
 }
 
-// the form {kind, user, state, fromDay, toDay} -> the arguments of machine.history.list
+// the form {kind, user, state, fromDay, toDay, sinceEpoch, untilEpoch} -> the arguments of machine.history.list (the epoch of the range picker wins over the days)
 export function listArgs(filters, offset) {
 	const f = filters || {}
 	const args = { limit: PAGE_SIZE }
 	if (f.kind) args.kind = f.kind
 	if (f.user && String(f.user).trim()) args.user = String(f.user).trim()
 	if (f.state) args.state = f.state
-	const since = dayToEpoch(f.fromDay, false)
-	const until = dayToEpoch(f.toDay, true)
+	const since = Number.isFinite(f.sinceEpoch) ? f.sinceEpoch : dayToEpoch(f.fromDay, false)
+	const until = Number.isFinite(f.untilEpoch) ? f.untilEpoch : dayToEpoch(f.toDay, true)
 	if (since !== null) args.since = since
 	if (until !== null) args.until = until
 	if (offset) args.offset = offset

@@ -2,7 +2,7 @@
 
 // The explicit state of the History module: plain object + plain functions, no Vue, no network.
 //   status    'idle' | 'loading' | 'ready' | 'error'
-//   filters   {kind, user, fromDay, toDay}
+//   filters   {kind, user, state, fromDay, toDay, range, sinceEpoch, untilEpoch}   (range: the value of the range picker or null = no limit; the epochs are set when it is applied)
 //   records   the rows of the list (normalized Briefs), newest first;  total  rows the service has for the filters
 //   selected  ids ticked for the comparison (at most two, in the order ticked)
 //   detail    {record, restore} of the record being looked at (history.get), or null
@@ -13,7 +13,7 @@ import { sortRecords, applyFilters, canCompare } from '../lib/history.js'
 export const MAX_SELECTED = 2
 
 export function createHistoryState() {
-	return { status: 'idle', filters: { kind: '', user: '', state: '', fromDay: '', toDay: '' }, records: [], total: 0, selected: [], detail: null, error: null }
+	return { status: 'idle', filters: { kind: '', user: '', state: '', fromDay: '', toDay: '', range: null, sinceEpoch: null, untilEpoch: null }, records: [], total: 0, selected: [], detail: null, error: null }
 }
 
 export function loadBegin(state) {

@@ -4,27 +4,8 @@
 			<v-select v-model="filters.kind" :items="kindItems" item-title="text" item-value="value" :label="t('history.filter_kind')" density="compact" hide-details style="max-width:240px" clearable />
 			<v-select v-model="filters.state" :items="stateItems" item-title="text" item-value="value" :label="t('history.filter_state')" density="compact" hide-details style="max-width:170px" clearable />
 			<v-text-field v-model="filters.user" :label="t('history.filter_user')" density="compact" hide-details style="max-width:170px" />
-			<v-menu v-model="fromMenu" :close-on-content-click="false" transition="scale-transition" min-width="auto">
-				<template #activator="{ props: act }">
-					<v-text-field :model-value="filters.fromDay" :label="t('history.filter_from')" readonly density="compact" hide-details color="primary" style="max-width:170px" v-bind="act">
-						<template #prepend-inner>
-							<v-icon color="primary">mdi-calendar-outline</v-icon>
-						</template>
-					</v-text-field>
-				</template>
-				<v-date-picker :model-value="dayDate(filters.fromDay)" color="primary" @update:model-value="pickDay('fromDay', $event); fromMenu = false" />
-			</v-menu>
-			<v-menu v-model="toMenu" :close-on-content-click="false" transition="scale-transition" min-width="auto">
-				<template #activator="{ props: act }">
-					<v-text-field :model-value="filters.toDay" :label="t('history.filter_to')" readonly density="compact" hide-details color="primary" style="max-width:170px" v-bind="act">
-						<template #prepend-inner>
-							<v-icon color="primary">mdi-calendar-outline</v-icon>
-						</template>
-					</v-text-field>
-				</template>
-				<v-date-picker :model-value="dayDate(filters.toDay)" color="primary" @update:model-value="pickDay('toDay', $event); toMenu = false" />
-			</v-menu>
-			<v-btn size="small" color="primary" :loading="loading" @click="$emit('apply')"><v-icon size="small" start>mdi-filter-outline</v-icon>{{ t('history.filter_apply') }}</v-btn>
+			<range-picker :model-value="filters.range" clearable @update:model-value="pickRange" />
+			<v-btn size="small" color="primary" :loading="loading" @click="applyNow"><v-icon size="small" start>mdi-filter-outline</v-icon>{{ t('history.filter_apply') }}</v-btn>
 		</div>
 		<div v-if="!records.length" class="text-body-medium machine-faint mt-3">{{ loading ? t('common.loading') : t('history.empty') }}</div>
 		<v-table v-else density="compact" class="mt-3">
@@ -55,13 +36,15 @@
 
 <script setup>
 // Filters (kind, user, dates) and the table of calibration records. Ticking two rows of the same kind enables the comparison (the
-// module owns the state: this component only draws and emits). The date filters stay 'YYYY-MM-DD' texts; the Vuetify 4 date picker
-// works with Date objects, so dayDate / pickDay convert at the edge.
+// module owns the state: this component only draws and emits). The time range is the one of range-picker.js; applying it fixes the two
+// moments (epoch seconds) in the filters, so "the last 3 hours" counts back from the moment of the search.
 
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { t } from '../text.js'
 import { KNOWN_KINDS, STATES, kindKey, stateView } from '../lib/history.js'
 import { formatDate } from '../lib/format.js'
+import RangePicker from '../RangePicker.vue' // vue/_shared
+import { resolve, asEpoch } from '../range-picker.js' // vue/_shared
 
 const props = defineProps({
 	filters: { type: Object, required: true }, // state.filters, edited in place
@@ -70,10 +53,7 @@ const props = defineProps({
 	total: { type: Number, default: 0 },
 	loading: { type: Boolean, default: false }
 })
-defineEmits(['apply', 'toggle', 'open'])
-
-const fromMenu = ref(false)
-const toMenu = ref(false)
+const emit = defineEmits(['apply', 'toggle', 'open'])
 
 const kindItems = computed(() => KNOWN_KINDS.map(k => ({ value: k, text: t(kindKey(k)) })))
 const stateItems = computed(() => STATES.map(st => ({ value: st, text: t(stateView(st).textKey) })))
@@ -82,20 +62,16 @@ const rows = computed(() => props.records.map(r => ({
 	picked: props.selected.indexOf(r.id) >= 0
 })))
 
-// 'YYYY-MM-DD' -> the local Date the picker shows (null when empty or not a day)
-function dayDate(text) {
-	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text || '')
-	return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null
+// the range now -> its two moments in the filters, and the list is asked again
+function applyNow() {
+	const r = props.filters.range ? asEpoch(resolve(props.filters.range, new Date())) : null
+	props.filters.sinceEpoch = r ? r.from : null
+	props.filters.untilEpoch = r ? r.to : null
+	emit('apply')
 }
-// the picked Date -> 'YYYY-MM-DD' (local day) in the filter
-function pickDay(field, date) {
-	const d = Array.isArray(date) ? date[0] : date
-	if (!(d instanceof Date) || isNaN(d.getTime())) {
-		props.filters[field] = ''
-		return
-	}
-	const two = n => String(n).padStart(2, '0')
-	props.filters[field] = d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate())
+function pickRange(v) {
+	props.filters.range = v
+	applyNow()
 }
 </script>
 

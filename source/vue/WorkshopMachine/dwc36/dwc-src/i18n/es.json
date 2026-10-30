@@ -9,6 +9,13 @@
 		"copied": "Copiado",
 		"gcode_not_sent": "Este G-code solo se muestra: la página no lo envía a la máquina."
 	},
+	"groups": {
+		"probing": "Sondeo",
+		"geometry": "Geometría",
+		"dynamics": "Dinámica",
+		"operation": "Operación",
+		"records": "Registros"
+	},
 	"modules": {
 		"overview": "Resumen",
 		"probe": "Sonda",
@@ -306,8 +313,6 @@
 		"filter_kind": "Tipo",
 		"filter_state": "Estado",
 		"filter_user": "Persona",
-		"filter_from": "Desde",
-		"filter_to": "Hasta",
 		"filter_apply": "Filtrar",
 		"empty": "No hay registros con estos filtros.",
 		"col_compare": "Comparar",
@@ -511,6 +516,7 @@
 		"sensor_state_unknownPort": "puerto desconocido",
 		"sensor_state_overOrUnderRange": "fuera de rango",
 		"d_status": "estado: {status}",
+		"d_job_none": "no hay ningún trabajo en marcha",
 		"status_off": "apagada",
 		"status_halted": "detenida",
 		"status_idle": "libre",

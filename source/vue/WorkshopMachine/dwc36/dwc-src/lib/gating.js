@@ -15,22 +15,22 @@ import { OPS3 } from '../api/machine-api-p3.js'
 import { OPS4 } from '../api/machine-api-p4.js'
 
 export const MODULES = [
-	{ id: 'overview', icon: 'mdi-view-dashboard-outline', min: null },
-	{ id: 'probe', icon: 'mdi-target', min: 'operator' },
-	{ id: 'level', icon: 'mdi-stairs', min: 'operator' },
-	{ id: 'mesh', icon: 'mdi-grid', min: 'operator' },
-	{ id: 'offsets', icon: 'mdi-axis-arrow', min: 'operator' },
-	{ id: 'height', icon: 'mdi-arrow-collapse-down', min: 'operator' },
-	{ id: 'limits', icon: 'mdi-arrow-expand-horizontal', min: 'operator' },
-	{ id: 'workarea', icon: 'mdi-vector-rectangle', min: 'operator' },
-	{ id: 'calibration', icon: 'mdi-ruler-square', min: 'operator' },
-	{ id: 'motion', icon: 'mdi-engine-outline', min: 'operator' },
-	{ id: 'shaping', icon: 'mdi-sine-wave', min: 'operator' },
-	{ id: 'safety', icon: 'mdi-shield-check-outline', min: 'operator' },
-	{ id: 'maintenance', icon: 'mdi-wrench-clock', min: 'operator' },
-	{ id: 'modes', icon: 'mdi-toggle-switch-outline', min: 'operator' },
-	{ id: 'history', icon: 'mdi-history', min: 'technician' },
-	{ id: 'report', icon: 'mdi-file-document-outline', min: 'technician' }
+	{ id: 'overview', icon: 'mdi-view-dashboard-outline', min: null, group: null },
+	{ id: 'probe', icon: 'mdi-target', min: 'operator', group: 'groups.probing' },
+	{ id: 'level', icon: 'mdi-stairs', min: 'operator', group: 'groups.probing' },
+	{ id: 'mesh', icon: 'mdi-grid', min: 'operator', group: 'groups.probing' },
+	{ id: 'offsets', icon: 'mdi-axis-arrow', min: 'operator', group: 'groups.geometry' },
+	{ id: 'height', icon: 'mdi-arrow-collapse-down', min: 'operator', group: 'groups.geometry' },
+	{ id: 'limits', icon: 'mdi-arrow-expand-horizontal', min: 'operator', group: 'groups.geometry' },
+	{ id: 'workarea', icon: 'mdi-vector-rectangle', min: 'operator', group: 'groups.geometry' },
+	{ id: 'calibration', icon: 'mdi-ruler-square', min: 'operator', group: 'groups.geometry' },
+	{ id: 'motion', icon: 'mdi-engine-outline', min: 'operator', group: 'groups.dynamics' },
+	{ id: 'shaping', icon: 'mdi-sine-wave', min: 'operator', group: 'groups.dynamics' },
+	{ id: 'safety', icon: 'mdi-shield-check-outline', min: 'operator', group: 'groups.operation' },
+	{ id: 'maintenance', icon: 'mdi-wrench-clock', min: 'operator', group: 'groups.operation' },
+	{ id: 'modes', icon: 'mdi-toggle-switch-outline', min: 'operator', group: 'groups.operation' },
+	{ id: 'history', icon: 'mdi-history', min: 'technician', group: 'groups.records' },
+	{ id: 'report', icon: 'mdi-file-document-outline', min: 'technician', group: 'groups.records' }
 ]
 
 // admin-class configuration kinds (WorkshopService permissions.MACHINE_ADMIN_KINDS): hidden from everybody below an administrator
@@ -42,13 +42,13 @@ export function canSeeModule(mod, atLeast) {
 	return !mod.min || atLeast(mod.min)
 }
 
-// the side bar items: [{id, icon, labelKey, disabled, reasonKey}]. A module the machine cannot use stays in the bar, disabled, WITH the
+// the side bar items: [{id, icon, labelKey, groupKey, disabled, reasonKey}] (groupKey: the category of the bar; null for the overview). A module the machine cannot use stays in the bar, disabled, WITH the
 // reason (code of machine.state modules[id].reason); a module the role cannot see is not listed.
 export function moduleItems(modules, atLeast) {
 	return MODULES.filter(m => canSeeModule(m, atLeast)).map(m => {
 		const state = (modules && modules[m.id]) || null
 		const off = !!state && state.available === false
-		return { id: m.id, icon: m.icon, labelKey: 'modules.' + m.id, disabled: off, reasonKey: off ? 'reasons.' + (state.reason || 'unknown') : null }
+		return { id: m.id, icon: m.icon, labelKey: 'modules.' + m.id, groupKey: m.group, disabled: off, reasonKey: off ? 'reasons.' + (state.reason || 'unknown') : null }
 	})
 }
 

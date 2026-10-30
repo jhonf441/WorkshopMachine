@@ -4,27 +4,8 @@
 			<v-select v-model="filters.kind" :items="kindItems" :label="t('history.filter_kind')" dense hide-details style="max-width:240px" clearable />
 			<v-select v-model="filters.state" :items="stateItems" :label="t('history.filter_state')" dense hide-details style="max-width:170px" clearable />
 			<v-text-field v-model="filters.user" :label="t('history.filter_user')" dense hide-details style="max-width:170px" />
-			<v-menu v-model="fromMenu" :close-on-content-click="false" transition="scale-transition" offset-y min-width="auto">
-				<template v-slot:activator="{ on, attrs }">
-					<v-text-field v-model="filters.fromDay" :label="t('history.filter_from')" readonly dense hide-details color="primary" style="max-width:170px" v-bind="attrs" v-on="on">
-						<template v-slot:prepend-inner>
-							<v-icon color="primary">mdi-calendar-outline</v-icon>
-						</template>
-					</v-text-field>
-				</template>
-				<v-date-picker v-model="filters.fromDay" no-title color="primary" @input="fromMenu = false" />
-			</v-menu>
-			<v-menu v-model="toMenu" :close-on-content-click="false" transition="scale-transition" offset-y min-width="auto">
-				<template v-slot:activator="{ on, attrs }">
-					<v-text-field v-model="filters.toDay" :label="t('history.filter_to')" readonly dense hide-details color="primary" style="max-width:170px" v-bind="attrs" v-on="on">
-						<template v-slot:prepend-inner>
-							<v-icon color="primary">mdi-calendar-outline</v-icon>
-						</template>
-					</v-text-field>
-				</template>
-				<v-date-picker v-model="filters.toDay" no-title color="primary" @input="toMenu = false" />
-			</v-menu>
-			<v-btn small color="primary" :loading="loading" @click="$emit('apply')"><v-icon small left>mdi-filter-outline</v-icon>{{ t('history.filter_apply') }}</v-btn>
+			<range-picker :value="filters.range" clearable @input="pickRange" />
+			<v-btn small color="primary" :loading="loading" @click="applyNow"><v-icon small left>mdi-filter-outline</v-icon>{{ t('history.filter_apply') }}</v-btn>
 		</div>
 		<div v-if="!records.length" class="text-body-2 machine-faint mt-3">{{ loading ? t('common.loading') : t('history.empty') }}</div>
 		<v-simple-table v-else dense class="mt-3">
@@ -62,18 +43,18 @@
 import { textMixin } from './text-mixin.js'
 import { KNOWN_KINDS, STATES, kindKey, stateView } from '../lib/history.js'
 import { formatDate } from '../lib/format.js'
+import RangePicker from '../RangePicker.vue' // vue/_shared36
+import { resolve, asEpoch } from '../range-picker.js' // vue/_shared36
 
 export default {
 	mixins: [textMixin],
+	components: { RangePicker },
 	props: {
 		filters: { type: Object, required: true }, // state.filters, edited in place
 		records: { type: Array, default: () => [] },
 		selected: { type: Array, default: () => [] },
 		total: { type: Number, default: 0 },
 		loading: { type: Boolean, default: false }
-	},
-	data() {
-		return { fromMenu: false, toMenu: false }
 	},
 	computed: {
 		kindItems() {
@@ -87,6 +68,19 @@ export default {
 				id: r.id, dateText: formatDate(r.ts), kindText: kindKey(r.kind) ? this.t(kindKey(r.kind)) : r.kind, user: r.user, state: stateView(r.state),
 				picked: this.selected.indexOf(r.id) >= 0
 			}))
+		}
+	},
+	methods: {
+		// the range now -> its two moments in the filters, and the list is asked again
+		applyNow() {
+			const r = this.filters.range ? asEpoch(resolve(this.filters.range, new Date())) : null;
+			this.filters.sinceEpoch = r ? r.from : null;
+			this.filters.untilEpoch = r ? r.to : null;
+			this.$emit('apply');
+		},
+		pickRange(v) {
+			this.filters.range = v;
+			this.applyNow();
 		}
 	}
 }

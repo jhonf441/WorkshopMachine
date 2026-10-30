@@ -108,8 +108,10 @@ export function detailParts(item) {
 			;(v.sensors || []).forEach(s => add('sensor', { name: s.name || '-', index: s.index, state: word('sensor_state', s.state) }))
 			break
 		case 'status':
-		case 'job':
 			if (v.status) add('status', { status: word('status', v.status) })
+			break
+		case 'job':
+			add(v.status ? 'status' : 'job_none', v.status ? { status: word('status', v.status) } : {})
 			break
 		case 'supply':
 			if (rounded(v.vin) !== null) add('supply_now', { vin: rounded(v.vin) })

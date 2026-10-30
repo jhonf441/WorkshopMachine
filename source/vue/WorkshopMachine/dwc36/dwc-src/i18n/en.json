@@ -9,6 +9,13 @@
 		"copied": "Copied",
 		"gcode_not_sent": "This G-code is only shown: the page does not send it to the machine."
 	},
+	"groups": {
+		"probing": "Probing",
+		"geometry": "Geometry",
+		"dynamics": "Dynamics",
+		"operation": "Operation",
+		"records": "Records"
+	},
 	"modules": {
 		"overview": "Overview",
 		"probe": "Probe",
@@ -306,8 +313,6 @@
 		"filter_kind": "Kind",
 		"filter_state": "State",
 		"filter_user": "Person",
-		"filter_from": "From",
-		"filter_to": "To",
 		"filter_apply": "Filter",
 		"empty": "There are no records with these filters.",
 		"col_compare": "Compare",
@@ -511,6 +516,7 @@
 		"sensor_state_unknownPort": "unknown port",
 		"sensor_state_overOrUnderRange": "out of range",
 		"d_status": "state: {status}",
+		"d_job_none": "no job is running",
 		"status_off": "off",
 		"status_halted": "halted",
 		"status_idle": "idle",

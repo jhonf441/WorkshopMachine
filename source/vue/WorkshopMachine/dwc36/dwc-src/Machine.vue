@@ -151,7 +151,7 @@ export default {
 		},
 		sideItems() {
 			return moduleItems(this.snapshot && this.snapshot.modules, min => this.atLeast(min)).map(i => ({
-				id: i.id, icon: i.icon, label: this.t(i.labelKey), disabled: i.disabled, badge: i.disabled ? '!' : ''
+				id: i.id, icon: i.icon, label: this.t(i.labelKey), group: i.groupKey ? this.t(i.groupKey) : undefined, disabled: i.disabled, badge: i.disabled ? '!' : ''
 			}))
 		},
 		// a module the machine cannot use stays in the bar, disabled, and the overview says why

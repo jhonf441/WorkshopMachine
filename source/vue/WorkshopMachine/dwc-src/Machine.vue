@@ -146,7 +146,7 @@ const publishedKey = computed(() => {
 })
 const caps = computed(() => capabilitiesOf(min => atLeast(min), (op, ctx) => canDo(op, ctx))) // workshopCan: the server's table
 const sideItems = computed(() => moduleItems(snapshot.value && snapshot.value.modules, min => atLeast(min)).map(i => ({
-	id: i.id, icon: i.icon, label: t(i.labelKey), disabled: i.disabled, badge: i.disabled ? '!' : ''
+	id: i.id, icon: i.icon, label: t(i.labelKey), group: i.groupKey ? t(i.groupKey) : undefined, disabled: i.disabled, badge: i.disabled ? '!' : ''
 })))
 // a module the machine cannot use stays in the bar, disabled, and the overview says why
 const unavailable = computed(() => moduleItems(snapshot.value && snapshot.value.modules, min => atLeast(min)).filter(i => i.disabled).map(i => ({ id: i.id, name: t(i.labelKey), reason: t(i.reasonKey) })))
