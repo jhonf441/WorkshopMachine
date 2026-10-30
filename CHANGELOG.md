@@ -1,5 +1,13 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.1 -- 2026-10-30
+
+- Manifest: sbcRequired true (needs WorkshopService); side bar keeps the group names
+
+## 1.8.0 -- 2026-10-30
+
+- Work area: choose the corners from the positions saved by the jog
+
 ## 1.7.0 -- 2026-10-30
 
 - Work area: capture a corner with the tool taken there by the jog; wording for any tool

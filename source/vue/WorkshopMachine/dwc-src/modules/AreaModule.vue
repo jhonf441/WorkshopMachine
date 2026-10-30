@@ -36,6 +36,11 @@
 			</v-card>
 			<v-card variant="outlined" class="mb-3">
 				<v-card-text>
+					<area-saved :positions="st.positions" :pick="st.savedPick" :can-write="canWrite" @pick="doPickSaved" />
+				</v-card-text>
+			</v-card>
+			<v-card variant="outlined" class="mb-3">
+				<v-card-text>
 					<div class="text-title-small mb-1">{{ t('workarea.map_title') }}</div>
 					<p class="text-body-medium machine-faint">{{ t('workarea.map_intro') }}</p>
 					<v-btn-toggle v-model="st.tool" mandatory density="compact" class="machine-btn-wrap mb-2">
@@ -72,10 +77,11 @@ import { computed, reactive } from 'vue'
 import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import AreaFields from './AreaFields.vue'
 import AreaHand from './AreaHand.vue'
+import AreaSaved from './AreaSaved.vue'
 import AreaMap from './AreaMap.vue'
 import { t } from '../text.js'
 import { blockKey, toolPoint } from '../lib/workarea.js'
-import { createAreaState, selectMode, setField, setRect, setCorner, savedRect, checked, isDirty, blocked, load, save, remove, release, capture, hereCorner, gotoPoint, frame } from '../state/area-state.js'
+import { createAreaState, selectMode, setField, setRect, setCorner, savedRect, checked, isDirty, blocked, load, save, remove, release, capture, hereCorner, gotoPoint, frame, loadPositions, pickPosition } from '../state/area-state.js'
 
 const props = defineProps({
 	api: { type: Object, required: true }, // createMachineApi(...)
@@ -123,6 +129,9 @@ function doRelease() {
 function doHere(which) {
 	hereCorner(st, props.axes, which)
 }
+function doPickSaved(which, index) {
+	pickPosition(st, which, index)
+}
 function doCapture(which) {
 	capture(st, workarea, which)
 }
@@ -131,6 +140,7 @@ function reload() {
 }
 
 load(st, workarea)
+loadPositions(st, workarea)
 </script>
 
 <style>

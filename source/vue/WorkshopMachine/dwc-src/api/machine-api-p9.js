@@ -6,6 +6,7 @@
 // WorkshopService docs/api/README.md (machine_workarea.py):
 //   machine.workarea.get  -> {mode, areas: {Laser|CNC|FFF: {xmin, xmax, ymin, ymax} | null}, edit_modes, min_mm, reach: {xmin, xmax, ymin, ymax} | null,
 //                             macros: {release, capture, goto, frame}, file, homed: {X, Y}}
+//   machine.workarea.positions -> {positions: [{name, x, y, z}]} the positions saved by the jog, in machine coordinates
 //   machine.workarea.save {mode: Laser | CNC | FFF, rect?, remove?} -> {mode, areas, applied, apply_reason}; a bad rectangle answers `reason` not_numbers | too_small | outside_travel
 //   machine.workarea.release            (level 4 confirmation, asked by api()) -> {action}
 //   machine.workarea.step {action: capture | goto | frame, x?, y?} -> {action, x?, y?}
@@ -13,6 +14,7 @@
 
 export const OPS9 = {
 	get: 'machine.workarea.get',
+	positions: 'machine.workarea.positions',
 	save: 'machine.workarea.save',
 	release: 'machine.workarea.release',
 	step: 'machine.workarea.step'
@@ -59,8 +61,16 @@ export function normalizeArea(raw) {
 	}
 }
 
+// the positions the jog saved -> [{name, x, y, z|null}] (only the ones with a number for X and Y)
+export function normalizePositions(raw) {
+	const list = obj(raw).positions
+	return (Array.isArray(list) ? list : []).filter(q => q && num(q.x) !== null && num(q.y) !== null)
+		.map(q => ({ name: String(q.name || ''), x: q.x, y: q.y, z: num(q.z) }))
+}
+
 export function createPhase9Api(call) {
 	return {
+		positions: async () => normalizePositions(await call(OPS9.positions, {})),
 		get: async () => normalizeArea(await call(OPS9.get, {})),
 		// rect null removes the area of the mode; a bad rectangle reaches the caller as an error whose body has `reason`
 		save: async (mode, rect) => {

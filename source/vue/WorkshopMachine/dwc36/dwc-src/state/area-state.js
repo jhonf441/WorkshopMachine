@@ -8,6 +8,7 @@
 //   tool      what a tap on the map does: 'a' / 'b' sets that corner, 'goto' takes the pointer there
 //   working   '' or the name of the call in progress (release, capture, goto, frame, save, remove): one at a time
 //   error     the text of what failed (the service's own words); errorKey a key of the plugin texts when the page knows the reason itself
+//   positions the positions saved by the jog [{name, x, y, z}] (machine.workarea.positions); savedPick the index chosen for each corner
 //   released  true between "release X and Y" and the next corner measurement (the motors have no force)
 // The actions take the api (createMachineApi(...).workarea) so a test passes a fake.
 
@@ -16,7 +17,8 @@ import { draftOf, parseDraft, rectProblems, cornersRect, sameRect, blockReason, 
 export function createAreaState() {
 	return {
 		data: null, loadError: null, mode: 'Laser', draft: draftOf(null), corners: { a: null, b: null }, tool: 'a',
-		working: '', released: false, notice: '', error: '', errorKey: ''
+		working: '', released: false, notice: '', error: '', errorKey: '',
+		positions: [], savedPick: { a: null, b: null }
 	}
 }
 
@@ -189,4 +191,22 @@ async function refreshHomed(state, api) {
 	} catch (e) {
 		/* the numbers are what matters: the next load shows the homing */
 	}
+}
+
+// the positions saved by the jog: the list of the selects of "from saved positions" (a failure leaves the list empty: the other methods still work)
+export async function loadPositions(state, api) {
+	try {
+		state.positions = await api.positions()
+	} catch (e) {
+		state.positions = []
+	}
+	return state
+}
+
+// a saved position is a corner (any two of them are opposite corners; with both the draft becomes their rectangle)
+export function pickPosition(state, which, index) {
+	const q = state.positions[index]
+	state.savedPick = Object.assign({}, state.savedPick, { [which]: q ? index : null })
+	if (q) setCorner(state, which, { x: q.x, y: q.y })
+	return state
 }

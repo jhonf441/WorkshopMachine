@@ -36,6 +36,11 @@
 			</v-card>
 			<v-card outlined class="mb-3">
 				<v-card-text>
+					<area-saved :positions="st.positions" :pick="st.savedPick" :can-write="canWrite" @pick="doPickSaved" />
+				</v-card-text>
+			</v-card>
+			<v-card outlined class="mb-3">
+				<v-card-text>
 					<div class="text-subtitle-2 mb-1">{{ t('workarea.map_title') }}</div>
 					<p class="text-body-2 machine-faint">{{ t('workarea.map_intro') }}</p>
 					<v-btn-toggle v-model="st.tool" mandatory dense class="machine-btn-wrap mb-2">
@@ -73,13 +78,14 @@
 import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import AreaFields from './AreaFields.vue'
 import AreaHand from './AreaHand.vue'
+import AreaSaved from './AreaSaved.vue'
 import AreaMap from './AreaMap.vue'
 import { textMixin } from './text-mixin.js'
 import { blockKey, toolPoint } from '../lib/workarea.js'
-import { createAreaState, selectMode, setField, setRect, setCorner, savedRect, checked, isDirty, blocked, load, save, remove, release, capture, hereCorner, gotoPoint, frame } from '../state/area-state.js'
+import { createAreaState, selectMode, setField, setRect, setCorner, savedRect, checked, isDirty, blocked, load, save, remove, release, capture, hereCorner, gotoPoint, frame, loadPositions, pickPosition } from '../state/area-state.js'
 
 export default {
-	components: { ErrorNotice, AreaFields, AreaHand, AreaMap },
+	components: { ErrorNotice, AreaFields, AreaHand, AreaSaved, AreaMap },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
@@ -151,6 +157,9 @@ export default {
 		},
 		doHere(which) {
 			hereCorner(this.st, this.axes, which)
+		},
+		doPickSaved(which, index) {
+			pickPosition(this.st, which, index)
 		},
 		doCapture(which) {
 			capture(this.st, this.workarea, which)

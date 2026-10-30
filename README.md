@@ -9,7 +9,7 @@ Version documented: 1.6.x on DWC 3.6.3.
 ## 1. Requirements
 
 1. WorkshopService installed and running (dependency).
-2. Duet 3 + Pi (SBC). Kinematics Cartesian are supported; others are shown as "not supported".
+2. Duet 3 + Pi (SBC). Kinematics with straight axes are supported: Cartesian, CoreXY and its variants (CoreXYU, CoreXYUV, CoreXZ). Delta, SCARA, polar and the like are shown as "not supported": there the motors are not the axes and the movements of the tests would be wrong. Note for CoreXY: `M92` is stored per motor, so the steps-per-mm proposal of one axis moves both motors; check X and Y together.
 3. For the camera verification: Vision (the measure operation is not available yet).
 
 ## 2. Install
@@ -376,5 +376,5 @@ Uninstalling removes the plugin folder; your data in `0:/sys/workshop/` and `/op
 
 ## 8. Limits
 
-Duet 3 + Pi; cartesian kinematics; the camera verification depends on a Vision measure operation that does not exist yet; real answers of G30/G32/G29/M671 are still partly simulated in tests.
+Duet 3 + Pi; straight-axis kinematics (Cartesian, CoreXY and variants); the camera verification depends on a Vision measure operation that does not exist yet; real answers of G30/G32/G29/M671 are still partly simulated in tests.
 
