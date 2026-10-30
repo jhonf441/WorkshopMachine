@@ -37,7 +37,7 @@
 							:axes="axes" :quality="snapshot && snapshot.meshQuality" :now="now" @changed="load()"
 						/>
 						<offsets-module v-else-if="section === 'offsets'" :api="api" :can-write="caps.configure('config.g10')" :can-run="caps.run" :tool-pair="snapshot && snapshot.toolPair" :published="published" :measure="visionMeasure" :now="now" />
-						<height-module v-else-if="section === 'height'" :api="api" :can-write="caps.run" />
+						<height-module v-else-if="section === 'height'" :api="api" :can-write="caps.run" :asked="askedPoint" />
 						<limits-module
 							v-else-if="section === 'limits'" :api="api" :published="published" :can-edit="caps.configure('config.m208')" :can-run="caps.run"
 							:now="now" @changed="load()"
@@ -99,15 +99,17 @@ import { machineApi } from './api/machine-client.js'
 import { normalizeRuns } from './api/machine-api.js'
 import { moduleItems, allowedModule, capabilitiesOf } from './lib/gating.js'
 import { lightView, worstLight } from './lib/traffic.js'
-import { ASK_KEY } from './lib/height.js'
+import { querySection, askedPoint } from './lib/cross-page.js'
 
 const SECTION_KEY = 'workshopMachineSection'
 const GOTO_EVENT = 'workshop-machine-goto' // another plugin (Workbench) sends the person to a module of this page: {section}
 const RELOAD_MS = 250
 
-function savedSection() {
+// the module to open: the one the route query asks for (the Workbench sends ?layout=..&x=..&y=.., lib/cross-page.js), else the last one
+function savedSection(query) {
+	const asked = querySection(query)
+	if (asked) return asked
 	try {
-		if (localStorage.getItem(ASK_KEY)) return 'height' // the Workbench sent the person here to calibrate the height (the module takes the point)
 		return localStorage.getItem(SECTION_KEY) || 'overview'
 	} catch (e) {
 		return 'overview'
@@ -118,11 +120,15 @@ export default {
 	mixins: [roleMixin],
 	components: { PageHeader, ServiceNotice, ErrorNotice, SideTabs, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ReportModule },
 	data() {
-		return { api: machineApi, section: savedSection(), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null }
+		return { api: machineApi, section: savedSection(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null }
 	},
 	computed: {
 		secStyle() {
 			return { '--wf-sec': sectionColor(this.section) }
+		},
+		// the Z point of the Workbench's active zone, for the Height module
+		askedPoint() {
+			return askedPoint(this.$route && this.$route.query)
 		},
 		model() {
 			return this.$store.state.machine.model
@@ -179,6 +185,11 @@ export default {
 			} catch (e) {
 				/* private window: the module just is not remembered */
 			}
+		},
+		// the page is already open and the Workbench pushes a new query (another tab, a Z point): the query wins, as it does at start-up
+		'$route.query'(q) {
+			const asked = querySection(q)
+			if (asked) this.section = this.snapshot ? allowedModule(asked, this.snapshot.modules, min => this.atLeast(min)) : asked
 		},
 		publishedKey() {
 			this.reloadSoon() // a run started or ended: the lights and the modules may have changed

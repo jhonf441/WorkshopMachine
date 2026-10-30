@@ -33,7 +33,11 @@
 					<v-btn v-if="has('after')" small outlined :disabled="!allowed" @click="$emit('restore', 'after')"><v-icon small left>mdi-redo-variant</v-icon>{{ t('history.restore_after') }}</v-btn>
 					<span v-if="!allowed" class="text-caption warning--text">{{ t('history.restore_needs_role', { role: restore.roleNeeded }) }}</span>
 				</template>
-				<span v-else-if="restore.reason" class="text-caption machine-faint">{{ t(reasonKey) }}</span>
+				<template v-else-if="restore.reason">
+					<span class="text-caption machine-faint">{{ t(reasonKey) }}</span>
+					<!-- an offsets.snapshot: the work offsets are the zones of the Workbench, the way there replaces the restore -->
+					<workbench-link v-if="inWorkbench" />
+				</template>
 			</div>
 		</v-card-text>
 	</v-card>
@@ -45,8 +49,9 @@
 // One record: who, when, what was measured or applied, and the actions: report, restore the values before or after (both only build a
 // plan: nothing is written until the person reviews it and confirms). What can be restored comes from the service (history.get).
 
+import WorkbenchLink from './WorkbenchLink.vue'
 import { textMixin } from './text-mixin.js'
-import { kindKey, stateView, restoreReasonKey } from '../lib/history.js'
+import { kindKey, stateView, restoreReasonKey, editedInWorkbench } from '../lib/history.js'
 import { formatDate, formatValue } from '../lib/format.js'
 import { flatten } from '../lib/record-compare.js'
 
@@ -58,6 +63,7 @@ function prefixed(name, part) {
 }
 
 export default {
+	components: { WorkbenchLink },
 	mixins: [textMixin],
 	props: {
 		record: { type: Object, required: true },
@@ -65,6 +71,9 @@ export default {
 		allowed: { type: Boolean, default: false } // workshopCan for the kind of this record
 	},
 	computed: {
+		inWorkbench() {
+			return editedInWorkbench(this.restore.reason)
+		},
 		kindText() {
 			return kindKey(this.record.kind) ? this.t(kindKey(this.record.kind)) : this.record.kind
 		},

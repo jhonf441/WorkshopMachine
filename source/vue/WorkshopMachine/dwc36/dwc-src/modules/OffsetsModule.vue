@@ -15,18 +15,13 @@
 					<div v-if="canWrite" class="text-caption machine-faint mt-1">{{ t('offsets.one_tool') }}</div>
 				</v-card-text>
 			</v-card>
+			<!-- the work systems are read only here: they are the work zones of the Workbench (lib/cross-page.js) -->
 			<v-card outlined class="mb-4">
 				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.work_title') }}</v-card-title>
 				<v-card-text>
-					<offsets-table
-						:sets="os.data.workplaces" :axes="workAxes" :draft="os.drafts.work" :editable="canWrite" :current="os.data.current" :first-column="t('offsets.col_system')"
-						:empty-text="t('offsets.no_work')"
-					/>
-					<div class="text-caption machine-faint mt-2">{{ t('offsets.persist_hint') }}</div>
-					<div v-if="canWrite" class="d-flex align-center flex-wrap mt-2" style="gap:8px">
-						<v-select v-model="os.target" :items="targetItems" :label="t('offsets.target')" dense outlined hide-details style="max-width:320px" />
-						<v-btn small color="primary" :disabled="!workReady || flowBusy" @click="proposeWork()">{{ t('offsets.review') }}</v-btn>
-					</div>
+					<offsets-table :sets="os.data.workplaces" :axes="workAxes" :draft="noDraft" :current="os.data.current" :first-column="t('offsets.col_system')" :empty-text="t('offsets.no_work')" />
+					<div class="text-caption machine-faint mt-2">{{ t('offsets.work_hint') }}</div>
+					<div class="d-flex align-center flex-wrap mt-2" style="gap:8px"><workbench-link /></div>
 				</v-card-text>
 			</v-card>
 			<plan-review v-if="ps.status !== 'idle'" class="mb-4" :state="ps" :title="t('offsets.plan_title')" :role-ok="canWrite" @apply="applyPlan()" @reset="flow.reset()" />
@@ -56,9 +51,10 @@
 <script>
 'use strict'
 
-// Offsets module (design 2.7): the tool offsets, the work coordinate systems G54..G59.3, snapshots to compare, the persistence helper
-// (every change goes through the plan: diff preview, then the service's confirmation) and the laser <-> pointer assistant. An operator
-// reads the tables; a technician edits. Nothing here moves the machine except the cross mark of the assistant (a service procedure).
+// Offsets module (design 2.7): the tool offsets (edited here, every change goes through the plan: diff preview, then the service's
+// confirmation), the work coordinate systems G54..G59.3 (read only: they are the work zones of the Workbench, the button takes the person
+// there), snapshots to compare and the laser <-> pointer assistant. An operator reads the tables; a technician edits the tools. Nothing
+// here moves the machine except the cross mark of the assistant (a service procedure).
 
 import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import OffsetsTable from './OffsetsTable.vue'
@@ -66,17 +62,19 @@ import OffsetsSnapshots from './OffsetsSnapshots.vue'
 import LaserPointer from './LaserPointer.vue'
 import PlanReview from './PlanReview.vue'
 import VerifyCamera from './VerifyCamera.vue'
+import WorkbenchLink from './WorkbenchLink.vue'
 import { textMixin } from './text-mixin.js'
 import { createOffsetsState, loadBegin, loaded, loadFailed, axesFor, changesFor, pointerMarked, pointerCaptured, pointerReset } from '../state/offsets-state.js'
 import { createPlanFlow } from '../state/plan-flow.js'
-import { isWorking } from '../state/plan-state.js'
-import { draftErrors, workValues, toolValues, toolChange, KIND_TOOLS, KIND_WORK, TARGETS } from '../lib/offsets.js'
+import { toolValues, toolChange, KIND_TOOLS } from '../lib/offsets.js'
 import { pairOf, crossReasonKey } from '../lib/laser-pointer.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
 
+const NO_DRAFT = {} // the work table is never edited here
+
 export default {
-	components: { ErrorNotice, OffsetsTable, OffsetsSnapshots, LaserPointer, PlanReview, VerifyCamera },
+	components: { ErrorNotice, OffsetsTable, OffsetsSnapshots, LaserPointer, PlanReview, VerifyCamera, WorkbenchLink },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
@@ -88,7 +86,7 @@ export default {
 		now: { type: Number, default: 0 }
 	},
 	data() {
-		return { os: createOffsetsState(), ps: null, flow: null, loadError: null, working: false, notice: '', opError: '', taken: null, laser: null }
+		return { os: createOffsetsState(), ps: null, flow: null, loadError: null, working: false, notice: '', opError: '', taken: null, laser: null, noDraft: NO_DRAFT }
 	},
 	computed: {
 		toolAxes() {
@@ -97,18 +95,8 @@ export default {
 		workAxes() {
 			return axesFor(this.os, 'work')
 		},
-		targetItems() {
-			return TARGETS.map(t => ({ value: t, text: this.t('offsets.target_' + t) }))
-		},
 		pair() {
 			return pairOf(this.toolPair, this.laser)
-		},
-		workReady() {
-			const changes = changesFor(this.os, 'work')
-			return changes.length > 0 && draftErrors(changes).length === 0
-		},
-		flowBusy() {
-			return isWorking(this.ps)
 		}
 	},
 	created() {
@@ -137,16 +125,12 @@ export default {
 				this.os.snapshots = []
 			}
 		},
-		// the tools go one by one (config.g10 edits one tool per plan); the work systems go together
+		// the tools go one by one (config.g10 edits one tool per plan)
 		proposeTool(key) {
-			const change = toolChange(changesFor(this.os, 'tools'), key)
+			const change = toolChange(changesFor(this.os), key)
 			if (!change) return null
 			const values = toolValues(change)
 			return this.flow.propose(async () => ({ plan: await this.api.config.plan(KIND_TOOLS, values), conflict: null }))
-		},
-		proposeWork() {
-			const values = workValues(changesFor(this.os, 'work'), this.os.target)
-			return this.flow.propose(async () => ({ plan: await this.api.config.plan(KIND_WORK, values), conflict: null }))
 		},
 		async applyPlan() {
 			await this.flow.apply(this.canWrite)

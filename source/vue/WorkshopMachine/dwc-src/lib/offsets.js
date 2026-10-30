@@ -1,17 +1,16 @@
 'use strict'
 
-// Offsets module logic (design 2.7): the tool offsets table, the work coordinate systems G54..G59.3, the draft the person edits and the
-// values of the plan that persists it. Pure. The snapshot comparison is made by the service (machine.history.compare).
+// Offsets module logic (design 2.7): the tool offsets table, the work coordinate systems G54..G59.3 (read only), the draft of the tools
+// the person edits and the values of the plan that persists it. Pure. The snapshot comparison is made by the service (machine.history.compare).
 //
 // A "set" is {number | index, name, offsets: {X: n, Y: n, ...}}: a tool (number) or a work system (index 1..9, name 'G54'..'G59.3').
-// The tool offsets persist as kind config.g10 (ONE tool per plan), the work offsets as config.workplaces; neither is an admin-class
-// kind, so a technician edits them (the server enforces it).
+// The tool offsets persist as kind config.g10 (ONE tool per plan; not an admin-class kind, so a technician edits them, the server enforces
+// it). The work offsets are the work zones of the Workbench (0:/sys/workshop/zones/p<N>.g, with the laser <-> pointer correction inside):
+// this page shows them and keeps snapshots to compare; the button "Edit in the Workbench" (lib/cross-page.js) takes the person there.
 
 import { formatNumber } from './format.js'
 
 export const KIND_TOOLS = 'config.g10'
-export const KIND_WORK = 'config.workplaces'
-export const TARGETS = ['macro', 'config'] // where the work offsets are written (machine.config.plan config.workplaces target)
 export const LIMIT = 1000 // mm: an offset beyond this is a typing mistake
 const AXIS_ORDER = 'XYZUVWABC'
 
@@ -75,15 +74,7 @@ export function draftErrors(changes) {
 	return changes.filter(c => c.errors.length)
 }
 
-// the values of the plan of the work systems (in the page's names; api/machine-api-p2.js serviceValues maps them): only the valid ones
-export function workValues(changes, target) {
-	const good = changes.filter(c => !c.errors.length)
-	const v = { workplaces: good.map(c => ({ index: c.set.index, offsets: c.offsets })) }
-	if (TARGETS.indexOf(target) >= 0) v.target = target
-	return v
-}
-
-// the values of the plan of ONE tool (config.g10 edits one tool per plan)
+// the values of the plan of ONE tool (config.g10 edits one tool per plan; api/machine-api-p2.js serviceValues maps the names)
 export function toolValues(change) {
 	return { tools: [{ number: change.set.number, offsets: change.offsets }] }
 }

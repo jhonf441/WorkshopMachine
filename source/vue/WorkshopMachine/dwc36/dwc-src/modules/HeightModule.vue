@@ -81,28 +81,19 @@ import HeightWizard from './HeightWizard.vue'
 import HeightSzp from './HeightSzp.vue'
 import { textMixin } from './text-mixin.js'
 import { HEIGHT_MODES } from '../api/machine-api-p8.js'
-import { modeView, blockReason, defaultPoint, askedPoint, parseAdjust, parsePaper, nudged, changeOf, hookMissing, szpRecord, parseSzpOutput, NUDGE, ASK_KEY, todayText } from '../lib/height.js'
-
-function takeAsked() {
-	try {
-		const text = localStorage.getItem(ASK_KEY)
-		if (text) localStorage.removeItem(ASK_KEY)
-		return askedPoint(text)
-	} catch (e) {
-		return null
-	}
-}
+import { modeView, blockReason, defaultPoint, parseAdjust, parsePaper, nudged, changeOf, hookMissing, szpRecord, parseSzpOutput, NUDGE, todayText } from '../lib/height.js'
 
 export default {
 	components: { ErrorNotice, HeightWizard, HeightSzp },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
-		canWrite: { type: Boolean, default: false } // technician
+		canWrite: { type: Boolean, default: false }, // technician
+		asked: { type: Object, default: null } // {x, y} the Workbench asked for in the route query (the Z point of its active zone), or null
 	},
 	data() {
 		return {
-			h: null, loadError: null, mode: 'Laser', MODES: HEIGHT_MODES, busy: false, notice: '', opError: '', wiz: '', point: { x: 0, y: 0 }, asked: takeAsked(),
+			h: null, loadError: null, mode: 'Laser', MODES: HEIGHT_MODES, busy: false, notice: '', opError: '', wiz: '', point: { x: 0, y: 0 },
 			adjust: '0', paperText: '0.1', szpOut: '', szpSR: null, nudges: [-NUDGE, NUDGE]
 		}
 	},

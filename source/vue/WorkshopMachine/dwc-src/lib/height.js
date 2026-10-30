@@ -8,7 +8,6 @@ export const PAPER_MAX = 3
 export const MARK_HEIGHT = 5 // mm above the surface after marking with the paper (the macro's default)
 export const JOG_STEPS = [-5, -1, -0.1, -0.05, 0.05, 0.1, 1, 5]
 export const NUDGE = 0.05
-export const ASK_KEY = 'workshopHeightPoint' // one-shot: the Workbench leaves {x, y} here when it sends the person to this page
 const MACROS_OF = { k0: ['goto', 'mark', 'probe'], paper: ['goto', 'mark'], szp: ['szp'] } // the macros of the SD each assistant needs
 export const METHODS = ['bltouch', 'paper', 'szp'] // height.method_<m> and height.note_<m>
 export const BLOCK_REASONS = ['loading', 'not_current', 'macro_missing', 'not_homed', 'no_probe', 'no_szp'] // height.block_<reason>
@@ -41,7 +40,8 @@ export function blockReason(h, view, kind) {
 	return ''
 }
 
-// the point of the assistants: the one the Workbench asked for, else the middle of the reach, else 0 0; always inside the reach
+// the point of the assistants: the one the Workbench asked for (route query, lib/cross-page.js askedPoint), else the middle of the reach,
+// else 0 0; always inside the reach
 export function clampPoint(point, reach) {
 	const p = { x: Number(point.x), y: Number(point.y) }
 	if (!isFinite(p.x) || !isFinite(p.y)) return { x: 0, y: 0, clamped: true }
@@ -56,16 +56,6 @@ export function defaultPoint(h, asked) {
 	if (asked) return clampPoint(asked, reach)
 	if (reach) return clampPoint({ x: (reach.xMin + reach.xMax) / 2, y: (reach.yMin + reach.yMax) / 2 }, reach)
 	return { x: 0, y: 0, clamped: false }
-}
-
-// {x, y} left by the Workbench (a string of the storage), or null
-export function askedPoint(text) {
-	try {
-		const v = JSON.parse(text)
-		return v && isFinite(v.x) && isFinite(v.y) ? { x: Number(v.x), y: Number(v.y) } : null
-	} catch (e) {
-		return null
-	}
 }
 
 // a typed number: {ok, value} or {ok: false, errorKey}

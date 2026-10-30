@@ -25,15 +25,15 @@
 'use strict'
 
 // Toolbar of the mesh bed (the Plan / Result tabs are PlanTabs.vue): in the Plan, in EVERY mode, the size buttons, the region presets
-// (whole reachable bed, centre, around the last job; a preset that cannot be computed is disabled with a title saying why) and the four
-// typed numbers of the area; in the Points mode they scale the chosen points. In the Result, the comparison with the previous mesh and
-// "edit this area" (back to the plan with the area of the mesh). Big buttons (44 px) for touch.
+// (whole reachable bed, centre; a preset that cannot be computed is disabled with a title saying why) and the four typed numbers of the
+// area; in the Points mode they scale the chosen points. In the Result, the comparison with the previous mesh and "edit this area" (back
+// to the plan with the area of the mesh). Big buttons (44 px) for touch.
 
 import MeshRegionFields from './MeshRegionFields.vue'
 import { textMixin } from '../modules/text-mixin.js'
 import { PRESETS, presetRegion } from '../lib/bed-mesh-plan.js'
 
-const ICON = { whole: 'mdi-fullscreen', centre: 'mdi-image-filter-center-focus', job: 'mdi-printer-3d-nozzle-outline' }
+const ICON = { whole: 'mdi-fullscreen', centre: 'mdi-image-filter-center-focus' }
 
 export default {
 	components: { MeshRegionFields },
@@ -49,14 +49,14 @@ export default {
 		compare: { type: Boolean, default: false },
 		canCompare: { type: Boolean, default: false },
 		compareReason: { type: String, default: '' }, // 'no_previous' | 'grid_differs'
-		model: { type: Object, required: true } // modelOf(...): bed, reach, lastJob
+		model: { type: Object, required: true } // modelOf(...): bed, reach
 	},
 	computed: {
 		show() {
 			return this.view === 'result' || this.editable
 		},
 		presets() {
-			return PRESETS.map(id => ({ id, icon: ICON[id], region: presetRegion(id, { bed: this.model.bed, reach: this.model.reach, lastJob: this.model.lastJob }) }))
+			return PRESETS.map(id => ({ id, icon: ICON[id], region: presetRegion(id, { bed: this.model.bed, reach: this.model.reach }) }))
 		}
 	}
 }

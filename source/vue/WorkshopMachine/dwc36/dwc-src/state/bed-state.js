@@ -41,8 +41,8 @@ export async function loadLayout(state, api, mode, draft) {
 	return state.status
 }
 
-// What the views draw, merged: {bed, offset, reach, reachSource, screws, lastJob, probePresent, kinematics, missing[]}.
-// Nothing is invented: an unknown part is null and its reason is in `missing`. lastJob stays null: the machine does not report where the last job was.
+// What the views draw, merged: {bed, offset, reach, reachSource, screws, probePresent, kinematics, missing[]}.
+// Nothing is invented: an unknown part is null and its reason is in `missing`.
 export function modelOf(state, axes, grid) {
 	const lay = state.status === 'ready' || state.status === 'loading' ? state.layout : null
 	const bed = (lay && lay.bed) || bedOf(axes, grid)
@@ -58,7 +58,7 @@ export function modelOf(state, axes, grid) {
 	if (!lay) missing = bed ? [] : ['no_bed']
 	if (state.status === 'unavailable' || state.status === 'error') missing.push('layout_unavailable')
 	return {
-		bed, offset, reach, reachSource, screws: lay ? lay.screws : [], lastJob: null,
+		bed, offset, reach, reachSource, screws: lay ? lay.screws : [],
 		probePresent: lay ? lay.probe.present : null, kinematics: lay ? lay.kinematics : null, missing
 	}
 }

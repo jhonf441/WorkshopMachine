@@ -80,27 +80,17 @@ import HeightWizard from './HeightWizard.vue'
 import HeightSzp from './HeightSzp.vue'
 import { t } from '../text.js'
 import { HEIGHT_MODES } from '../api/machine-api-p8.js'
-import { modeView, blockReason, defaultPoint, askedPoint, parseAdjust, parsePaper, nudged, changeOf, hookMissing, szpRecord, parseSzpOutput, NUDGE, ASK_KEY, todayText } from '../lib/height.js'
-
-function takeAsked() {
-	try {
-		const text = localStorage.getItem(ASK_KEY)
-		if (text) localStorage.removeItem(ASK_KEY)
-		return askedPoint(text)
-	} catch (e) {
-		return null
-	}
-}
+import { modeView, blockReason, defaultPoint, parseAdjust, parsePaper, nudged, changeOf, hookMissing, szpRecord, parseSzpOutput, NUDGE, todayText } from '../lib/height.js'
 
 const props = defineProps({
 	api: { type: Object, required: true }, // createMachineApi(...)
-	canWrite: { type: Boolean, default: false } // technician
+	canWrite: { type: Boolean, default: false }, // technician
+	asked: { type: Object, default: null } // {x, y} the Workbench asked for in the route query (the Z point of its active zone), or null
 })
 
 const MODES = HEIGHT_MODES
 const nudges = [-NUDGE, NUDGE]
 const nudge = nudged
-const asked = takeAsked()
 const h = ref(null)
 const loadError = ref(null)
 const mode = ref('Laser')
@@ -140,7 +130,7 @@ async function load(first) {
 		loadError.value = null
 		if (first) {
 			mode.value = h.value.mode || 'Laser'
-			point.value = defaultPoint(h.value, asked)
+			point.value = defaultPoint(h.value, props.asked)
 		}
 		syncDrafts()
 	} catch (e) {

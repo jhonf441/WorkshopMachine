@@ -15,18 +15,13 @@
 					<div v-if="canWrite" class="text-body-small machine-faint mt-1">{{ t('offsets.one_tool') }}</div>
 				</v-card-text>
 			</v-card>
+			<!-- the work systems are read only here: they are the work zones of the Workbench (lib/cross-page.js) -->
 			<v-card variant="outlined" class="mb-4">
 				<v-card-title class="text-title-medium pb-0">{{ t('offsets.work_title') }}</v-card-title>
 				<v-card-text>
-					<offsets-table
-						:sets="os.data.workplaces" :axes="workAxes" :draft="os.drafts.work" :editable="canWrite" :current="os.data.current" :first-column="t('offsets.col_system')"
-						:empty-text="t('offsets.no_work')"
-					/>
-					<div class="text-body-small machine-faint mt-2">{{ t('offsets.persist_hint') }}</div>
-					<div v-if="canWrite" class="d-flex align-center flex-wrap mt-2" style="gap:8px">
-						<v-select v-model="os.target" :items="targetItems" item-title="text" :label="t('offsets.target')" density="compact" variant="outlined" hide-details style="max-width:320px" />
-						<v-btn size="small" color="primary" :disabled="!workReady || flowBusy" @click="proposeWork()">{{ t('offsets.review') }}</v-btn>
-					</div>
+					<offsets-table :sets="os.data.workplaces" :axes="workAxes" :draft="noDraft" :current="os.data.current" :first-column="t('offsets.col_system')" :empty-text="t('offsets.no_work')" />
+					<div class="text-body-small machine-faint mt-2">{{ t('offsets.work_hint') }}</div>
+					<div class="d-flex align-center flex-wrap mt-2" style="gap:8px"><workbench-link /></div>
 				</v-card-text>
 			</v-card>
 			<plan-review v-if="ps.status !== 'idle'" class="mb-4" :state="ps" :title="t('offsets.plan_title')" :role-ok="canWrite" @apply="applyPlan()" @reset="flow.reset()" />
@@ -54,9 +49,10 @@
 </template>
 
 <script setup>
-// Offsets module (design 2.7): the tool offsets, the work coordinate systems G54..G59.3, snapshots to compare, the persistence helper
-// (every change goes through the plan: diff preview, then the service's confirmation) and the laser <-> pointer assistant. An operator
-// reads the tables; a technician edits. Nothing here moves the machine except the cross mark of the assistant (a service procedure).
+// Offsets module (design 2.7): the tool offsets (edited here, every change goes through the plan: diff preview, then the service's
+// confirmation), the work coordinate systems G54..G59.3 (read only: they are the work zones of the Workbench, the button takes the person
+// there), snapshots to compare and the laser <-> pointer assistant. An operator reads the tables; a technician edits the tools. Nothing
+// here moves the machine except the cross mark of the assistant (a service procedure).
 
 import { computed, reactive, ref } from 'vue'
 import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
@@ -65,11 +61,12 @@ import OffsetsSnapshots from './OffsetsSnapshots.vue'
 import LaserPointer from './LaserPointer.vue'
 import PlanReview from './PlanReview.vue'
 import VerifyCamera from './VerifyCamera.vue'
+import WorkbenchLink from './WorkbenchLink.vue'
 import { t } from '../text.js'
 import { createOffsetsState, loadBegin, loaded, loadFailed, axesFor, changesFor, pointerMarked, pointerCaptured, pointerReset } from '../state/offsets-state.js'
 import { createPlanFlow } from '../state/plan-flow.js'
-import { createPlanState, isWorking } from '../state/plan-state.js'
-import { draftErrors, workValues, toolValues, toolChange, KIND_TOOLS, KIND_WORK, TARGETS } from '../lib/offsets.js'
+import { createPlanState } from '../state/plan-state.js'
+import { toolValues, toolChange, KIND_TOOLS } from '../lib/offsets.js'
 import { pairOf, crossReasonKey } from '../lib/laser-pointer.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
@@ -93,16 +90,11 @@ const notice = ref('')
 const opError = ref('')
 const taken = ref(null)
 const laser = ref(null)
+const noDraft = {} // the work table is never edited here
 
 const toolAxes = computed(() => axesFor(os, 'tools'))
 const workAxes = computed(() => axesFor(os, 'work'))
-const targetItems = computed(() => TARGETS.map(x => ({ value: x, text: t('offsets.target_' + x) })))
 const pair = computed(() => pairOf(props.toolPair, laser.value))
-const workReady = computed(() => {
-	const changes = changesFor(os, 'work')
-	return changes.length > 0 && draftErrors(changes).length === 0
-})
-const flowBusy = computed(() => isWorking(ps))
 
 async function load() {
 	loadBegin(os)
@@ -123,16 +115,12 @@ async function loadSnapshots() {
 		os.snapshots = []
 	}
 }
-// the tools go one by one (config.g10 edits one tool per plan); the work systems go together
+// the tools go one by one (config.g10 edits one tool per plan)
 function proposeTool(key) {
-	const change = toolChange(changesFor(os, 'tools'), key)
+	const change = toolChange(changesFor(os), key)
 	if (!change) return null
 	const values = toolValues(change)
 	return flow.propose(async () => ({ plan: await props.api.config.plan(KIND_TOOLS, values), conflict: null }))
-}
-function proposeWork() {
-	const values = workValues(changesFor(os, 'work'), os.target)
-	return flow.propose(async () => ({ plan: await props.api.config.plan(KIND_WORK, values), conflict: null }))
 }
 async function applyPlan() {
 	await flow.apply(props.canWrite)

@@ -11,7 +11,7 @@ export const KNOWN_KINDS = [
 	'probe.read', 'probe.repeat', 'probe.accuracy', 'probe.trigger', 'probe.offset', 'level.g32', 'level.g30', 'level.measure', 'mesh.probe',
 	'homing.verify', 'homing.repeat', 'offsets.verify',
 	'config.g31', 'config.m671', 'config.bed', 'config.g10', 'config.m557', 'config.m593', 'config.m425', 'config.m556', 'config.m376',
-	'config.workplaces', 'config.m208', 'config.m92', 'config.m906', 'config.m913', 'config.m917', 'config.m569', 'config.m584',
+	'config.m208', 'config.m92', 'config.m906', 'config.m913', 'config.m917', 'config.m569', 'config.m584',
 	'safety.check', 'offsets.snapshot', 'laser.pointer'
 ]
 
@@ -66,8 +66,13 @@ export function distinct(records, field) {
 	return Array.from(new Set((records || []).map(r => r[field]).filter(Boolean))).sort()
 }
 
-// why a record cannot be restored (history.get restore.reason); an unknown one has its own fallback text
-export const RESTORE_REASONS = ['not_restorable', 'not_applied', 'no_value']
+// why a record cannot be restored (history.get restore.reason); an unknown one has its own fallback text. work_offsets_in_workbench: an
+// offsets.snapshot (the work offsets are the zones of the Workbench: the detail offers the way there instead of a restore)
+export const RESTORE_REASONS = ['not_restorable', 'not_applied', 'no_value', 'work_offsets_in_workbench']
+
+export function editedInWorkbench(reason) {
+	return reason === 'work_offsets_in_workbench'
+}
 
 export function restoreReasonKey(reason) {
 	return 'history.reason_' + (RESTORE_REASONS.indexOf(reason) >= 0 ? reason : 'other')

@@ -27,8 +27,8 @@
 'use strict'
 
 // Snapshots of the offsets: take one now (the service stores it in the calibration history and tells what changed since the previous
-// one) and compare any two of them (machine.history.compare). To bring a snapshot back, open it in the History module and restore it
-// (a plan with a diff, never a silent write).
+// one) and compare any two of them (machine.history.compare). A snapshot is for comparing, it is not restored: the work offsets are the
+// work zones of the Workbench (edited there), the tool offsets are edited in this module.
 
 import DiffTable from './DiffTable.vue'
 import { textMixin } from './text-mixin.js'

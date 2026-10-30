@@ -118,10 +118,11 @@ export function estimateSeconds(points) {
 	return Math.round(mm / TRAVEL_MM_S + path.length * POINT_SECONDS)
 }
 
-export const PRESETS = ['whole', 'centre', 'job']
+// the presets of the region (the machine does not report where the last job was, so there is no "around the last job" preset)
+export const PRESETS = ['whole', 'centre']
 export const REASONS = ['outside_bed', 'head_outside_x', 'head_outside_y', 'head_outside_xy', 'inside_margin', 'no_limits', 'no_probe', 'unsupported_kinematics', 'duplicate_point', 'screw_outside_reach', 'reach_unknown', 'not_probed'] // the reasons that have a text (bed.reason_<code>; any other is shown as 'other')
 
-// presets of the region: 'whole' (all the reachable bed), 'centre' (the middle half of it), 'job' (around the last job) -> region | null
+// presets of the region: 'whole' (all the reachable bed), 'centre' (the middle half of it) -> region | null
 export function presetRegion(id, ctx) {
 	const area = ctx.reach ? inset(ctx.reach, MESH_MARGIN) : ctx.bed // the run keeps a margin from the edge of the reach
 	if (!area) return null
@@ -130,12 +131,6 @@ export function presetRegion(id, ctx) {
 		const w = (area.xmax - area.xmin) / 4
 		const h = (area.ymax - area.ymin) / 4
 		return { xmin: area.xmin + w, xmax: area.xmax - w, ymin: area.ymin + h, ymax: area.ymax - h }
-	}
-	if (id === 'job') {
-		const j = ctx.lastJob
-		if (!j) return null
-		const m = 5
-		return { xmin: Math.max(area.xmin, j.xmin - m), xmax: Math.min(area.xmax, j.xmax + m), ymin: Math.max(area.ymin, j.ymin - m), ymax: Math.min(area.ymax, j.ymax + m) }
 	}
 	return null
 }

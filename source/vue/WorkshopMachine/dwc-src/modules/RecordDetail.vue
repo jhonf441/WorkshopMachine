@@ -33,7 +33,11 @@
 					<v-btn v-if="has('after')" size="small" variant="outlined" :disabled="!allowed" @click="$emit('restore', 'after')"><v-icon size="small" start>mdi-redo-variant</v-icon>{{ t('history.restore_after') }}</v-btn>
 					<span v-if="!allowed" class="text-body-small text-warning">{{ t('history.restore_needs_role', { role: restore.roleNeeded }) }}</span>
 				</template>
-				<span v-else-if="restore.reason" class="text-body-small machine-faint">{{ t(reasonKey) }}</span>
+				<template v-else-if="restore.reason">
+					<span class="text-body-small machine-faint">{{ t(reasonKey) }}</span>
+					<!-- an offsets.snapshot: the work offsets are the zones of the Workbench, the way there replaces the restore -->
+					<workbench-link v-if="inWorkbench" />
+				</template>
 			</div>
 		</v-card-text>
 	</v-card>
@@ -44,8 +48,9 @@
 // plan: nothing is written until the person reviews it and confirms). What can be restored comes from the service (history.get).
 
 import { computed } from 'vue'
+import WorkbenchLink from './WorkbenchLink.vue'
 import { t } from '../text.js'
-import { kindKey, stateView, restoreReasonKey } from '../lib/history.js'
+import { kindKey, stateView, restoreReasonKey, editedInWorkbench } from '../lib/history.js'
 import { formatDate, formatValue } from '../lib/format.js'
 import { flatten } from '../lib/record-compare.js'
 
@@ -67,6 +72,7 @@ const kindText = computed(() => (kindKey(props.record.kind) ? t(kindKey(props.re
 const dateText = computed(() => formatDate(props.record.ts))
 const state = computed(() => stateView(props.record.state))
 const reasonKey = computed(() => restoreReasonKey(props.restore.reason))
+const inWorkbench = computed(() => editedInWorkbench(props.restore.reason))
 const values = computed(() => {
 	const all = Object.assign({}, prefixed('inputs', props.record.inputs), prefixed('results', props.record.results))
 	return Object.keys(all).sort().map(path => ({ path, text: formatValue(all[path]) }))

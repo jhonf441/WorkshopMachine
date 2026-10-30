@@ -133,7 +133,7 @@ export function normalizeThreeWay(raw) {
 // The values of a plan in the names of the service. The page's own names (letters, numbers) are mapped here:
 //   config.m208 {limits: [{letter, min, max}]}            -> {axes: {X: {min, max}}}
 //   config.g10 {tools: [{number, offsets}]} (ONE tool)    -> {tool, offsets}
-//   config.workplaces {workplaces: [{index, offsets}], target?} -> {systems: {"1": {X: v}}, target}
+// (the work offsets G54..G59.3 have no plan kind: they are the work zones of the Workbench)
 export function serviceValues(kind, values) {
 	const v = obj(values)
 	if (kind === 'config.m208') {
@@ -144,11 +144,6 @@ export function serviceValues(kind, values) {
 	if (kind === 'config.g10') {
 		const t = list(v.tools)[0] || {}
 		return { tool: t.number, offsets: obj(t.offsets) }
-	}
-	if (kind === 'config.workplaces') {
-		const systems = {}
-		list(v.workplaces).forEach(w => { systems[String(w.index)] = obj(w.offsets) })
-		return v.target ? { systems, target: v.target } : { systems }
 	}
 	return v
 }

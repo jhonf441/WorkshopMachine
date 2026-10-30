@@ -121,7 +121,7 @@ function missingOf(r) {
 	return out
 }
 
-// -> {mode, bed, kinematics, probe: {present, index, offset: {x, y} | null, triggerHeight}, reach, screws[], mesh, level, lastJob, lastMesh (a raw grid), lastLevel, missing[]}
+// -> {mode, bed, kinematics, probe: {present, index, offset: {x, y} | null, triggerHeight}, reach, screws[], mesh, level, lastMesh (a raw grid), lastLevel, missing[]}
 export function normalizeLayout(raw) {
 	const r = obj(raw)
 	const probe = obj(r.probe)
@@ -133,7 +133,7 @@ export function normalizeLayout(raw) {
 		mode: String(r.mode || ''), bed: rect(r.bed), kinematics: obj(r.kinematics).name ? String(r.kinematics.name) : null,
 		probe: { present: !!r.probe && r.probe_reason !== 'no_probe', index: num(probe.index), offset: ox !== null && oy !== null && r.probe ? { x: ox, y: oy } : null, triggerHeight: num(probe.trigger_height) },
 		reach: rect(r.reach), screws: list(r.leadscrews).map(s => ({ index: num(obj(s).index), x: num(obj(s).x), y: num(obj(s).y) })).filter(s => s.index !== null && s.x !== null && s.y !== null),
-		mesh: meshBlock(r.mesh), level: levelBlock(r.level), lastJob: null, lastMesh: lastMesh(last.mesh),
+		mesh: meshBlock(r.mesh), level: levelBlock(r.level), lastMesh: lastMesh(last.mesh),
 		lastLevel: last.level ? { ts: num(ll.ts), user: String(ll.user || ''), kind: String(ll.kind || ''), outcome: ll.outcome ? String(ll.outcome) : '', deviation: num(ll.deviation), mean: num(ll.mean), points: normalizeHeights(ll) } : null,
 		missing: missingOf(r)
 	}

@@ -3,13 +3,12 @@
 // The explicit state of the Offsets module: plain object + plain functions, no Vue, no network.
 //   status     'idle' | 'loading' | 'ready' | 'error'
 //   data       normalizeOffsets(...): {tools, workplaces, current, axes, lastSnapshot}
-//   drafts     {tools: {key: {axis: text}}, work: {...}} what the person is typing
-//   target     where the work offsets are written: 'macro' (workshop-offsets.g) or 'config' (the file that has the G10 L2 lines)
+//   drafts     {tools: {key: {axis: text}}} what the person is typing (the work systems are read only here: they are edited in the Workbench)
 //   snapshots  Briefs of the snapshots (newest first);  pick {a, b}  ids chosen to compare;  comparison  the last compare answer or null
 //   error      {key, detail}
 //   pointer    the laser <-> pointer assistant: {inputs: {power}, mark: {head, powerPct} | null, captured: capture answer | null}
 
-import { axesOf, draftOf, changedSets, KIND_TOOLS, KIND_WORK } from '../lib/offsets.js'
+import { axesOf, draftOf, changedSets } from '../lib/offsets.js'
 import { DEFAULT_POWER } from '../lib/laser-pointer.js'
 
 function freshPointer() {
@@ -17,7 +16,7 @@ function freshPointer() {
 }
 
 export function createOffsetsState() {
-	return { status: 'idle', data: null, drafts: { tools: {}, work: {} }, target: 'macro', snapshots: [], pick: { a: '', b: '' }, comparison: null, error: null, pointer: freshPointer() }
+	return { status: 'idle', data: null, drafts: { tools: {} }, snapshots: [], pick: { a: '', b: '' }, comparison: null, error: null, pointer: freshPointer() }
 }
 
 export function loadBegin(state) {
@@ -48,19 +47,15 @@ export function axesFor(state, which) {
 }
 
 export function resetDrafts(state) {
-	const d = state.data || { tools: [], workplaces: [] }
-	state.drafts = { tools: draftOf(d.tools, axesOf(d.tools)), work: draftOf(d.workplaces, axesOf(d.workplaces)) }
+	const tools = state.data ? state.data.tools : []
+	state.drafts = { tools: draftOf(tools, axesOf(tools)) }
 	return state
 }
 
-// what the person changed in one table: [{key, set, offsets, errors}]
-export function changesFor(state, which) {
-	const sets = setsOf(state, which)
-	return changedSets(sets, which === 'tools' ? state.drafts.tools : state.drafts.work, axesOf(sets))
-}
-
-export function kindFor(which) {
-	return which === 'tools' ? KIND_TOOLS : KIND_WORK
+// what the person changed in the tools table: [{key, set, offsets, errors}]
+export function changesFor(state) {
+	const sets = setsOf(state, 'tools')
+	return changedSets(sets, state.drafts.tools, axesOf(sets))
 }
 
 // two different snapshots chosen to compare, older first by the order the person chose them
