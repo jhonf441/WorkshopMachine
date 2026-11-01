@@ -10,7 +10,8 @@
 		<steps-assistant v-if="tab === 'steps'" :api="api" :rows="rows" :can-edit="configure('config.m92')" @changed="load()" />
 		<squareness-assistant v-else-if="tab === 'skew'" :api="api" :can-edit="configure('config.m556')" @changed="load()" />
 		<backlash-assistant v-else :api="api" :axes="letters" :can-edit="configure('config.m425')" @changed="load()" />
-		<div class="text-body-small machine-faint mt-4">{{ t('calibration.motors_link') }}</div>
+		<!-- the Motors page is another plugin: nothing about it when it is not installed or not enabled -->
+		<div v-if="motorsOn" class="text-body-small machine-faint mt-4">{{ t('calibration.motors_link') }}</div>
 	</div>
 </template>
 
@@ -24,6 +25,7 @@ import StepsAssistant from './StepsAssistant.vue'
 import SquarenessAssistant from './SquarenessAssistant.vue'
 import BacklashAssistant from './BacklashAssistant.vue'
 import { t } from '../text.js'
+import { pluginActive } from '../workshop-ids.js' // vue/_shared
 import { tableRows } from '../lib/motion-table.js'
 
 const ASSISTANTS = ['steps', 'skew', 'backlash']
@@ -38,6 +40,7 @@ const tab = ref('steps')
 const motion = ref(null)
 const loadError = ref(null)
 
+const motorsOn = computed(() => pluginActive('motors'))
 const rows = computed(() => tableRows(motion.value ? motion.value.rows : []))
 // backlash is per axis (M425 takes X..C, not the extruder)
 const letters = computed(() => rows.value.filter(r => r.kind === 'axis').map(r => r.letter))

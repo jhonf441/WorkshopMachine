@@ -32,6 +32,19 @@ export function crossReasonKey(reason) {
 	return 'offsets.cross_' + (CROSS_REASONS.indexOf(reason) >= 0 ? reason : 'other')
 }
 
+// the note under a saved capture about the zones of the board (offsets.pointer_zones_*), '' when there is nothing to say: the service saved the
+// correction in the store; the board takes it now (zonesApplied) or later (a job is running, the file could not be written, no answer)
+export function zonesNoteKey(captured) {
+	if (!captured || !captured.saved) return ''
+	if (captured.zonesApplied === true) return 'offsets.pointer_zones_applied'
+	if (captured.zonesApplied !== false) return ''
+	const why = String(captured.zonesReason || '')
+	if (why === 'job_running') return 'offsets.pointer_zones_wait_job'
+	if (why === 'mirror_failed') return 'offsets.pointer_zones_mirror_failed'
+	if (why.indexOf('no_connection') === 0) return 'offsets.pointer_zones_no_board'
+	return 'offsets.pointer_zones_later'
+}
+
 // the correction as the person reads it: "X 0.30  Y -0.12" in mm with the sign the service computed
 export function correctionText(correction) {
 	if (!correction || typeof correction.x !== 'number' || typeof correction.y !== 'number') return ''

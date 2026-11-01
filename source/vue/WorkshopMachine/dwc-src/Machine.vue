@@ -44,7 +44,7 @@
 						/>
 						<area-module v-else-if="section === 'workarea'" :api="api" :can-write="caps.run" :axes="axes" />
 						<calibration-module v-else-if="section === 'calibration'" :api="api" :configure="caps.configure" :can-write="caps.run" />
-						<motion-module v-else-if="section === 'motion'" :api="api" :configure="caps.configure" :trial="caps.trial" :is-admin="caps.admin" :now="now" />
+						<motion-module v-else-if="section === 'motion'" :api="api" :configure="caps.configure" :trial="caps.trial" :is-admin="caps.admin" :asked="askedParam" :now="now" />
 						<shaping-module
 							v-else-if="section === 'shaping'" :api="api" :published="published" :configure="caps.configure" :trial="caps.trial" :can-run="caps.run" :now="now"
 						/>
@@ -69,7 +69,7 @@
 
 import { sectionColor } from './section-colors.js'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { machineModel, modelPlugins } from './dwc-host.js'
 import ServiceNotice from './ServiceNotice.vue' // vue/_shared
 import PageHeader from './PageHeader.vue' // header of every page (vue/_shared)
@@ -100,11 +100,10 @@ import { machineApi } from './api/machine-client.js'
 import { normalizeRuns } from './api/machine-api.js'
 import { moduleItems, allowedModule, capabilitiesOf } from './lib/gating.js'
 import { lightView, worstLight } from './lib/traffic.js'
-import { querySection, askedPoint as askedPointOf } from './lib/cross-page.js'
+import { querySection, askedPoint as askedPointOf, askedParam as askedParamOf, takeQuery } from './lib/cross-page.js'
 import { t } from './text.js'
 
-const SECTION_KEY = 'workshopMachineSection'
-const GOTO_EVENT = 'workshop-machine-goto' // another plugin (Workbench) sends the person to a module of this page: {section}
+const SECTION_KEY = 'workshopMachineSection' // this page's own memory of the last module (no other plugin writes it: they send ?layout=)
 const RELOAD_MS = 250
 
 // the module to open: the one the route query asks for (the Workbench sends ?layout=..&x=..&y=.., lib/cross-page.js), else the last one
@@ -119,10 +118,12 @@ function savedSection(query) {
 }
 
 const route = useRoute()
+const router = useRouter()
 const { atLeast, canDo, identityTick } = useRole()
 const api = machineApi
 const section = ref(savedSection(route.query))
-const askedPoint = computed(() => askedPointOf(route.query)) // the Z point of the Workbench's active zone, for the Height module
+const askedPoint = ref(askedPointOf(route.query)) // the Z point of the Workbench's active zone, for the Height module: used once (answerQuery)
+const askedParam = ref(askedParamOf(route.query)) // the motion parameter another plugin asks to change (the 3D printing page), for the Motion module: used once
 const snapshot = ref(null)
 const loadError = ref(null)
 const loading = ref(false)
@@ -198,30 +199,34 @@ async function stopAll() {
 
 watch(section, id => {
 	if (id !== 'report') reportTarget.value = ''
+	if (id !== 'height') askedPoint.value = null // the Workbench's Z point was for that one visit
+	if (id !== 'motion') askedParam.value = null // and the parameter the 3D printing page asked for
 	try {
 		localStorage.setItem(SECTION_KEY, id)
 	} catch (e) {
 		/* private window: the module just is not remembered */
 	}
 })
-// the page can already be open (kept by DWC) with another module on show: the saved section alone would not be read again
-function onGoto(ev) {
-	const id = ev && ev.detail && ev.detail.section
-	if (id) section.value = snapshot.value ? allowedModule(id, snapshot.value.modules, min => atLeast(min)) : id
+// The question of another plugin (the Workbench and the 3D printing page send ?layout=..&x=..&y=..&param=..) is answered ONCE: the module opens, the Z point goes to the Height module, the
+// motion parameter to the Motion module and the parameters leave the URL, so a reload or coming back to the page does not ask it again (lib/cross-page.js takeQuery).
+function answerQuery(q) {
+	const taken = takeQuery(q)
+	if (!taken) return
+	if (taken.point) askedPoint.value = taken.point
+	if (taken.param) askedParam.value = taken.param
+	if (taken.section) section.value = snapshot.value ? allowedModule(taken.section, snapshot.value.modules, min => atLeast(min)) : taken.section
+	router.replace({ path: route.path, query: taken.rest }).catch(() => {})
 }
-window.addEventListener(GOTO_EVENT, onGoto)
-// the page is already open and the Workbench pushes a new query (another tab, a Z point): the query wins, as it does at start-up
-watch(() => route.query, q => {
-	const asked = querySection(q)
-	if (asked) section.value = snapshot.value ? allowedModule(asked, snapshot.value.modules, min => atLeast(min)) : asked
-})
+// the page is already open (kept by DWC) with another module on show and another plugin pushes a new query (a module, a Z point): the
+// query wins, as it does at start-up
+watch(() => route.query, q => answerQuery(q))
+answerQuery(route.query)
 watch(publishedKey, () => reloadSoon()) // a run started or ended: the lights and the modules may have changed
 watch(identityTick, () => load())
 
 load()
 const clock = setInterval(() => { now.value = Math.floor(Date.now() / 1000) }, 1000)
 onBeforeUnmount(() => {
-	window.removeEventListener(GOTO_EVENT, onGoto)
 	clearInterval(clock)
 	clearTimeout(reloadTimer)
 })

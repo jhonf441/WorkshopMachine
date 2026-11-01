@@ -10,14 +10,18 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { t } from '../text.js'
-import { pathExists } from '../workshop-ids.js' // vue/_shared
-import { WORKBENCH_PATH, workbenchZonesRoute } from '../lib/cross-page.js'
+import { pluginActive } from '../workshop-ids.js' // vue/_shared
+import { workbenchZonesRoute } from '../lib/cross-page.js'
 
+const props = defineProps({
+	zone: { type: String, default: '' } // the work system (G54..G59.3) the Workbench opens on; empty = the Zones tab only
+})
 const router = useRouter()
-const exists = computed(() => pathExists(router, WORKBENCH_PATH))
+// the plugin lists, not the route: DWC keeps the route of a plugin that was stopped
+const exists = computed(() => pluginActive('workbench'))
 
 function go() {
-	const p = router.push(workbenchZonesRoute())
+	const p = router.push(workbenchZonesRoute(props.zone))
 	if (p && typeof p.catch === 'function') p.catch(() => {})
 }
 </script>

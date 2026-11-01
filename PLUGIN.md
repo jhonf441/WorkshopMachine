@@ -101,7 +101,7 @@ Picture 5: "Height map": Plan and Result tabs, Size and Region buttons, the area
 - How: press Plan or Result.
 
 #### Size, Region and Area
-- What: "Smaller" / "Bigger" change the grid density; the region buttons choose "Whole reachable bed", "Centre" or "Around the last job"; the fields X min, X max, Y min, Y max (mm) set the area by hand.
+- What: "Smaller" / "Bigger" change the grid density; the region buttons choose "Whole reachable bed" or "Centre" (the middle half of it); the fields X min, X max, Y min, Y max (mm) set the area by hand.
 - Where: rows under the notice (red rectangle, picture 5).
 - How: press a button or type the area.
 
@@ -128,17 +128,23 @@ Picture 5: "Height map": Plan and Result tabs, Size and Region buttons, the area
 Picture 6: "Tool and work offsets": Tools and "Work systems" G54 to G59.3.
 
 #### Tool offsets
-- What: the offset of each tool. Here "The board reports no tools". Tools are saved one at a time: each row has its own button.
+- What: the offset of each tool. Here "The board reports no tools". Tools are saved one at a time: each row has its own button, which writes the change to the configuration with a preview and a backup.
 - Where: card "Tools" (picture 6).
+- How: 1. Type the offsets of one tool. 2. Press "Review the change" and read the preview. 3. Apply.
 
-#### Work coordinate systems G54 to G59.3
-- What: the X, Y and Z offset of each work system (G55 is "in use"). Saving writes a `G10` block to the configuration with a preview and a backup, because the board keeps offsets only in memory.
+#### Work coordinate systems G54 to G59.3 (read only)
+- What: the X, Y and Z offset of each work system (G55 is "in use"), for reading only. Each system is a work zone of the Workbench (`sys/workshop/zones/p1.g` to `p9.g`; they hold the point of the pointer and no number of the laser-pointer correction, which is one value of the machine, the one measured below): Machine writes no work offset.
 - Where: card "Work systems" (picture 6).
-- How: 1. Type the offsets. 2. Press the review/save button of the card and read the preview. 3. Apply.
+- How: read the values. To create, move or delete a system press "Edit in the Workbench": it opens the Workbench on Zones.
 - Watch out: a wrong work offset shifts every job.
 
+#### Snapshots and comparison
+- What: "Take a snapshot now" stores the tool and work offsets as they are; two snapshots are compared value by value. Snapshots are for comparing: they are never restored.
+- Where: lower in Offsets (not in the picture).
+- How: 1. Press "Take a snapshot now". 2. Choose Snapshot A and Snapshot B to see what differs.
+
 #### Pointer alignment helper
-- What: aligns the laser pointer with the laser.
+- What: aligns the laser pointer with the laser. "Capture and save" stores ONE correction for the whole machine (the Jog, the Workbench and the board all read it) and the work zones take it at once; while a job is running they take it at the next laser job instead, and the screen says so.
 - Where: lower in Offsets (not in the picture).
 
 ![Height](https://raw.githubusercontent.com/jhonf441/WorkshopMachine/main/img/07-height-calibration.png)
@@ -235,7 +241,8 @@ Picture 11: "Motion parameters" as the board reports them.
 - What: one parameter at a time: the plan is prepared, the change in the file is reviewed and only then applied. Nothing is written to the driver directly.
 - Where: card "Change a parameter" under the table (scroll down).
 - How: 1. Choose the parameter and the axis. 2. Type the value. 3. Review the plan. 4. Apply.
-- Watch out: administrator only; wrong values can stall or overheat the motors.
+- Also from the 3D printing page: the screw motor card of Pellet setup has a "Change in Machine" button for the acceleration, the jerk and the top speed; it opens this card on that parameter.
+- Watch out: administrator only; wrong values can stall or overheat the motors. The extruder is the row `E`: the first extruder only.
 
 ### Input shaping
 
@@ -310,7 +317,7 @@ Picture 16: "Calibration history" with the filters, the table and "Compare the t
 - Where: top of History (red rectangle, picture 16).
 
 #### Records, Open and Compare
-- What: every calibration is recorded with who and when; "Open" shows a record; tick two records of the same kind and press "Compare the two ticked" to compare them; restoring earlier values only prepares a plan that you review before applying.
+- What: every calibration is recorded with who and when; "Open" shows a record; tick two records of the same kind and press "Compare the two ticked" to compare them; restoring earlier values only prepares a plan that you review before applying. A snapshot of the offsets is not restored (a record that cannot be restored says why): the work systems are edited in the Workbench.
 - Where: table and bottom button (red rectangles, picture 16).
 - How: 1. Tick two records. 2. Press "Compare the two ticked".
 

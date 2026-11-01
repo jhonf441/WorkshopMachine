@@ -14,9 +14,9 @@
 			<v-btn small outlined :disabled="!canReset" style="min-height:44px" @click="$emit('reset')"><v-icon small left>mdi-restore</v-icon>{{ showModes ? t('bed.clear_points') : t('bed.reset_points') }}</v-btn>
 			<v-btn v-if="canSeed" small outlined style="min-height:44px" :title="t('bed.seed_tip')" @click="$emit('seed')"><v-icon small left>mdi-grid</v-icon>{{ t('bed.seed') }}</v-btn>
 		</div>
-		<details v-if="!showModes || mode === 'points'" class="mt-2 point-mode-coords">
+		<details v-if="!showModes || mode === 'points'" class="mt-2 point-mode-coords" @toggle="coordsOpen = $event.target.open">
 			<summary class="text-body-2" style="min-height:44px">{{ t('bed.add_by_position') }}</summary>
-			<form class="d-flex align-center flex-wrap mt-1" style="gap:8px" @submit.prevent="add()">
+			<form v-if="coordsOpen" class="d-flex align-center flex-wrap mt-1" style="gap:8px" @submit.prevent="add()">
 				<v-text-field v-model="x" :label="'X'" type="number" suffix="mm" dense outlined hide-details style="max-width:130px" />
 				<v-text-field v-model="y" :label="'Y'" type="number" suffix="mm" dense outlined hide-details style="max-width:130px" />
 				<v-btn small outlined type="submit" :disabled="!valid" style="min-height:44px"><v-icon small left>mdi-plus</v-icon>{{ t('bed.add_point') }}</v-btn>
@@ -33,6 +33,7 @@
 // POINTS = choose points), the counter, undo / redo / clear and, for the keyboard and for exact numbers, "Add a point by its position".
 // The bed itself does the tapping and dragging. Every button is 44 px, with icon AND word. `notice` is a short sentence from the caller
 // (limit reached, a point already there).
+// The position form is drawn only while the details are open: an outlined field mounted inside closed details measures its label at zero width and the label overlaps the border.
 
 import { textMixin } from '../modules/text-mixin.js'
 
@@ -49,7 +50,7 @@ export default {
 		notice: { type: String, default: '' }
 	},
 	data() {
-		return { x: '', y: '' }
+		return { x: '', y: '', coordsOpen: false }
 	},
 	computed: {
 		valid() {

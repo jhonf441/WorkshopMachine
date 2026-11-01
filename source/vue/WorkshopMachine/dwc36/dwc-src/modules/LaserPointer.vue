@@ -11,7 +11,7 @@
 		<div class="text-caption machine-faint mt-1">{{ t('offsets.pointer_guard', { max: max }) }}</div>
 		<template v-if="pointer.mark">
 			<div class="text-body-2 mt-2">{{ t('offsets.pointer_marked', { x: fmt(pointer.mark.head.x), y: fmt(pointer.mark.head.y) }) }}</div>
-			<div class="text-body-2 font-weight-medium mt-4">{{ t('offsets.pointer_step_2') }}</div>
+			<div class="text-body-2 font-weight-medium mt-4">{{ tx('offsets.pointer_step_2') }}</div>
 			<div class="d-flex align-center flex-wrap mt-1" style="gap:8px">
 				<v-btn small outlined :disabled="!canRun || busy" @click="$emit('capture', false)">{{ t('offsets.pointer_capture') }}</v-btn>
 				<v-btn small color="primary" :disabled="!canRun || busy" @click="$emit('capture', true)">{{ t('offsets.pointer_capture_save') }}</v-btn>
@@ -20,7 +20,8 @@
 		</template>
 		<v-alert v-if="pointer.captured" dense outlined type="success" class="mt-3">
 			<div>{{ t('offsets.pointer_result', { text: correction }) }}</div>
-			<div class="text-caption">{{ pointer.captured.saved ? t('offsets.pointer_saved') : t('offsets.pointer_not_saved') }}</div>
+			<div class="text-caption">{{ pointer.captured.saved ? tx('offsets.pointer_saved') : t('offsets.pointer_not_saved') }}</div>
+			<div v-if="zonesNote" class="text-caption">{{ zonesNote }}</div>
 			<div v-if="pointer.captured.previous" class="text-caption">{{ t('offsets.pointer_previous', { text: previous }) }}</div>
 		</v-alert>
 		<div class="text-caption machine-faint mt-2">{{ t('offsets.pointer_sign') }}</div>
@@ -36,7 +37,7 @@
 // centre of the cross with the Jog and asks for the capture; the service answers the correction (and stores it when asked).
 
 import { textMixin } from './text-mixin.js'
-import { parsePower, correctionText, MAX_POWER } from '../lib/laser-pointer.js'
+import { parsePower, correctionText, zonesNoteKey, MAX_POWER } from '../lib/laser-pointer.js'
 
 export default {
 	mixins: [textMixin],
@@ -58,6 +59,10 @@ export default {
 		},
 		correction() {
 			return correctionText(this.pointer.captured && this.pointer.captured.correction)
+		},
+		zonesNote() {
+			const key = zonesNoteKey(this.pointer.captured)
+			return key ? this.t(key) : ''
 		},
 		previous() {
 			const p = this.pointer.captured && this.pointer.captured.previous

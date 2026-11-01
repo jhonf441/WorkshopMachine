@@ -1,7 +1,7 @@
 <template>
 	<div class="offsets-module">
 		<div class="text-h6 mb-1">{{ t('offsets.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('offsets.intro') }}</p>
+		<p class="text-body-2 machine-faint">{{ tx('offsets.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
 		<v-alert v-if="!canWrite" dense outlined type="info" class="mb-3">{{ t('offsets.read_only') }}</v-alert>
 		<template v-if="os.data">
@@ -20,8 +20,8 @@
 				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.work_title') }}</v-card-title>
 				<v-card-text>
 					<offsets-table :sets="os.data.workplaces" :axes="workAxes" :draft="noDraft" :current="os.data.current" :first-column="t('offsets.col_system')" :empty-text="t('offsets.no_work')" />
-					<div class="text-caption machine-faint mt-2">{{ t('offsets.work_hint') }}</div>
-					<div class="d-flex align-center flex-wrap mt-2" style="gap:8px"><workbench-link /></div>
+					<div class="text-caption machine-faint mt-2">{{ tx('offsets.work_hint') }}</div>
+					<div v-if="workbenchOn" class="d-flex align-center flex-wrap mt-2" style="gap:8px"><workbench-link :zone="os.data.current" /></div>
 				</v-card-text>
 			</v-card>
 			<plan-review v-if="ps.status !== 'idle'" class="mb-4" :state="ps" :title="t('offsets.plan_title')" :role-ok="canWrite" @apply="applyPlan()" @reset="flow.reset()" />
@@ -31,7 +31,8 @@
 					<offsets-snapshots :api="api" :snapshots="os.snapshots" :pick="os.pick" :last="os.data.lastSnapshot" :taken="taken" :can-write="canWrite" :busy="working" @snapshot="snapshot()" />
 				</v-card-text>
 			</v-card>
-			<v-card outlined class="mb-4">
+			<!-- the verification measures with the camera of Vision: nothing about it when Vision is not installed or not enabled -->
+			<v-card v-if="visionOn" outlined class="mb-4">
 				<v-card-title class="text-subtitle-1 pb-0">{{ t('verify.title') }}</v-card-title>
 				<v-card-text><verify-camera :api="api" :published="published" :can-run="canRun" :measure="measure" :now="now" /></v-card-text>
 			</v-card>
@@ -64,6 +65,7 @@ import PlanReview from './PlanReview.vue'
 import VerifyCamera from './VerifyCamera.vue'
 import WorkbenchLink from './WorkbenchLink.vue'
 import { textMixin } from './text-mixin.js'
+import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { createOffsetsState, loadBegin, loaded, loadFailed, axesFor, changesFor, pointerMarked, pointerCaptured, pointerReset } from '../state/offsets-state.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { toolValues, toolChange, KIND_TOOLS } from '../lib/offsets.js'
@@ -89,6 +91,12 @@ export default {
 		return { os: createOffsetsState(), ps: null, flow: null, loadError: null, working: false, notice: '', opError: '', taken: null, laser: null, noDraft: NO_DRAFT }
 	},
 	computed: {
+		workbenchOn() {
+			return pluginActive(this.$store, 'workbench')
+		},
+		visionOn() {
+			return pluginActive(this.$store, 'vision')
+		},
 		toolAxes() {
 			return axesFor(this.os, 'tools')
 		},

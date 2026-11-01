@@ -12,7 +12,8 @@
 			<summary>{{ t('common.how_it_works') }}</summary>
 		<div class="text-caption machine-faint mt-1">{{ t('motion.units') }}</div>
 		</details>
-		<div class="mt-2">
+		<!-- the Motors page is another plugin: nothing about it when it is not installed or not enabled -->
+		<div v-if="motorsOn" class="mt-2">
 			<span class="text-body-2">{{ t('motion.motors_question') }}</span>
 			<v-btn x-small outlined class="ml-2" to="/Plugins/Motors"><v-icon x-small left>mdi-engine</v-icon>{{ t('motion.open_motors') }}</v-btn>
 		</div>
@@ -60,6 +61,7 @@ import PlanReview from './PlanReview.vue'
 import TryPanel from './TryPanel.vue'
 import { planModule } from './plan-module.js'
 import { trialModule } from './trial-module.js'
+import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { tableRows, PARAMS, DRIVER_MODES, paramOf, editRows, draftOf, changes, valid, planValues, previewLine, rangeOf } from '../lib/motion-table.js'
 
 export default {
@@ -70,12 +72,16 @@ export default {
 		configure: { type: Function, required: true }, // capabilitiesOf(...).configure(kind)
 		trial: { type: Function, required: true }, // capabilitiesOf(...).trial(gcodeKind)
 		isAdmin: { type: Boolean, default: false }, // the module edits for an administrator only
+		asked: { type: String, default: null }, // the parameter another plugin asked to change (?layout=motion&param=acceleration, lib/cross-page.js)
 		now: { type: Number, default: 0 } // epoch seconds, ticks every second
 	},
 	data() {
-		return { motion: null, loadError: null, param: PARAMS[0].id, draft: {} }
+		return { motion: null, loadError: null, param: this.asked || PARAMS[0].id, draft: {} }
 	},
 	computed: {
+		motorsOn() {
+			return pluginActive(this.$store, 'motors')
+		},
 		rows() {
 			return tableRows(this.motion ? this.motion.rows : [])
 		},
@@ -117,6 +123,15 @@ export default {
 		},
 		unitText() {
 			return this.p.unit ? this.t('motion.unit_' + this.p.unit) : ''
+		}
+	},
+	watch: {
+		// another plugin sends the page here while the module is open: its parameter wins, as it does at start-up
+		asked(v) {
+			if (v) {
+				this.param = v
+				this.resetDraft()
+			}
 		}
 	},
 	created() {

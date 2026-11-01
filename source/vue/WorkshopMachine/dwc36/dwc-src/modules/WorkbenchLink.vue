@@ -10,19 +10,23 @@
 // to another one shows nothing about it when the other one is not installed or not enabled (the button is hidden, not disabled).
 
 import { textMixin } from './text-mixin.js'
-import { pathExists } from '../workshop-ids.js' // vue/_shared36
-import { WORKBENCH_PATH, workbenchZonesRoute } from '../lib/cross-page.js'
+import { pluginActive } from '../workshop-ids.js' // vue/_shared36
+import { workbenchZonesRoute } from '../lib/cross-page.js'
 
 export default {
 	mixins: [textMixin],
+	props: {
+		zone: { type: String, default: '' } // the work system (G54..G59.3) the Workbench opens on; empty = the Zones tab only
+	},
 	computed: {
+		// the plugin lists, not the route: DWC 3.6 cannot remove the route of a plugin that was stopped
 		exists() {
-			return pathExists(this.$router, WORKBENCH_PATH)
+			return pluginActive(this.$store, 'workbench')
 		}
 	},
 	methods: {
 		go() {
-			const p = this.$router ? this.$router.push(workbenchZonesRoute()) : null
+			const p = this.$router ? this.$router.push(workbenchZonesRoute(this.zone)) : null
 			if (p && typeof p.catch === 'function') p.catch(() => {})
 		}
 	}

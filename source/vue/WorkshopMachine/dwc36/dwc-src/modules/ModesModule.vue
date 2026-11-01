@@ -22,7 +22,7 @@
 						<span class="text-subtitle-1 font-weight-medium flex-grow-1">{{ t('modes.' + c.id) }}</span>
 						<v-chip small label :color="CHIP[c.state]" :text-color="c.state === 'off' ? undefined : 'white'">{{ stateText(c) }}</v-chip>
 					</div>
-					<div class="text-caption machine-faint mb-2">{{ t('modes.' + c.id + '_about') }}</div>
+					<div class="text-caption machine-faint mb-2">{{ tx('modes.' + c.id + '_about') }}</div>
 					<v-switch
 						:input-value="effective[c.id]" :label="t('modes.use')" dense hide-details color="primary"
 						:disabled="!canWrite || saving" @change="toggle(c.id, $event)"

@@ -236,14 +236,18 @@ export function normalizeSnapshot(raw) {
 	return { recordId: v.record_id || null, previous: v.previous ? { id: text(prev.id), ts: num(prev.ts), user: text(prev.user) } : null, changed: num(v.changed), diff: v.diff ? normalizeDiff({ rows: v.diff }) : null }
 }
 
-// machine.mark_cross: mark -> {head, powerPct}; capture -> {mark, head, correction, previous, saved, recordId}; clear -> {cleared}
+// machine.mark_cross: mark -> {head, powerPct}; capture -> {mark, head, correction, previous, saved, recordId, zonesApplied, zonesReason}; clear -> {cleared}
+// zonesApplied (only with a saved capture): true = the board runs the new correction now; false = it waits, and zonesReason says why
+// ("job_running": a job is on, the zones take it at the next laser job; "mirror_failed": lasercorrection.g could not be written;
+// "no_connection:<detail>": the board did not answer); null = the service did not say (an older service)
 export function normalizeCross(raw) {
 	const v = obj(raw)
 	const xy = p => (p && typeof p === 'object' ? { x: num(p.x), y: num(p.y) } : null)
 	const prev = obj(v.previous)
 	return {
 		action: text(v.action), head: xy(v.head), mark: xy(v.mark), correction: xy(v.correction), powerPct: num(v.power_pct),
-		previous: v.previous ? { x: num(prev.x), y: num(prev.y), date: prev.date || null } : null, saved: !!v.saved, recordId: v.record_id || null, cleared: !!v.cleared
+		previous: v.previous ? { x: num(prev.x), y: num(prev.y), date: prev.date || null } : null, saved: !!v.saved, recordId: v.record_id || null, cleared: !!v.cleared,
+		zonesApplied: typeof v.zones_applied === 'boolean' ? v.zones_applied : null, zonesReason: text(v.zones_reason)
 	}
 }
 

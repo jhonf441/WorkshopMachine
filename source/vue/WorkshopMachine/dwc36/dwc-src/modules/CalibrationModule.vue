@@ -10,7 +10,8 @@
 		<steps-assistant v-if="tab === 'steps'" :api="api" :rows="rows" :can-edit="configure('config.m92')" @changed="load()" />
 		<squareness-assistant v-else-if="tab === 'skew'" :api="api" :can-edit="configure('config.m556')" @changed="load()" />
 		<backlash-assistant v-else :api="api" :axes="letters" :can-edit="configure('config.m425')" @changed="load()" />
-		<div class="text-caption machine-faint mt-4">{{ t('calibration.motors_link') }}</div>
+		<!-- the Motors page is another plugin: nothing about it when it is not installed or not enabled -->
+		<div v-if="motorsOn" class="text-caption machine-faint mt-4">{{ t('calibration.motors_link') }}</div>
 	</div>
 </template>
 
@@ -25,6 +26,7 @@ import StepsAssistant from './StepsAssistant.vue'
 import SquarenessAssistant from './SquarenessAssistant.vue'
 import BacklashAssistant from './BacklashAssistant.vue'
 import { textMixin } from './text-mixin.js'
+import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { tableRows } from '../lib/motion-table.js'
 
 const ASSISTANTS = ['steps', 'skew', 'backlash']
@@ -41,6 +43,9 @@ export default {
 		return { ASSISTANTS, tab: 'steps', motion: null, loadError: null }
 	},
 	computed: {
+		motorsOn() {
+			return pluginActive(this.$store, 'motors')
+		},
 		rows() {
 			return tableRows(this.motion ? this.motion.rows : [])
 		},

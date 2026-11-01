@@ -12,7 +12,8 @@
 			<summary>{{ t('common.how_it_works') }}</summary>
 		<div class="text-body-small machine-faint mt-1">{{ t('motion.units') }}</div>
 		</details>
-		<div class="mt-2">
+		<!-- the Motors page is another plugin: nothing about it when it is not installed or not enabled -->
+		<div v-if="motorsOn" class="mt-2">
 			<span class="text-body-medium">{{ t('motion.motors_question') }}</span>
 			<v-btn size="x-small" variant="outlined" class="ml-2" to="/Plugins/Motors"><v-icon size="x-small" start>mdi-engine</v-icon>{{ t('motion.open_motors') }}</v-btn>
 		</div>
@@ -58,6 +59,7 @@ import MotionTable from './MotionTable.vue'
 import PlanReview from './PlanReview.vue'
 import TryPanel from './TryPanel.vue'
 import { t } from '../text.js'
+import { pluginActive } from '../workshop-ids.js' // vue/_shared
 import { usePlanModule } from './use-plan-module.js'
 import { useTrialModule } from './use-trial-module.js'
 import { tableRows, PARAMS, DRIVER_MODES, paramOf, editRows, draftOf, changes, valid, planValues, previewLine, rangeOf } from '../lib/motion-table.js'
@@ -67,6 +69,7 @@ const props = defineProps({
 	configure: { type: Function, required: true }, // capabilitiesOf(...).configure(kind)
 	trial: { type: Function, required: true }, // capabilitiesOf(...).trial(gcodeKind)
 	isAdmin: { type: Boolean, default: false }, // the module edits for an administrator only
+	asked: { type: String, default: null }, // the parameter another plugin asked to change (?layout=motion&param=acceleration, lib/cross-page.js)
 	now: { type: Number, default: 0 } // epoch seconds, ticks every second
 })
 
@@ -75,9 +78,10 @@ const { tf, tryFlow, trySeconds, tryNow, persistTrial } = useTrialModule(props, 
 
 const motion = ref(null)
 const loadError = ref(null)
-const param = ref(PARAMS[0].id)
+const param = ref(props.asked || PARAMS[0].id)
 const draft = ref({})
 
+const motorsOn = computed(() => pluginActive('motors'))
 const rows = computed(() => tableRows(motion.value ? motion.value.rows : []))
 const p = computed(() => paramOf(param.value))
 const canEdit = computed(() => props.configure(p.value.kind))
@@ -123,5 +127,7 @@ async function applied() {
 }
 // the person chose another parameter: its fields start from the board's values
 watch(param, () => resetDraft())
+// another plugin sends the page here while the module is open: its parameter wins, as it does at start-up
+watch(() => props.asked, v => { if (v) param.value = v })
 load()
 </script>

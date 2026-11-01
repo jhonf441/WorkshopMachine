@@ -3,12 +3,12 @@
 		<div class="text-h6 mb-1">{{ t('workarea.title') }}</div>
 		<details class="wf-more">
 			<summary>{{ t('common.how_it_works') }}</summary>
-		<p class="text-body-2 machine-faint">{{ t('workarea.intro') }}</p>
+		<p class="text-body-2 machine-faint">{{ tx('workarea.intro') }}</p>
 		</details>
 		<error-notice :error="st.loadError" retry @retry="reload()" />
 		<v-alert v-if="!canWrite" dense outlined type="info" class="mb-3">{{ t('workarea.read_only') }}</v-alert>
 		<template v-if="st.data">
-			<v-alert v-if="macrosMissing" dense outlined type="warning" class="mb-3">{{ t('workarea.macros_missing') }}</v-alert>
+			<v-alert v-if="macrosMissing" dense outlined type="warning" class="mb-3">{{ tx('workarea.macros_missing') }}</v-alert>
 			<v-alert v-if="!st.data.file" dense outlined type="info" class="mb-3">{{ t('workarea.file_missing') }}</v-alert>
 			<div class="d-flex align-center flex-wrap mb-3" style="gap:8px">
 				<v-btn-toggle :value="st.mode" mandatory dense @change="pickMode">
@@ -125,7 +125,7 @@ export default {
 		},
 		blockText(action) {
 			const key = blockKey(this.block(action))
-			return key ? this.t(key, { mode: this.st.mode }) : ''
+			return key ? this.tx(key, { mode: this.st.mode }) : ''
 		},
 		pickMode(mode) {
 			if (mode) selectMode(this.st, mode)

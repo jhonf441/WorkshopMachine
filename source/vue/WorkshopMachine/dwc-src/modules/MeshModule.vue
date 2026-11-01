@@ -3,8 +3,8 @@
 		<div class="d-flex align-center flex-wrap" style="gap:8px">
 			<div class="text-title-large">{{ t('mesh.title') }}</div>
 			<v-spacer />
-			<!-- 3D lives in the DWC Height Map page; this page does not duplicate it -->
-			<v-btn size="small" variant="outlined" to="/Plugins/HeightMap"><v-icon size="small" start>mdi-cube-scan</v-icon>{{ t('mesh.open_height_map') }}</v-btn>
+			<!-- 3D lives in the DWC Height Map page; this page does not duplicate it. HeightMap is a built-in plugin of DWC that can be switched off: no button then -->
+			<v-btn v-if="heightMapOn" size="small" variant="outlined" to="/Plugins/HeightMap"><v-icon size="small" start>mdi-cube-scan</v-icon>{{ t('mesh.open_height_map') }}</v-btn>
 		</div>
 		<p class="text-body-medium machine-faint">{{ t('mesh.intro') }}</p>
 		<v-alert v-if="!canRun" density="compact" variant="outlined" type="info" class="mb-3">{{ t('page.read_only') }}</v-alert>
@@ -38,6 +38,8 @@
 
 import { computed, reactive, ref, watch } from 'vue'
 import { t } from '../text.js'
+import { enabledPlugins } from '../dwc-host.js' // vue/_shared
+import { HEIGHT_MAP_ID, builtinEnabled } from '../lib/plugin-texts.js'
 import { useRunModule } from './use-run-module.js'
 import { useBedLayout } from './use-bed-layout.js'
 import { usePointSets } from './use-point-sets.js'
@@ -81,6 +83,7 @@ const { rs, busy, startAllowed, runErrorText, foreignKind, start, stop } = useRu
 const { bedState, bedModel, refreshLayout, layoutFor, askDraft } = useBedLayout(props, LAYOUT_MODE, grid)
 const { setsView, loadPointSets, saveSet, deleteSet } = usePointSets(props)
 
+const heightMapOn = computed(() => builtinEnabled(enabledPlugins(), HEIGHT_MAP_ID))
 const bed = computed(() => bedModel.value.bed)
 // the points the person chose on the bed (Points mode) imply a regular grid; it replaces the typed counts and region in the run
 const derived = computed(() => {

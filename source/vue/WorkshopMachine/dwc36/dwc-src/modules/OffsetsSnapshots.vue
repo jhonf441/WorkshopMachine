@@ -19,7 +19,7 @@
 			<v-alert v-if="failed" dense outlined type="error" class="mt-2">{{ t(failed) }}</v-alert>
 			<diff-table v-if="comparison" class="mt-2" :rows="comparisonRows" :changed="comparison.results.changed + comparison.inputs.changed" :cut="comparison.results.cut || comparison.inputs.cut" :a-label="t('offsets.col_a')" :b-label="t('offsets.col_b')" />
 		</template>
-		<div class="text-caption machine-faint mt-2">{{ t('offsets.restore_hint') }}</div>
+		<div class="text-caption machine-faint mt-2">{{ tx('offsets.restore_hint') }}</div>
 	</div>
 </template>
 

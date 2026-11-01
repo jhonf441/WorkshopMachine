@@ -34,7 +34,7 @@
 					<span v-if="!allowed" class="text-body-small text-warning">{{ t('history.restore_needs_role', { role: restore.roleNeeded }) }}</span>
 				</template>
 				<template v-else-if="restore.reason">
-					<span class="text-body-small machine-faint">{{ t(reasonKey) }}</span>
+					<span class="text-body-small machine-faint">{{ tx(reasonKey) }}</span>
 					<!-- an offsets.snapshot: the work offsets are the zones of the Workbench, the way there replaces the restore -->
 					<workbench-link v-if="inWorkbench" />
 				</template>
@@ -49,7 +49,7 @@
 
 import { computed } from 'vue'
 import WorkbenchLink from './WorkbenchLink.vue'
-import { t } from '../text.js'
+import { t, tx } from '../text.js'
 import { kindKey, stateView, restoreReasonKey, editedInWorkbench } from '../lib/history.js'
 import { formatDate, formatValue } from '../lib/format.js'
 import { flatten } from '../lib/record-compare.js'

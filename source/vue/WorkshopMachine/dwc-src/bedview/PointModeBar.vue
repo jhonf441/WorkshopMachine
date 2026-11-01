@@ -14,9 +14,9 @@
 			<v-btn size="small" variant="outlined" :disabled="!canReset" style="min-height:44px" @click="$emit('reset')"><v-icon size="small" start>mdi-restore</v-icon>{{ showModes ? t('bed.clear_points') : t('bed.reset_points') }}</v-btn>
 			<v-btn v-if="canSeed" size="small" variant="outlined" style="min-height:44px" :title="t('bed.seed_tip')" @click="$emit('seed')"><v-icon size="small" start>mdi-grid</v-icon>{{ t('bed.seed') }}</v-btn>
 		</div>
-		<details v-if="!showModes || mode === 'points'" class="mt-2 point-mode-coords">
+		<details v-if="!showModes || mode === 'points'" class="mt-2 point-mode-coords" @toggle="coordsOpen = $event.target.open">
 			<summary class="text-body-medium" style="min-height:44px">{{ t('bed.add_by_position') }}</summary>
-			<form class="d-flex align-center flex-wrap mt-1" style="gap:8px" @submit.prevent="add()">
+			<form v-if="coordsOpen" class="d-flex align-center flex-wrap mt-1" style="gap:8px" @submit.prevent="add()">
 				<v-text-field v-model="x" :label="'X'" type="number" suffix="mm" density="compact" variant="outlined" hide-details style="max-width:130px" />
 				<v-text-field v-model="y" :label="'Y'" type="number" suffix="mm" density="compact" variant="outlined" hide-details style="max-width:130px" />
 				<v-btn size="small" variant="outlined" type="submit" :disabled="!valid" style="min-height:44px"><v-icon size="small" start>mdi-plus</v-icon>{{ t('bed.add_point') }}</v-btn>
@@ -49,6 +49,7 @@ const emit = defineEmits(['mode', 'undo', 'redo', 'reset', 'seed', 'add'])
 
 const x = ref('')
 const y = ref('')
+const coordsOpen = ref(false) // the form is drawn only while the details are open (same as the 3.6 side)
 const valid = computed(() => String(x.value).trim() !== '' && String(y.value).trim() !== '' && isFinite(Number(x.value)) && isFinite(Number(y.value)))
 
 function add() {

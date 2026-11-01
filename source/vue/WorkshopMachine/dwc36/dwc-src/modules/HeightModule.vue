@@ -160,7 +160,7 @@ export default {
 		},
 		blockText(kind) {
 			const r = this.block(kind)
-			return r ? this.t('height.block_' + r, { mode: this.mode }) : ''
+			return r ? this.tx('height.block_' + r, { mode: this.mode }) : ''
 		},
 		start(kind) {
 			this.notice = ''

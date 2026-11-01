@@ -78,7 +78,7 @@ import { computed, ref, watch } from 'vue'
 import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import HeightWizard from './HeightWizard.vue'
 import HeightSzp from './HeightSzp.vue'
-import { t } from '../text.js'
+import { t, tx } from '../text.js'
 import { HEIGHT_MODES } from '../api/machine-api-p8.js'
 import { modeView, blockReason, defaultPoint, parseAdjust, parsePaper, nudged, changeOf, hookMissing, szpRecord, parseSzpOutput, NUDGE, todayText } from '../lib/height.js'
 
@@ -156,7 +156,7 @@ function block(kind) {
 }
 function blockText(kind) {
 	const r = block(kind)
-	return r ? t('height.block_' + r, { mode: mode.value }) : ''
+	return r ? tx('height.block_' + r, { mode: mode.value }) : ''
 }
 function start(kind) {
 	notice.value = ''

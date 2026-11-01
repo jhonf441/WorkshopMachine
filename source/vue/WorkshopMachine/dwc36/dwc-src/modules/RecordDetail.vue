@@ -34,7 +34,7 @@
 					<span v-if="!allowed" class="text-caption warning--text">{{ t('history.restore_needs_role', { role: restore.roleNeeded }) }}</span>
 				</template>
 				<template v-else-if="restore.reason">
-					<span class="text-caption machine-faint">{{ t(reasonKey) }}</span>
+					<span class="text-caption machine-faint">{{ tx(reasonKey) }}</span>
 					<!-- an offsets.snapshot: the work offsets are the zones of the Workbench, the way there replaces the restore -->
 					<workbench-link v-if="inWorkbench" />
 				</template>

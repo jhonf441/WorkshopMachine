@@ -1,5 +1,21 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.9 -- 2026-10-31
+
+- Lot 2: one relay client, camera client folder, single gallery, one presence helper, shared resources released at the last plugin, flash for the operator
+
+## 1.8.8 -- 2026-10-31
+
+- Hides what names a plugin that is absent; a plugin is active only by the machine list
+
+## 1.8.7 -- 2026-10-31
+
+- Fixes of 31-oct: position form, Offsets link to the zone, page reads the query when open
+
+## 1.8.6 -- 2026-10-31
+
+- Merged work: config write path, exchange standard, review fixes
+
 ## 1.8.5 -- 2026-10-30
 
 - Work offsets are read only with an Edit in the Workbench button; the page links use route parameters

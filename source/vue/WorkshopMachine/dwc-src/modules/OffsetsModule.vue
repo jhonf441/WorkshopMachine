@@ -1,7 +1,7 @@
 <template>
 	<div class="offsets-module">
 		<div class="text-title-large mb-1">{{ t('offsets.title') }}</div>
-		<p class="text-body-medium machine-faint">{{ t('offsets.intro') }}</p>
+		<p class="text-body-medium machine-faint">{{ tx('offsets.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
 		<v-alert v-if="!canWrite" density="compact" variant="outlined" type="info" class="mb-3">{{ t('offsets.read_only') }}</v-alert>
 		<template v-if="os.data">
@@ -20,8 +20,8 @@
 				<v-card-title class="text-title-medium pb-0">{{ t('offsets.work_title') }}</v-card-title>
 				<v-card-text>
 					<offsets-table :sets="os.data.workplaces" :axes="workAxes" :draft="noDraft" :current="os.data.current" :first-column="t('offsets.col_system')" :empty-text="t('offsets.no_work')" />
-					<div class="text-body-small machine-faint mt-2">{{ t('offsets.work_hint') }}</div>
-					<div class="d-flex align-center flex-wrap mt-2" style="gap:8px"><workbench-link /></div>
+					<div class="text-body-small machine-faint mt-2">{{ tx('offsets.work_hint') }}</div>
+					<div v-if="workbenchOn" class="d-flex align-center flex-wrap mt-2" style="gap:8px"><workbench-link :zone="os.data.current" /></div>
 				</v-card-text>
 			</v-card>
 			<plan-review v-if="ps.status !== 'idle'" class="mb-4" :state="ps" :title="t('offsets.plan_title')" :role-ok="canWrite" @apply="applyPlan()" @reset="flow.reset()" />
@@ -31,7 +31,8 @@
 					<offsets-snapshots :api="api" :snapshots="os.snapshots" :pick="os.pick" :last="os.data.lastSnapshot" :taken="taken" :can-write="canWrite" :busy="working" @snapshot="snapshot()" />
 				</v-card-text>
 			</v-card>
-			<v-card variant="outlined" class="mb-4">
+			<!-- the verification measures with the camera of Vision: nothing about it when Vision is not installed or not enabled -->
+			<v-card v-if="visionOn" variant="outlined" class="mb-4">
 				<v-card-title class="text-title-medium pb-0">{{ t('verify.title') }}</v-card-title>
 				<v-card-text><verify-camera :api="api" :published="published" :can-run="canRun" :measure="measure" :now="now" /></v-card-text>
 			</v-card>
@@ -62,7 +63,8 @@ import LaserPointer from './LaserPointer.vue'
 import PlanReview from './PlanReview.vue'
 import VerifyCamera from './VerifyCamera.vue'
 import WorkbenchLink from './WorkbenchLink.vue'
-import { t } from '../text.js'
+import { t, tx } from '../text.js'
+import { pluginActive } from '../workshop-ids.js' // vue/_shared
 import { createOffsetsState, loadBegin, loaded, loadFailed, axesFor, changesFor, pointerMarked, pointerCaptured, pointerReset } from '../state/offsets-state.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { createPlanState } from '../state/plan-state.js'
@@ -91,6 +93,8 @@ const opError = ref('')
 const taken = ref(null)
 const laser = ref(null)
 const noDraft = {} // the work table is never edited here
+const workbenchOn = computed(() => pluginActive('workbench'))
+const visionOn = computed(() => pluginActive('vision'))
 
 const toolAxes = computed(() => axesFor(os, 'tools'))
 const workAxes = computed(() => axesFor(os, 'work'))

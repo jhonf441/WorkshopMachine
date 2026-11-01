@@ -22,7 +22,7 @@
 						<span class="text-title-medium font-weight-medium flex-grow-1">{{ t('modes.' + c.id) }}</span>
 						<v-chip size="small" variant="outlined" :color="CHIP[c.state]">{{ stateText(c) }}</v-chip>
 					</div>
-					<div class="text-body-small text-medium-emphasis mb-2">{{ t('modes.' + c.id + '_about') }}</div>
+					<div class="text-body-small text-medium-emphasis mb-2">{{ tx('modes.' + c.id + '_about') }}</div>
 					<v-switch
 						:model-value="effective[c.id]" :label="t('modes.use')" density="compact" hide-details color="primary"
 						:disabled="!canWrite || saving" @update:model-value="toggle(c.id, $event)"
@@ -48,7 +48,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { loadModes, saveModes, readModeFacts } from '../machine-modes-store.js' // vue/_shared
 import { MODES, detectModes, modesState, enabledList, usesSeveralModes, modeRows, guideDefs, effectiveModes, modeCardState, MODES_CHANGED, MODES_GUIDE } from '../machine-modes.js'
-import { t } from '../text.js'
+import { t, tx } from '../text.js'
 
 defineProps({
 	canWrite: { type: Boolean, default: false }

@@ -4,7 +4,7 @@
 			<div class="text-h6">{{ t('mesh.title') }}</div>
 			<v-spacer />
 			<!-- 3D lives in the DWC Height Map page; this page does not duplicate it -->
-			<v-btn small outlined to="/Plugins/HeightMap"><v-icon small left>mdi-cube-scan</v-icon>{{ t('mesh.open_height_map') }}</v-btn>
+			<v-btn v-if="heightMapOn" small outlined to="/Plugins/HeightMap"><v-icon small left>mdi-cube-scan</v-icon>{{ t('mesh.open_height_map') }}</v-btn>
 		</div>
 		<p class="text-body-2 machine-faint">{{ t('mesh.intro') }}</p>
 		<v-alert v-if="!canRun" dense outlined type="info" class="mb-3">{{ t('page.read_only') }}</v-alert>
@@ -53,6 +53,7 @@ import { meshArea } from '../lib/bed-mesh-plan.js'
 import { gridFromPoints, effectiveInputs } from '../lib/point-grid.js'
 import { createPointEdit } from '../state/point-edit-state.js'
 import { refusalKey } from '../lib/runs.js'
+import { HEIGHT_MAP_ID, builtinEnabled } from '../lib/plugin-texts.js'
 
 export default {
 	components: { RunStart, RunProgress, MeshRunForm, MeshBed, MeshLibrary },
@@ -71,6 +72,11 @@ export default {
 		return { layoutMode: 'mesh', pe: createPointEdit(), resultSignal: 0, meshes: [], libraryOff: false, grid: null, previous: null, working: false, notice: '', opError: '' }
 	},
 	computed: {
+		// HeightMap is a built-in plugin of DWC that can be switched off (global list of DWC settings): no button then
+		heightMapOn() {
+			const st = this.$store && this.$store.state
+			return builtinEnabled(st && st.settings ? st.settings.enabledPlugins : null, HEIGHT_MAP_ID)
+		},
 		bed() {
 			return this.bedModel.bed
 		},

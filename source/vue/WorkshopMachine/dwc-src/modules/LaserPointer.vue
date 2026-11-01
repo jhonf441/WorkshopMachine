@@ -11,7 +11,7 @@
 		<div class="text-body-small machine-faint mt-1">{{ t('offsets.pointer_guard', { max: max }) }}</div>
 		<template v-if="pointer.mark">
 			<div class="text-body-medium mt-2">{{ t('offsets.pointer_marked', { x: fmt(pointer.mark.head.x), y: fmt(pointer.mark.head.y) }) }}</div>
-			<div class="text-body-medium font-weight-medium mt-4">{{ t('offsets.pointer_step_2') }}</div>
+			<div class="text-body-medium font-weight-medium mt-4">{{ tx('offsets.pointer_step_2') }}</div>
 			<div class="d-flex align-center flex-wrap mt-1" style="gap:8px">
 				<v-btn size="small" variant="outlined" :disabled="!canRun || busy" @click="$emit('capture', false)">{{ t('offsets.pointer_capture') }}</v-btn>
 				<v-btn size="small" color="primary" :disabled="!canRun || busy" @click="$emit('capture', true)">{{ t('offsets.pointer_capture_save') }}</v-btn>
@@ -20,7 +20,8 @@
 		</template>
 		<v-alert v-if="pointer.captured" density="compact" variant="outlined" type="success" class="mt-3">
 			<div>{{ t('offsets.pointer_result', { text: correction }) }}</div>
-			<div class="text-body-small">{{ pointer.captured.saved ? t('offsets.pointer_saved') : t('offsets.pointer_not_saved') }}</div>
+			<div class="text-body-small">{{ pointer.captured.saved ? tx('offsets.pointer_saved') : t('offsets.pointer_not_saved') }}</div>
+			<div v-if="zonesNote" class="text-body-small">{{ zonesNote }}</div>
 			<div v-if="pointer.captured.previous" class="text-body-small">{{ t('offsets.pointer_previous', { text: previous }) }}</div>
 		</v-alert>
 		<div class="text-body-small machine-faint mt-2">{{ t('offsets.pointer_sign') }}</div>
@@ -34,8 +35,8 @@
 // centre of the cross with the Jog and asks for the capture; the service answers the correction (and stores it when asked).
 
 import { computed } from 'vue'
-import { t } from '../text.js'
-import { parsePower, correctionText, MAX_POWER } from '../lib/laser-pointer.js'
+import { t, tx } from '../text.js'
+import { parsePower, correctionText, zonesNoteKey, MAX_POWER } from '../lib/laser-pointer.js'
 
 const props = defineProps({
 	pointer: { type: Object, required: true }, // state.pointer, edited in place
@@ -49,6 +50,10 @@ const max = MAX_POWER
 const power = computed(() => parsePower(props.pointer.inputs.power))
 const powerErrors = computed(() => (power.value === null ? [t('offsets.err_power', { max: MAX_POWER })] : []))
 const correction = computed(() => correctionText(props.pointer.captured && props.pointer.captured.correction))
+const zonesNote = computed(() => {
+	const key = zonesNoteKey(props.pointer.captured)
+	return key ? t(key) : ''
+})
 const previous = computed(() => {
 	const p = props.pointer.captured && props.pointer.captured.previous
 	return p ? correctionText(p) + (p.date ? ' (' + p.date + ')' : '') : ''

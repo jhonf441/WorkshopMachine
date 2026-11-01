@@ -3,12 +3,12 @@
 		<div class="text-title-large mb-1">{{ t('workarea.title') }}</div>
 		<details class="wf-more">
 			<summary>{{ t('common.how_it_works') }}</summary>
-		<p class="text-body-medium machine-faint">{{ t('workarea.intro') }}</p>
+		<p class="text-body-medium machine-faint">{{ tx('workarea.intro') }}</p>
 		</details>
 		<error-notice :error="st.loadError" retry @retry="reload()" />
 		<v-alert v-if="!canWrite" density="compact" variant="outlined" type="info" class="mb-3">{{ t('workarea.read_only') }}</v-alert>
 		<template v-if="st.data">
-			<v-alert v-if="macrosMissing" density="compact" variant="outlined" type="warning" class="mb-3">{{ t('workarea.macros_missing') }}</v-alert>
+			<v-alert v-if="macrosMissing" density="compact" variant="outlined" type="warning" class="mb-3">{{ tx('workarea.macros_missing') }}</v-alert>
 			<v-alert v-if="!st.data.file" density="compact" variant="outlined" type="info" class="mb-3">{{ t('workarea.file_missing') }}</v-alert>
 			<div class="d-flex align-center flex-wrap mb-3" style="gap:8px">
 				<v-btn-toggle :model-value="st.mode" mandatory density="compact" @update:model-value="pickMode">
@@ -79,7 +79,7 @@ import AreaFields from './AreaFields.vue'
 import AreaHand from './AreaHand.vue'
 import AreaSaved from './AreaSaved.vue'
 import AreaMap from './AreaMap.vue'
-import { t } from '../text.js'
+import { t, tx } from '../text.js'
 import { blockKey, toolPoint } from '../lib/workarea.js'
 import { createAreaState, selectMode, setField, setRect, setCorner, savedRect, checked, isDirty, blocked, load, save, remove, release, capture, hereCorner, gotoPoint, frame, loadPositions, pickPosition } from '../state/area-state.js'
 
@@ -102,7 +102,7 @@ function block(action) {
 }
 function blockText(action) {
 	const key = blockKey(block(action))
-	return key ? t(key, { mode: st.mode }) : ''
+	return key ? tx(key, { mode: st.mode }) : ''
 }
 function pickMode(mode) {
 	if (mode) selectMode(st, mode)
