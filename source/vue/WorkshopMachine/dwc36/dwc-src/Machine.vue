@@ -48,6 +48,7 @@
 						<shaping-module
 							v-else-if="section === 'shaping'" :api="api" :published="published" :configure="caps.configure" :trial="caps.trial" :can-run="caps.run" :now="now"
 						/>
+						<power-module v-else-if="section === 'power'" :api="api" :can-edit="caps.configure('config.m911')" :can-create="caps.configure('config.prologue')" :can-resume="caps.run" />
 						<safety-module v-else-if="section === 'safety'" :api="api" :published="published" :can-run="caps.run" :now="now" @goto="section = $event" />
 						<maintenance-module v-else-if="section === 'maintenance'" :api="api" :can-mark="caps.maintenanceDone" :can-edit="caps.maintenanceEdit" />
 						<modes-module v-else-if="section === 'modes'" :can-write="caps.run" />
@@ -88,6 +89,7 @@ import CalibrationModule from './modules/CalibrationModule.vue'
 import MotionModule from './modules/MotionModule.vue'
 import ShapingModule from './modules/ShapingModule.vue'
 import SafetyModule from './modules/SafetyModule.vue'
+import PowerModule from './modules/PowerModule.vue'
 import MaintenanceModule from './modules/MaintenanceModule.vue'
 import HistoryModule from './modules/HistoryModule.vue'
 import ModesModule from './modules/ModesModule.vue'
@@ -117,7 +119,7 @@ function savedSection(query) {
 
 export default {
 	mixins: [roleMixin],
-	components: { PageHeader, ServiceNotice, ErrorNotice, SideTabs, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ReportModule },
+	components: { PageHeader, ServiceNotice, ErrorNotice, SideTabs, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ReportModule },
 	data() {
 		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null }
 	},

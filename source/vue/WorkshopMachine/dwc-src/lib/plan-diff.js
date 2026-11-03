@@ -38,7 +38,7 @@ export const ERROR_REASONS = [
 	'plan_expired', 'kind_mismatch', 'role', 'busy_run', 'nothing_to_apply', 'conflict', 'no_config', 'not_utf8', 'bad_value', 'no_points',
 	'too_many_points', 'too_few_points', 'out_of_reach', 'duplicate_point', 'no_limits', 'not_implemented', 'invalid_args', 'forbidden',
 	'motion_denied', 'file_changed', 'not_found', 'patch_missing_line', 'patch_unsupported_form', 'patch_expression', 'current_over_limit', 'bad_type',
-	'no_frequency', 'out_of_range', 'implausible', 'no_value'
+	'no_frequency', 'out_of_range', 'implausible', 'no_value', 'no_m911', 'restore_not_above_cut', 'prologue_exists'
 ]
 
 export function planErrorKey(reason) {

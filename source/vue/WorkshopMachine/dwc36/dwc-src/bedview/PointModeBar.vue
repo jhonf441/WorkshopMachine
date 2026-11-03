@@ -16,9 +16,9 @@
 		</div>
 		<details v-if="!showModes || mode === 'points'" class="mt-2 point-mode-coords" @toggle="coordsOpen = $event.target.open">
 			<summary class="text-body-2" style="min-height:44px">{{ t('bed.add_by_position') }}</summary>
-			<form v-if="coordsOpen" class="d-flex align-center flex-wrap mt-1" style="gap:8px" @submit.prevent="add()">
-				<v-text-field v-model="x" :label="'X'" type="number" suffix="mm" dense outlined hide-details style="max-width:130px" />
-				<v-text-field v-model="y" :label="'Y'" type="number" suffix="mm" dense outlined hide-details style="max-width:130px" />
+			<form v-if="coordsOpen" class="d-flex align-center flex-wrap mt-1" style="gap:8px;box-sizing:border-box" @submit.prevent="add()">
+				<v-text-field v-model="x" :label="'X'" type="number" suffix="mm" dense outlined hide-details style="width:164px;max-width:100%;flex:none" />
+				<v-text-field v-model="y" :label="'Y'" type="number" suffix="mm" dense outlined hide-details style="width:164px;max-width:100%;flex:none" />
 				<v-btn small outlined type="submit" :disabled="!valid" style="min-height:44px"><v-icon small left>mdi-plus</v-icon>{{ t('bed.add_point') }}</v-btn>
 			</form>
 		</details>

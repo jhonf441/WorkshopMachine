@@ -1,5 +1,33 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.16 -- 2026-11-03
+
+- Power loss: resume the interrupted job from the page
+
+## 1.8.15 -- 2026-11-03
+
+- Power loss: view and review of resurrect.g and the prologue, create the standard prologue
+
+## 1.8.14 -- 2026-11-03
+
+- Power loss: warning alert shows its color and icon
+
+## 1.8.13 -- 2026-11-03
+
+- Power loss section drew nothing on DWC 3.6 (missing text mixin)
+
+## 1.8.12 -- 2026-11-02
+
+- Power loss section: read the M911 line and the resurrect files, change the cut and restore voltages through a plan (administrator)
+
+## 1.8.11 -- 2026-11-01
+
+- Machine: the thin scrollbar of the side tabs wins over older copies of the bar
+
+## 1.8.10 -- 2026-11-01
+
+- Machine: axes homed and probe ready are checked by the machine (not ticked); X / Y fields of Add a point no longer overflow; thin scrollbar of the side tabs
+
 ## 1.8.9 -- 2026-10-31
 
 - Lot 2: one relay client, camera client folder, single gallery, one presence helper, shared resources released at the last plugin, flash for the operator

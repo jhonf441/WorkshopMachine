@@ -12,7 +12,7 @@
 				<v-text-field v-model="rs.inputs.samples" :label="t('probe.field_samples')" type="number" dense outlined hide-details="auto" :disabled="busy" :error-messages="errorOf('samples')" />
 			</v-col>
 		</v-row>
-		<run-start v-if="canRun" :allowed="canRun" :busy="!startAllowed" :starting="rs.status === 'starting'" :disabled-text="blockedText" @start="begin()" />
+		<run-start v-if="canRun" :allowed="canRun" :probe="Number(form.ok ? form.params.probe : 0) || 0" :busy="!startAllowed" :starting="rs.status === 'starting'" :disabled-text="blockedText" @start="begin()" />
 		<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 		<div class="text-body-2 font-weight-medium mt-4 mb-2">{{ t('probe.result_title') }}</div>
 		<probe-result v-if="resultView" :view="resultView" />

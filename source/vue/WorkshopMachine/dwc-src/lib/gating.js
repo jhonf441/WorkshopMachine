@@ -26,6 +26,7 @@ export const MODULES = [
 	{ id: 'calibration', icon: 'mdi-ruler-square', min: 'operator', group: 'groups.geometry' },
 	{ id: 'motion', icon: 'mdi-engine-outline', min: 'operator', group: 'groups.dynamics' },
 	{ id: 'shaping', icon: 'mdi-sine-wave', min: 'operator', group: 'groups.dynamics' },
+	{ id: 'power', icon: 'mdi-flash-alert-outline', min: 'operator', group: 'groups.operation' },
 	{ id: 'safety', icon: 'mdi-shield-check-outline', min: 'operator', group: 'groups.operation' },
 	{ id: 'maintenance', icon: 'mdi-wrench-clock', min: 'operator', group: 'groups.operation' },
 	{ id: 'modes', icon: 'mdi-toggle-switch-outline', min: 'operator', group: 'groups.operation' },
@@ -34,7 +35,7 @@ export const MODULES = [
 ]
 
 // admin-class configuration kinds (WorkshopService permissions.MACHINE_ADMIN_KINDS): hidden from everybody below an administrator
-export const ADMIN_KINDS = ['config.m208', 'config.m92', 'config.m906', 'config.m913', 'config.m917', 'config.m569', 'config.m584']
+export const ADMIN_KINDS = ['config.m208', 'config.m92', 'config.m906', 'config.m913', 'config.m917', 'config.m911', 'config.prologue', 'config.m569', 'config.m584']
 // gcode_kind of machine.try that the administrator alone may try (permissions.ESCALATE_IN: M208, M92, M906, M913, M917)
 export const ADMIN_TRY = ['M208', 'M92', 'M906', 'M913', 'M917']
 

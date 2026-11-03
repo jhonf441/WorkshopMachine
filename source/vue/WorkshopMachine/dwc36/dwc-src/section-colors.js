@@ -15,6 +15,7 @@ export const SECTION_COLORS = {
 	motion: '#AB47BC',
 	shaping: '#8E24AA',
 	safety: '#C62828',
+	power: '#F9A825',
 	maintenance: '#6D8B3A',
 	modes: '#3949AB',
 	history: '#607D8B',

@@ -9,7 +9,7 @@
 				<v-select v-model="axis" :items="['X', 'Y']" :label="t('calibration.axis')" dense outlined hide-details style="max-width:120px" />
 				<v-select v-if="accelerometer.count > 1" v-model="index" :items="indexes" :label="t('shaping.tuner_index')" dense outlined hide-details style="max-width:160px" />
 			</div>
-			<run-start v-if="canRun" class="mt-3" :allowed="canRun" :busy="!startAllowed" :starting="rs.status === 'starting'" :label="t('shaping.tuner_start')" @start="start(kind, params())" />
+			<run-start v-if="canRun" class="mt-3" :allowed="canRun" :checks="['homed', 'clear', 'bed', 'estop']" :busy="!startAllowed" :starting="rs.status === 'starting'" :label="t('shaping.tuner_start')" @start="start(kind, params())" />
 			<div v-else class="text-caption machine-faint mt-2">{{ t('run.needs_technician') }}</div>
 			<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 			<v-card v-if="tuning" outlined class="mt-3">

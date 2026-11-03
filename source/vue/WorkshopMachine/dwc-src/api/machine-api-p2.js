@@ -18,6 +18,8 @@ export const OPS2 = {
 	historyRestore: 'machine.history.restore',
 	report: 'machine.report',
 	limitsGet: 'machine.limits.get',
+	powerGet: 'machine.power.get',
+	powerResume: 'machine.power.resume',
 	offsetsGet: 'machine.offsets.get',
 	offsetsSnapshot: 'machine.offsets.snapshot',
 	markCross: 'machine.mark_cross',
@@ -201,6 +203,40 @@ export function normalizeLimits(raw) {
 	}
 }
 
+// machine.power.get -> {configRead, m911: {s, r, commands} | null, voltsNow, resurrect: {exists, bytes, job}, prologue: {exists, bytes}}
+export function normalizePower(raw) {
+	const r = obj(raw)
+	const m = r.m911 ? obj(r.m911) : null
+	const f = x => ({ exists: obj(x).exists === true, bytes: num(obj(x).bytes) || 0, text: text(obj(x).text), truncated: obj(x).truncated === true })
+	const sum = obj(obj(r.prologue).summary)
+	const g92 = obj(obj(r.resurrect).g92)
+	const flag = k => sum[k] === true
+	const rs = obj(r.resume)
+	return {
+		configRead: r.config_read !== false,
+		m911: m ? { s: num(m.s), r: num(m.r), commands: text(m.commands) } : null,
+		voltsNow: num(r.volts_now),
+		resume: {
+			checks: list(rs.checks).map(c => ({ id: text(obj(c).id), ok: obj(c).ok === true, block: obj(c).block !== false })),
+			canResume: rs.can_resume === true,
+			mode: text(rs.mode),
+			needsAck: rs.needs_ack === true
+		},
+		resurrect: Object.assign(f(r.resurrect), {
+			job: text(obj(r.resurrect).job) || '',
+			positionBytes: num(obj(r.resurrect).position_bytes),
+			header: list(obj(r.resurrect).header).map(text),
+			g92: Object.keys(g92).reduce((o, k) => { o[k] = num(g92[k]); return o }, {})
+		}),
+		prologue: Object.assign(f(r.prologue), {
+			isStandard: obj(r.prologue).is_standard === true,
+			summary: obj(r.prologue).summary
+				? { laser: flag('laser'), cnc: flag('cnc'), otherModes: flag('other_modes'), stopsTool: flag('stops_tool'), airOff: flag('air_off'), asks: flag('asks'), cancels: flag('cancels'), rehomes: flag('rehomes'), waitsHeat: flag('waits_heat') }
+				: null
+		})
+	}
+}
+
 function offsetValues(raw) {
 	const o = obj(raw)
 	const out = {}
@@ -330,6 +366,10 @@ export function createPhase2Api(call, refusalOf) {
 			}
 		},
 		limits: { get: async () => normalizeLimits(await call(OPS2.limitsGet, {})) },
+		power: {
+			get: async () => normalizePower(await call(OPS2.powerGet, {})),
+			resume: async ack => { const r = obj(await call(OPS2.powerResume, { ack })); return { sent: r.sent === true, mode: text(r.mode), job: text(r.job) } }
+		},
 		offsets: {
 			get: async () => normalizeOffsets(await call(OPS2.offsetsGet, {})),
 			snapshot: async note => normalizeSnapshot(await call(OPS2.offsetsSnapshot, note ? { note } : {}))
