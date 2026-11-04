@@ -1,5 +1,13 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.22 -- 2026-11-04
+
+- ErrorNotice: no second sign-in notice (the page bar chip says it)
+
+## 1.8.21 -- 2026-11-04
+
+- Start-up card locked without a session; shared help tip; session chip class
+
 ## 1.8.20 -- 2026-11-03
 
 - Machine: campos del area de trabajo y de la medida de resonancia se controlan solos
