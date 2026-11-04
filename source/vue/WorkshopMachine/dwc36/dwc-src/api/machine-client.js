@@ -5,5 +5,7 @@
 
 import { api } from '../workshop-api.js'
 import { createMachineApi } from './machine-api.js'
+import { createToolWizardApi } from './machine-api-toolwiz.js'
 
 export const machineApi = createMachineApi(api)
+machineApi.toolwiz = createToolWizardApi(api, machineApi.config) // New tool assistant (mock switch: TOOLWIZ_USE_MOCK)

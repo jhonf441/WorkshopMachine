@@ -52,6 +52,7 @@
 						<safety-module v-else-if="section === 'safety'" :api="api" :published="published" :can-run="caps.run" :now="now" @goto="section = $event" />
 						<maintenance-module v-else-if="section === 'maintenance'" :api="api" :can-mark="caps.maintenanceDone" :can-edit="caps.maintenanceEdit" />
 						<modes-module v-else-if="section === 'modes'" :can-write="caps.run" />
+						<tool-wizard-module v-else-if="section === 'toolwiz'" :api="api" :can-write="caps.configure('config.tool')" :busy="!!runningKind" />
 						<history-module
 							v-else-if="section === 'history'" :api="api" :configure="caps.configure" :axes="axes" :quality="snapshot && snapshot.meshQuality" @report="openReport"
 						/>
@@ -94,6 +95,7 @@ import MaintenanceModule from './modules/MaintenanceModule.vue'
 import HistoryModule from './modules/HistoryModule.vue'
 import ModesModule from './modules/ModesModule.vue'
 import ModesStartup from './modules/ModesStartup.vue'
+import ToolWizardModule from './modules/ToolWizardModule.vue'
 import ReportModule from './modules/ReportModule.vue'
 import { roleMixin } from './role-mixin.js'
 import { pluginOf } from './workshop-ids.js'
@@ -119,7 +121,7 @@ function savedSection(query) {
 
 export default {
 	mixins: [roleMixin],
-	components: { PageHeader, ServiceNotice, ErrorNotice, SideTabs, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ReportModule },
+	components: { PageHeader, ServiceNotice, ErrorNotice, SideTabs, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, ReportModule },
 	data() {
 		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null }
 	},

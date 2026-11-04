@@ -1,5 +1,18 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.20 -- 2026-11-03
+
+- Machine: campos del area de trabajo y de la medida de resonancia se controlan solos
+
+## 1.8.19 -- 2026-11-03
+
+- Machine: new tool assistant (interface), uses the service operations machine.tool.*
+
+## Unreleased
+
+- Machine (DWC 3.6): new "Create tool" assistant (technician): type, name and number, driver / heaters / fans / temperature sensors, only the free pins, exact preview of the lines and their file, plan with backup, guided tests. A heater is never created without a sensor, a maximum temperature (M143) and the commitment to run the autotune.
+- Note: built against the contract (docs-internal/TOOL-WIZARD-CONTRACT.md) with a fake service (TOOLWIZ_USE_MOCK, off); the service part (machine.tool.*, plan config.tool with heaters, fans and sensors) is not installed yet, so nothing was tried on the real machine.
+
 ## 1.8.18 -- 2026-11-03
 
 - Machine: area fields aligned in a grid, no permanent sentence; calibration test move title

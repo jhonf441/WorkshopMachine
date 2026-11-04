@@ -4,14 +4,13 @@
 		<p class="text-body-2 machine-faint mb-2">{{ t('bed.job_intro') }}</p>
 		<v-row dense>
 			<v-col v-for="f in fields" :key="f" cols="6" sm="3">
-				<v-text-field v-model="job[f]" :label="t('bed.job_field_' + f)" type="number" suffix="mm" dense outlined hide-details />
+				<v-text-field v-model="job[f]" :label="t('bed.job_field_' + f)" type="number" step="any" inputmode="decimal" suffix="mm" dense outlined hide-details="auto" :error-messages="fieldMsg(f)" @keydown="blockExponent" />
 			</v-col>
 		</v-row>
 		<div class="d-flex flex-wrap mt-2" style="gap:8px">
 			<v-btn v-if="!hasJob" small outlined style="min-height:44px" @click="$emit('place')"><v-icon small left>mdi-vector-rectangle</v-icon>{{ t('bed.job_place') }}</v-btn>
 			<v-btn v-else small outlined style="min-height:44px" @click="$emit('clear')"><v-icon small left>mdi-close</v-icon>{{ t('bed.job_clear') }}</v-btn>
 		</div>
-		<div v-if="hasJob && !result.valid" class="text-body-2 mt-3">{{ t('bed.job_invalid') }}</div>
 		<template v-if="result.valid">
 			<div class="d-flex align-center mt-3" style="gap:8px" role="status">
 				<v-icon :color="verdict.color">{{ verdict.icon }}</v-icon>
@@ -45,6 +44,7 @@
 
 import { textMixin } from '../modules/text-mixin.js'
 import { CHECKS, JOB_FIELDS } from '../lib/job-fit.js'
+import { fieldInvalid, fieldMessage, blockExponent } from '../lib/number-field.js'
 
 const STATE_VIEW = {
 	ok: { icon: 'mdi-check-circle', color: 'success' },
@@ -61,6 +61,15 @@ export default {
 	},
 	data() {
 		return { fields: JOB_FIELDS }
+	},
+	methods: {
+		blockExponent,
+		// a box says what is wrong with itself: a number, and greater than zero for the width and the height (the corner may be negative)
+		fieldMsg(f) {
+			const range = f === 'w' || f === 'h' ? { positive: true } : {}
+			if (!fieldInvalid(this.job[f], range)) return []
+			return [f === 'w' || f === 'h' ? this.t(fieldMessage(range).key) : this.t('calibration.field_number')]
+		}
 	},
 	computed: {
 		hasJob() {

@@ -4,7 +4,7 @@
 		<div class="d-flex flex-wrap align-center" style="gap:12px">
 			<v-select v-model="form.axes" :items="choices" :label="t('calibration.axis')" dense outlined hide-details style="max-width:110px" />
 			<v-text-field v-model="form.size" :label="t('shaping.ringing_size')" dense outlined hide-details suffix="mm" style="max-width:140px" />
-			<v-text-field v-model="form.feed" :label="t('shaping.ringing_feed')" dense outlined hide-details suffix="mm/min" style="max-width:160px" />
+			<v-text-field v-model="form.feed" :label="t('shaping.ringing_feed')" type="number" step="any" inputmode="decimal" dense outlined hide-details="auto" suffix="mm/min" style="max-width:170px" :error-messages="msg(form.feed, POSITIVE)" @keydown="blockKey" />
 			<v-text-field v-model="form.accels" :label="t('shaping.ringing_accels')" dense outlined hide-details suffix="mm/s2" style="max-width:240px" />
 			<v-text-field v-model="form.repeats" :label="t('shaping.ringing_repeats')" dense outlined hide-details style="max-width:110px" />
 		</div>
@@ -16,9 +16,9 @@
 		<gcode-block v-if="test" class="mt-3" :title="t('shaping.ringing_gcode')" :text="test.gcode" />
 		<div class="text-body-2 font-weight-medium mt-4">{{ t('shaping.ringing_measure') }}</div>
 		<div class="d-flex flex-wrap align-center mt-2" style="gap:12px">
-			<v-text-field v-model="ripples" :label="t('shaping.ringing_ripples')" dense outlined hide-details style="max-width:130px" />
-			<v-text-field v-model="distance" :label="t('shaping.ringing_distance')" dense outlined hide-details suffix="mm" style="max-width:150px" />
-			<span v-if="freq.errorKey" class="text-body-2 warning--text">{{ t(freq.errorKey) }}</span>
+			<v-text-field v-model="ripples" :label="t('shaping.ringing_ripples')" type="number" step="1" inputmode="numeric" dense outlined hide-details="auto" style="max-width:150px" :error-messages="msg(ripples, RIPPLE_RANGE)" @keydown="blockKey" />
+			<v-text-field v-model="distance" :label="t('shaping.ringing_distance')" type="number" step="any" inputmode="decimal" dense outlined hide-details="auto" suffix="mm" style="max-width:170px" :error-messages="msg(distance, POSITIVE)" @keydown="blockKey" />
+			<span v-if="freq.errorKey && !fieldCovered" class="text-body-2 warning--text">{{ t(freq.errorKey) }}</span>
 			<span v-else class="text-body-2">{{ freq.ok ? t('shaping.ringing_freq', { hz: freq.frequency, wavelength: freq.wavelength }) : t('shaping.ringing_no_freq') }}</span>
 			<v-btn small outlined :disabled="!freq.ok" @click="$emit('use', freq.frequency)">{{ t('shaping.ringing_use') }}</v-btn>
 		</div>
@@ -35,7 +35,8 @@
 import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import GcodeBlock from './GcodeBlock.vue'
 import { textMixin } from './text-mixin.js'
-import { AXES_CHOICES, ringingFrequency, testOptions } from '../lib/ringing.js'
+import { AXES_CHOICES, ringingFrequency, testOptions, RIPPLES } from '../lib/ringing.js'
+import { fieldInvalid, fieldMessage, blockKey } from '../lib/number-field.js'
 
 export default {
 	components: { ErrorNotice, GcodeBlock },
@@ -45,14 +46,23 @@ export default {
 		canGenerate: { type: Boolean, default: false } // technician: machine.shaping.test
 	},
 	data() {
-		return { choices: AXES_CHOICES, form: { axes: 'XY', size: '50', feed: '6000', accels: '500, 1000, 2000', repeats: '2' }, test: null, loading: false, error: null, ripples: '', distance: '' }
+		return { choices: AXES_CHOICES, form: { axes: 'XY', size: '50', feed: '6000', accels: '500, 1000, 2000', repeats: '2' }, test: null, loading: false, error: null, ripples: '', distance: '', POSITIVE: { positive: true }, RIPPLE_RANGE: { min: RIPPLES.min, max: RIPPLES.max } }
 	},
 	computed: {
+		// the two errors a field already says on its own box (err_ringing, err_ripples) are not repeated as a sentence
+		fieldCovered() {
+			return this.freq.errorKey === 'shaping.err_ringing' || this.freq.errorKey === 'shaping.err_ripples'
+		},
 		freq() {
 			return ringingFrequency(this.form.feed, this.ripples, this.distance)
 		}
 	},
 	methods: {
+		blockKey,
+		msg(v, range) {
+			const m = fieldMessage(range)
+			return fieldInvalid(v, range) ? [this.t(m.key, m.params)] : []
+		},
 		async generate() {
 			this.loading = true
 			try {
