@@ -4,9 +4,9 @@
 		<p class="text-body-2 machine-faint">{{ t('toolwiz.name_intro') }}</p>
 		<tool-row :label="t('toolwiz.number_row')" topic="number" field="number" :issues="issues" :show="show">
 			<v-text-field v-model="w.draft.number" type="number" min="0" max="49" dense outlined hide-details style="max-width: 160px" @keydown="blockKey" />
-			<div class="mt-2 d-flex flex-wrap align-center" style="gap: 6px">
-				<span class="text-caption machine-faint">{{ t('toolwiz.number_free') }}</span>
-				<v-chip v-for="n in freeNumbers" :key="n" small outlined color="success" @click="w.draft.number = String(n)">{{ n }}</v-chip>
+			<div class="text-caption machine-faint mt-2 mb-1">{{ t('toolwiz.number_free') }}</div>
+			<div class="toolwiz-cards toolwiz-cards--compact">
+				<tool-choice-card v-for="n in freeNumbers" :key="n" clickable :selected="String(w.draft.number) === String(n)" @pick="w.draft.number = String(n)"><span class="text-subtitle-1 font-weight-medium">{{ n }}</span></tool-choice-card>
 			</div>
 			<div class="text-caption machine-faint mt-1">{{ t('toolwiz.number_used', { list: usedText }) }}</div>
 		</tool-row>
@@ -20,12 +20,13 @@
 'use strict'
 
 import ToolRow from './ToolRow.vue'
+import ToolChoiceCard from './ToolChoiceCard.vue'
 import { textMixin } from './text-mixin.js'
 import { blockKey } from '../lib/number-field.js'
 
 export default {
 	mixins: [textMixin],
-	components: { ToolRow },
+	components: { ToolRow, ToolChoiceCard },
 	props: { w: { type: Object, required: true }, ctx: { type: Object, required: true }, issues: { type: Array, default: () => [] }, show: { type: Boolean, default: false } },
 	computed: {
 		freeNumbers() {

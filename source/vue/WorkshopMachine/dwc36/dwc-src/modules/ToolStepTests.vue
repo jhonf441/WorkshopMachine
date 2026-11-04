@@ -8,20 +8,22 @@
 		<v-progress-linear :value="percent" :color="progress.finished ? 'success' : 'primary'" height="10" rounded class="mb-1" />
 		<div class="text-caption mb-3">{{ t('toolwiz.tests_progress', { done: progress.done, total: progress.total }) }}</div>
 
-		<v-card v-for="x in rows" :key="x.test.id" outlined class="pa-3 mb-2" :style="{ borderLeft: '4px solid ' + border(x.state) }">
-			<div class="d-flex align-center" style="gap: 8px">
-				<v-icon :color="colors[x.state]">{{ icons[x.state] }}</v-icon>
-				<div class="flex-grow-1">
-					<div class="text-subtitle-2">{{ t('toolwiz.test_' + x.test.kind, { n: x.test.index + 1 }) }}</div>
-					<div class="text-body-2">{{ t('toolwiz.test_' + x.test.kind + '_how', { n: x.test.index + 1, tool: toolNumber }) }}</div>
-					<div v-if="x.test.heat" class="text-caption warning--text"><v-icon x-small color="warning" class="mr-1">mdi-fire</v-icon>{{ t('toolwiz.test_heat_note') }}</div>
-					<div v-if="x.state === 'blocked'" class="text-caption machine-faint">{{ t('toolwiz.test_blocked') }}</div>
+		<div class="toolwiz-cards toolwiz-cards--wide">
+			<tool-choice-card v-for="x in rows" :key="x.test.id" :accent="border(x.state)">
+				<div class="d-flex align-center" style="gap: 8px">
+					<v-icon :color="colors[x.state]">{{ icons[x.state] }}</v-icon>
+					<div class="flex-grow-1">
+						<div class="text-subtitle-2">{{ t('toolwiz.test_' + x.test.kind, { n: x.test.index + 1 }) }}</div>
+						<div class="text-body-2">{{ t('toolwiz.test_' + x.test.kind + '_how', { n: x.test.index + 1, tool: toolNumber }) }}</div>
+						<div v-if="x.test.heat" class="text-caption warning--text"><v-icon x-small color="warning" class="mr-1">mdi-fire</v-icon>{{ t('toolwiz.test_heat_note') }}</div>
+						<div v-if="x.state === 'blocked'" class="text-caption machine-faint">{{ t('toolwiz.test_blocked') }}</div>
+					</div>
+					<v-chip small label :color="colors[x.state]" :text-color="x.state === 'blocked' ? undefined : 'white'">{{ t('toolwiz.test_state_' + x.state) }}</v-chip>
+					<v-btn v-if="x.state === 'ready'" small color="primary" @click="mark(x.test.id, true)">{{ t('toolwiz.test_done_btn') }}</v-btn>
+					<v-btn v-else-if="x.state === 'done'" small text @click="mark(x.test.id, false)">{{ t('toolwiz.test_undo') }}</v-btn>
 				</div>
-				<v-chip small label :color="colors[x.state]" :text-color="x.state === 'blocked' ? undefined : 'white'">{{ t('toolwiz.test_state_' + x.state) }}</v-chip>
-				<v-btn v-if="x.state === 'ready'" small color="primary" @click="mark(x.test.id, true)">{{ t('toolwiz.test_done_btn') }}</v-btn>
-				<v-btn v-else-if="x.state === 'done'" small text @click="mark(x.test.id, false)">{{ t('toolwiz.test_undo') }}</v-btn>
-			</div>
-		</v-card>
+			</tool-choice-card>
+		</div>
 
 		<v-alert v-if="progress.finished" dense outlined type="success" class="mt-3 text-body-2">{{ t('toolwiz.tests_all_done') }}</v-alert>
 		<div class="mt-3"><v-btn small text @click="$emit('again')"><v-icon small left>mdi-plus</v-icon>{{ t('toolwiz.another') }}</v-btn></div>
@@ -31,11 +33,13 @@
 <script>
 'use strict'
 
+import ToolChoiceCard from './ToolChoiceCard.vue'
 import { textMixin } from './text-mixin.js'
 import { testList, testState, testProgress, markTest, TEST_COLORS, TEST_ICONS } from '../lib/toolwiz-tests.js'
 
 export default {
 	mixins: [textMixin],
+	components: { ToolChoiceCard },
 	props: { w: { type: Object, required: true } },
 	data() {
 		return { colors: TEST_COLORS, icons: TEST_ICONS }
