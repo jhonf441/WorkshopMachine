@@ -7,7 +7,7 @@
 		<v-btn-toggle v-model="tab" mandatory dense class="mb-4">
 			<v-btn v-for="a in ASSISTANTS" :key="a" :value="a" small>{{ t('calibration.tab_' + a) }}</v-btn>
 		</v-btn-toggle>
-		<steps-assistant v-if="tab === 'steps'" :api="api" :rows="rows" :can-edit="configure('config.m92')" @changed="load()" />
+		<steps-assistant v-if="tab === 'steps'" :api="api" :rows="rows" :can-edit="configure('config.m92')" :can-move="canWrite" @changed="load()" />
 		<squareness-assistant v-else-if="tab === 'skew'" :api="api" :can-edit="configure('config.m556')" @changed="load()" />
 		<backlash-assistant v-else :api="api" :axes="letters" :can-edit="configure('config.m425')" @changed="load()" />
 		<!-- the Motors page is another plugin: nothing about it when it is not installed or not enabled -->

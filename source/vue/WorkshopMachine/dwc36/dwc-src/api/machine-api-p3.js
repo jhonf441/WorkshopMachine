@@ -19,6 +19,7 @@ export const OPS3 = {
 	motionGet: 'machine.motion.get',
 	shapingGet: 'machine.shaping.get',
 	shapingTest: 'machine.shaping.test',
+	testMove: 'machine.test_move',
 	try: 'machine.try',
 	tryPending: 'machine.try.pending',
 	configPlan: OPS2.configPlan
@@ -153,6 +154,11 @@ export function createPhase3Api(call) {
 		shaping: async () => normalizeShaping(await call(OPS3.shapingGet, {})),
 		// pure arithmetic on the service; nothing is sent to the board. `save` stores a record
 		calc: async (name, input, save) => normalizeCalc(await call(OPS3.calc, save ? { calc: name, values: calcValues(name, input), save: true } : { calc: name, values: calcValues(name, input) })),
+		// the test move of the steps assistant: the service asks the confirmation itself (confirm_required) and checks the machine again
+		testMove: async (axis, distance, feed) => {
+			const r = obj(await call(OPS3.testMove, { axis, distance, feed }))
+			return { axis: String(r.axis || axis), distance: num(r.distance) === null ? distance : r.distance, feed: num(r.feed) === null ? feed : r.feed }
+		},
 		// the ringing test G-code (text only)
 		test: async options => {
 			const o = obj(options)

@@ -3,12 +3,12 @@
 		<p class="text-body-2 machine-faint">{{ t('calibration.skew_intro') }}</p>
 		<div class="d-flex flex-wrap align-center" style="gap:12px">
 			<v-select v-model="pair" :items="pairItems" :label="t('calibration.pair')" dense outlined hide-details style="max-width:140px" />
-			<v-text-field v-model="side" :label="t('calibration.skew_side')" dense outlined hide-details style="max-width:150px" suffix="mm" />
-			<v-text-field v-model="diagSum" :label="t('calibration.skew_d1')" dense outlined hide-details style="max-width:210px" suffix="mm" />
-			<v-text-field v-model="diagDiff" :label="t('calibration.skew_d2')" dense outlined hide-details style="max-width:170px" suffix="mm" />
+			<v-text-field v-model="side" type="number" :min="10" :max="1000" step="any" inputmode="decimal" :label="t('calibration.skew_side')" dense outlined hide-details="auto" style="max-width:170px" suffix="mm" :error-messages="msg(side, RANGE_SIDE)" @keydown="blockKey" />
+			<v-text-field v-model="diagSum" type="number" :min="0.001" step="any" inputmode="decimal" :label="t('calibration.skew_d1')" dense outlined hide-details="auto" style="max-width:230px" suffix="mm" :error-messages="msg(diagSum, RANGE_POSITIVE)" @keydown="blockKey" />
+			<v-text-field v-model="diagDiff" type="number" :min="0.001" step="any" inputmode="decimal" :label="t('calibration.skew_d2')" dense outlined hide-details="auto" style="max-width:190px" suffix="mm" :error-messages="msg(diagDiff, RANGE_POSITIVE)" @keydown="blockKey" />
 		</div>
 		<gcode-block class="mt-3" :title="t('calibration.skew_test')" :text="gcode" />
-		<v-alert v-if="result.errorKey" dense outlined type="warning" class="mt-3">{{ t(result.errorKey) }}</v-alert>
+		<v-alert v-if="result.errorKey && !fieldError(result.errorKey)" dense outlined type="warning" class="mt-3">{{ t(result.errorKey) }}</v-alert>
 		<v-card v-if="result.formula" outlined class="mt-3">
 			<v-card-text>
 				<div class="text-body-2">{{ t('calibration.skew_formula', result.formula) }}</div>
@@ -37,6 +37,7 @@ import PlanReview from './PlanReview.vue'
 import GcodeBlock from './GcodeBlock.vue'
 import CalcWarnings from './CalcWarnings.vue'
 import { planModule } from './plan-module.js'
+import { FIELD_ERRORS, fieldInvalid, fieldMessage, blockKey } from '../lib/number-field.js'
 import { PAIRS, skewResult, skewInput, testSquareGcode, CALC_SKEW } from '../lib/skew-calc.js'
 
 export default {
@@ -47,7 +48,7 @@ export default {
 		canEdit: { type: Boolean, default: false } // workshopCan machine.config.apply for config.m556 (technician)
 	},
 	data() {
-		return { pair: 'XY', side: '100', diagSum: '', diagDiff: '' }
+		return { pair: 'XY', side: '100', diagSum: '', diagDiff: '', RANGE_SIDE: { min: 10, max: 1000 }, RANGE_POSITIVE: { positive: true } }
 	},
 	computed: {
 		pairItems() {
@@ -61,6 +62,14 @@ export default {
 		}
 	},
 	methods: {
+		blockKey,
+		fieldError(key) {
+			return FIELD_ERRORS.indexOf(key) >= 0
+		},
+		msg(v, range) {
+			const m = fieldMessage(range)
+			return fieldInvalid(v, range) ? [this.t(m.key, m.params)] : []
+		},
 		async applied() {
 			await this.applyPlan(this.canEdit)
 			if (this.ps.status === 'done') this.$emit('changed')

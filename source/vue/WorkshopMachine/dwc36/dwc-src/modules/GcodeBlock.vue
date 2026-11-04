@@ -6,7 +6,7 @@
 			<v-btn x-small outlined :disabled="!text" @click="copy()"><v-icon x-small left>mdi-content-copy</v-icon>{{ copied ? t('common.copied') : t('common.copy') }}</v-btn>
 		</div>
 		<pre class="gcode-text">{{ text || '-' }}</pre>
-		<div class="text-caption machine-faint">{{ t('common.gcode_not_sent') }}</div>
+		<div v-if="!hideNote" class="text-caption machine-faint">{{ t('common.gcode_not_sent') }}</div>
 	</div>
 </template>
 
@@ -21,7 +21,8 @@ export default {
 	mixins: [textMixin],
 	props: {
 		title: { type: String, default: '' },
-		text: { type: String, default: '' }
+		text: { type: String, default: '' },
+		hideNote: { type: Boolean, default: false } // true when the page offers to send it (the note says it is never sent)
 	},
 	data() {
 		return { copied: false }

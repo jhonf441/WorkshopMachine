@@ -4,7 +4,7 @@
 		<v-alert dense outlined type="warning" class="mb-3">{{ t('calibration.backlash_fixed') }}</v-alert>
 		<div class="d-flex flex-wrap align-center" style="gap:12px">
 			<v-select v-model="axis" :items="axisItems" :label="t('calibration.axis')" dense outlined hide-details style="max-width:120px" />
-			<v-text-field v-model="multiplier" :label="t('calibration.backlash_multiplier')" dense outlined hide-details style="max-width:200px" :hint="t('calibration.backlash_multiplier_hint')" />
+			<v-text-field v-model="multiplier" type="number" :min="1" :max="100" step="any" inputmode="decimal" :label="t('calibration.backlash_multiplier')" dense outlined hide-details="auto" style="max-width:210px" :hint="t('calibration.backlash_multiplier_hint')" :error-messages="msg(multiplier, RANGE_MULT)" @keydown="blockKey" />
 		</div>
 		<v-simple-table dense class="mt-3">
 			<thead>
@@ -18,14 +18,14 @@
 			<tbody>
 				<tr v-for="(e, i) in entries" :key="i">
 					<td>{{ i + 1 }}</td>
-					<td><v-text-field v-model="e.plus" dense outlined hide-details class="backlash-field" suffix="mm" :aria-label="t('calibration.backlash_plus')" /></td>
-					<td><v-text-field v-model="e.minus" dense outlined hide-details class="backlash-field" suffix="mm" :aria-label="t('calibration.backlash_minus')" /></td>
+					<td><v-text-field v-model="e.plus" type="number" :min="0" :max="2" step="any" inputmode="decimal" dense outlined hide-details="auto" class="backlash-field" suffix="mm" :aria-label="t('calibration.backlash_plus')" :error-messages="msg(e.plus, RANGE_SAMPLE)" @keydown="blockKey" /></td>
+					<td><v-text-field v-model="e.minus" type="number" :min="0" :max="2" step="any" inputmode="decimal" dense outlined hide-details="auto" class="backlash-field" suffix="mm" :aria-label="t('calibration.backlash_minus')" :error-messages="msg(e.minus, RANGE_SAMPLE)" @keydown="blockKey" /></td>
 					<td><v-btn x-small icon :disabled="entries.length < 2" :title="t('calibration.backlash_remove')" @click="entries.splice(i, 1)"><v-icon x-small>mdi-close</v-icon></v-btn></td>
 				</tr>
 			</tbody>
 		</v-simple-table>
 		<v-btn small text class="mt-1" :disabled="entries.length >= max" @click="entries.push(blank())"><v-icon small left>mdi-plus</v-icon>{{ t('calibration.backlash_add') }}</v-btn>
-		<v-alert v-if="result.errorKey" dense outlined type="warning" class="mt-3">{{ t(result.errorKey) }}</v-alert>
+		<v-alert v-if="result.errorKey && !fieldError(result.errorKey)" dense outlined type="warning" class="mt-3">{{ t(result.errorKey) }}</v-alert>
 		<v-card v-if="result.n" outlined class="mt-3">
 			<v-card-text>
 				<div class="text-body-2">{{ t('calibration.backlash_stats', { n: result.n, mean: result.mean, stdev: result.stdev, min: result.min, max: result.max }) }}</div>
@@ -51,6 +51,7 @@
 import PlanReview from './PlanReview.vue'
 import CalcWarnings from './CalcWarnings.vue'
 import { planModule } from './plan-module.js'
+import { FIELD_ERRORS, fieldInvalid, fieldMessage, blockKey } from '../lib/number-field.js'
 import { backlashResult, backlashInput, emptyEntry, CALC_BACKLASH, SAMPLES_MAX } from '../lib/backlash-calc.js'
 
 export default {
@@ -62,7 +63,7 @@ export default {
 		canEdit: { type: Boolean, default: false } // workshopCan machine.config.apply for config.m425 (technician)
 	},
 	data() {
-		return { axis: '', multiplier: '', max: SAMPLES_MAX, entries: [emptyEntry(), emptyEntry(), emptyEntry()] }
+		return { axis: '', multiplier: '', max: SAMPLES_MAX, entries: [emptyEntry(), emptyEntry(), emptyEntry()], RANGE_MULT: { min: 1, max: 100 }, RANGE_SAMPLE: { min: 0, max: 2 } }
 	},
 	computed: {
 		axisItems() {
@@ -81,6 +82,14 @@ export default {
 		}
 	},
 	methods: {
+		blockKey,
+		fieldError(key) {
+			return FIELD_ERRORS.indexOf(key) >= 0
+		},
+		msg(v, range) {
+			const m = fieldMessage(range)
+			return fieldInvalid(v, range) ? [this.t(m.key, m.params)] : []
+		},
 		async applied() {
 			await this.applyPlan(this.canEdit)
 			if (this.ps.status === 'done') this.$emit('changed')

@@ -1,8 +1,17 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.18 -- 2026-11-03
+
+- Machine: area fields aligned in a grid, no permanent sentence; calibration test move title
+
+## 1.8.17 -- 2026-11-03
+
+- Calibration: self-controlled number fields, send the test move
+
 ## 1.8.16 -- 2026-11-03
 
 - Power loss: resume the interrupted job from the page
+- Note: the resume (it sends M916 after the checks of the service), the change of the M911 voltages and the button that creates the standard prologue have been tested with unit tests and on screen with a made-up resurrect.g, but NOT yet with a real power cut. Check the part, the tool and the area before using it.
 
 ## 1.8.15 -- 2026-11-03
 

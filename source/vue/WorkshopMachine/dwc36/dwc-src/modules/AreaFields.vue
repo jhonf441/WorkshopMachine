@@ -5,23 +5,20 @@
 			<v-chip x-small label outlined :color="saved ? 'success' : 'info'">{{ saved ? t('workarea.saved') : t('workarea.not_measured') }}</v-chip>
 			<span v-if="size" class="text-caption machine-faint">{{ t('workarea.size', size) }}</span>
 		</div>
-		<v-simple-table dense class="area-table">
-			<thead>
-				<tr><th></th><th class="text-right">{{ t('workarea.col_min') }}</th><th class="text-right">{{ t('workarea.col_max') }}</th></tr>
-			</thead>
-			<tbody>
-				<tr v-for="row in rows" :key="row.axis">
-					<td>{{ t(row.label) }}</td>
-					<td v-for="k in row.keys" :key="k" class="text-right">
-						<v-text-field
-							:value="draft[k]" dense outlined hide-details class="area-field" inputmode="decimal" :error="invalid"
-							:disabled="!canWrite" :aria-label="row.axis + ' ' + k.slice(1).toLowerCase()" suffix="mm" @input="v => $emit('field', k, v)"
-						/>
-					</td>
-				</tr>
-			</tbody>
-		</v-simple-table>
-		<div v-for="p in problems" :key="p" class="text-caption error--text mt-1">{{ t(p, { min: minMm, reach: reachText }) }}</div>
+		<div class="area-grid" role="group" :aria-label="t('workarea.card_title', { mode })">
+			<span></span>
+			<span class="area-head">{{ t('workarea.col_min') }}</span>
+			<span class="area-head">{{ t('workarea.col_max') }}</span>
+			<template v-for="row in rows">
+				<span :key="row.axis + '-label'" class="area-axis">{{ t(row.label) }}</span>
+				<v-text-field
+					v-for="k in row.keys" :key="k"
+					:value="draft[k]" type="number" step="any" dense outlined hide-details class="area-field" inputmode="decimal" :error="fieldBad(k)"
+					:disabled="!canWrite" :aria-label="row.axis + ' ' + k.slice(1).toLowerCase()" suffix="mm" @keydown="blockExponent" @input="v => $emit('field', k, v)"
+				/>
+			</template>
+		</div>
+		<div v-for="p in shownProblems" :key="p" class="text-caption error--text mt-1">{{ t(p, { min: minMm, reach: reachText }) }}</div>
 		<div v-if="dirty && !problems.length" class="text-caption machine-faint mt-1">{{ t('workarea.unsaved') }}</div>
 		<div v-if="canWrite" class="d-flex align-center flex-wrap mt-3" style="gap:8px">
 			<v-btn small color="primary" :disabled="!valid || !dirty || busy" :loading="working === 'save'" @click="$emit('save')">{{ t('workarea.save') }}</v-btn>
@@ -39,6 +36,7 @@
 
 import { textMixin } from './text-mixin.js'
 import { sizeOf } from '../lib/workarea.js'
+import { numberOf, blockExponent } from '../lib/number-field.js'
 
 export default {
 	mixins: [textMixin],
@@ -54,6 +52,15 @@ export default {
 		working: { type: String, default: '' },
 		canWrite: { type: Boolean, default: false }
 	},
+	methods: {
+		blockExponent,
+		// a box is red only when something was typed in it and it is not a number, or the numbers do not fit together; an empty box is just not filled yet
+		fieldBad(k) {
+			const v = this.draft[k]
+			if (v === undefined || v === null || String(v).trim() === '') return false
+			return numberOf(v) === null || this.shownProblems.length > 0
+		}
+	},
 	data() {
 		return { rows: [{ axis: 'X', label: 'workarea.x', keys: ['xMin', 'xMax'] }, { axis: 'Y', label: 'workarea.y', keys: ['yMin', 'yMax'] }] }
 	},
@@ -61,8 +68,9 @@ export default {
 		busy() {
 			return !!this.working
 		},
-		invalid() {
-			return this.problems.length > 0
+		// "write four numbers" is what the empty fields already say: the page does not repeat it. What is shown is what was typed wrong or does not fit
+		shownProblems() {
+			return this.problems.filter(p => p !== 'workarea.err_numbers')
 		},
 		size() {
 			return sizeOf(this.saved)
@@ -75,5 +83,8 @@ export default {
 </script>
 
 <style>
-.area-field { max-width: 150px; margin-left: auto; }
+.area-grid { display: grid; grid-template-columns: 40px repeat(2, minmax(0, 190px)); gap: 10px 16px; align-items: center; max-width: 520px; }
+.area-head { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.75; }
+.area-axis { font-weight: 600; }
+.area-field { min-width: 0; }
 </style>
