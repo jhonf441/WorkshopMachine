@@ -1,10 +1,9 @@
 <template>
 	<div class="area-hand">
-		<div class="text-subtitle-2 mb-1">{{ t('workarea.corners_title') }}</div>
-		<details class="wf-more">
-			<summary>{{ t('common.how_it_works') }}</summary>
-		<p class="text-body-2 machine-faint">{{ t('workarea.corners_intro') }}</p>
-		</details>
+		<div class="text-subtitle-2 mb-1 d-flex align-center" style="gap:4px">
+			{{ t('workarea.corners_title') }}
+			<help-tip :title="t('workarea.corners_title')">{{ t('workarea.corners_intro') }}</help-tip>
+		</div>
 		<div class="d-flex flex-wrap mb-2" style="gap:16px">
 			<div v-for="c in cornerList" :key="c.id" class="area-corner">
 				<span class="text-body-2">{{ t(c.label) }}:</span>
@@ -39,8 +38,10 @@
 // does each step (machine.workarea.release / step capture); this shows the two corners and the buttons.
 
 import { textMixin } from './text-mixin.js'
+import HelpTip from '../HelpTip.vue' // vue/_shared36
 
 export default {
+	components: { HelpTip },
 	mixins: [textMixin],
 	props: {
 		corners: { type: Object, required: true }, // {a, b} each {x, y} or null

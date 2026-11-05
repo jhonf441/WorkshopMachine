@@ -1,6 +1,9 @@
 <template>
 	<div class="motion-module">
-		<div class="text-h6 mb-1">{{ t('motion.title') }}</div>
+		<div class="text-h6 mb-1 d-flex align-center" style="gap:4px">
+			{{ t('motion.title') }}
+			<help-tip :title="t('motion.title')">{{ t('motion.units') }}</help-tip>
+		</div>
 		<p class="text-body-2 machine-faint">{{ t('motion.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
 		<v-alert v-if="!canEdit" dense outlined type="info" class="mb-3">{{ t('motion.read_only') }}</v-alert>
@@ -8,10 +11,6 @@
 		<div v-if="!rows.length" class="text-body-2 machine-faint">{{ t('motion.no_axes') }}</div>
 		<div v-else style="overflow-x:auto"><motion-table :rows="rows" :highlight="param" /></div>
 		<div v-if="motion" class="text-body-2 mt-2">{{ t('motion.idle_now', { percent: show(motion.idle.percent), timeout: show(motion.idle.timeoutS) }) }}</div>
-		<details class="wf-more">
-			<summary>{{ t('common.how_it_works') }}</summary>
-		<div class="text-caption machine-faint mt-1">{{ t('motion.units') }}</div>
-		</details>
 		<!-- the Motors page is another plugin: nothing about it when it is not installed or not enabled -->
 		<div v-if="motorsOn" class="mt-2">
 			<span class="text-body-2">{{ t('motion.motors_question') }}</span>
@@ -56,6 +55,7 @@
 // Microstepping is shown but not edited here (the service has no plan kind for it).
 
 import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import HelpTip from '../HelpTip.vue' // vue/_shared36
 import MotionTable from './MotionTable.vue'
 import PlanReview from './PlanReview.vue'
 import TryPanel from './TryPanel.vue'
@@ -65,7 +65,7 @@ import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { tableRows, PARAMS, DRIVER_MODES, paramOf, editRows, draftOf, changes, valid, planValues, previewLine, rangeOf } from '../lib/motion-table.js'
 
 export default {
-	components: { ErrorNotice, MotionTable, PlanReview, TryPanel },
+	components: { HelpTip, ErrorNotice, MotionTable, PlanReview, TryPanel },
 	mixins: [planModule(), trialModule()],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

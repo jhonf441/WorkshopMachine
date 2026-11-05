@@ -1,5 +1,9 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.26 -- 2026-11-04
+
+- Help of fields and cards is the shared help-tip; sign out no longer reopens the PIN dialog
+
 ## 1.8.25 -- 2026-11-04
 
 - Rebuilt with the readable text colours, the shared start-up card and the session notice

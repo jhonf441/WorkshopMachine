@@ -5,12 +5,11 @@
 		<error-notice :error="loadError" retry @retry="load()" />
 		<template v-if="ms.data">
 			<v-card outlined class="mb-4">
-				<v-card-title class="text-subtitle-1 pb-0">{{ t('maintenance.counters_title') }}</v-card-title>
+				<v-card-title class="text-subtitle-1 pb-0">
+					{{ t('maintenance.counters_title') }}
+					<help-tip :title="t('maintenance.counters_title')">{{ t('maintenance.estimated_note') }}</help-tip>
+				</v-card-title>
 				<v-card-text>
-					<details class="wf-more">
-						<summary>{{ t('common.how_it_works') }}</summary>
-					<v-alert dense outlined type="info" class="mb-2">{{ t('maintenance.estimated_note') }}</v-alert>
-					</details>
 					<maintenance-counters :rows="counters" :data="ms.data.counters" />
 				</v-card-text>
 			</v-card>
@@ -58,6 +57,7 @@ import MaintenancePlan from './MaintenancePlan.vue'
 import MaintenancePlanEditor from './MaintenancePlanEditor.vue'
 import MaintenanceHistory from './MaintenanceHistory.vue'
 import { textMixin } from './text-mixin.js'
+import HelpTip from '../HelpTip.vue' // vue/_shared36
 import {
 	createMaintenanceState, loadBegin, loaded, loadFailed, markBegin, markDone, markFailed, editBegin, editCancel, checkedItems, saveBegin, saveDone, saveFailed
 } from '../state/maintenance-state.js'
@@ -67,7 +67,7 @@ import { refusalOf } from '../api/machine-api.js'
 import { detailOf } from '../lib/refusal.js'
 
 export default {
-	components: { ErrorNotice, MaintenanceCounters, MaintenancePlan, MaintenancePlanEditor, MaintenanceHistory },
+	components: { HelpTip, ErrorNotice, MaintenanceCounters, MaintenancePlan, MaintenancePlanEditor, MaintenanceHistory },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
