@@ -7,7 +7,7 @@
 			<v-btn v-if="heightMapOn" small outlined to="/Plugins/HeightMap"><v-icon small left>mdi-cube-scan</v-icon>{{ t('mesh.open_height_map') }}</v-btn>
 		</div>
 		<p class="text-body-2 machine-faint">{{ t('mesh.intro') }}</p>
-		<v-alert v-if="!canRun" dense outlined type="info" class="mb-3">{{ t('page.read_only') }}</v-alert>
+		<role-note v-if="!canRun" min="technician" class="mb-3" />
 		<v-card outlined class="mb-4 pa-3">
 			<mesh-bed
 				:model="bedModel" :inputs="rs.inputs" :form="form" :grid="grid" :previous="previous" :service-mesh="serviceMesh" :result-signal="resultSignal"
@@ -55,9 +55,10 @@ import { gridFromPoints, effectiveInputs } from '../lib/point-grid.js'
 import { createPointEdit } from '../state/point-edit-state.js'
 import { refusalKey } from '../lib/runs.js'
 import { HEIGHT_MAP_ID, builtinEnabled } from '../lib/plugin-texts.js'
+import RoleNote from './RoleNote.vue'
 
 export default {
-	components: { RunStart, RunProgress, MeshRunForm, MeshBed, MeshLibrary },
+	components: { RoleNote, RunStart, RunProgress, MeshRunForm, MeshBed, MeshLibrary },
 	mixins: [bedLayoutMixin(), pointSetsMixin(), runModule([RUN_KINDS.meshProbe], () => ({ mode: 'bed', nx: 5, ny: 5, probe: 0, region: { xmin: '', xmax: '', ymin: '', ymax: '' } }))],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

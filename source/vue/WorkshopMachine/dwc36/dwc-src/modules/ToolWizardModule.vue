@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('toolwiz.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('toolwiz.intro') }}</p>
 		<v-alert v-if="api.toolwiz.mock" dense outlined type="info" class="text-body-2">{{ t('toolwiz.mock_notice') }}</v-alert>
-		<v-alert v-if="!canWrite" dense outlined type="info" class="text-body-2">{{ t('toolwiz.read_only') }}</v-alert>
+		<role-note v-if="!canWrite" min="technician" class="text-body-2" />
 		<v-alert v-if="busy && !w.applied" dense outlined type="warning" class="text-body-2">{{ t('toolwiz.block_busy') }}</v-alert>
 		<error-notice :error="loadError" retry @retry="load()" />
 
@@ -54,13 +54,14 @@ import { textMixin } from './text-mixin.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { STEPS, createWizard, stepIssues, canGo, go, next, back, setPreview, markApplied } from '../state/toolwiz-state.js'
 import { toSpec, specKey } from '../lib/toolwiz-spec.js'
+import RoleNote from './RoleNote.vue'
 
 const STEP_ICONS = { type: 'mdi-shape-outline', name: 'mdi-form-textbox', carries: 'mdi-fire', pins: 'mdi-pin-outline', preview: 'mdi-file-eye-outline', apply: 'mdi-content-save-check-outline', tests: 'mdi-clipboard-check-outline' }
 const NO_PINS = { free: [], used: [], freeDrivers: null }
 
 export default {
 	mixins: [textMixin],
-	components: { ErrorNotice, ToolStepType, ToolStepName, ToolStepCarries, ToolStepPins, ToolStepPreview, ToolStepApply, ToolStepTests },
+	components: { RoleNote, ErrorNotice, ToolStepType, ToolStepName, ToolStepCarries, ToolStepPins, ToolStepPreview, ToolStepApply, ToolStepTests },
 	props: {
 		api: { type: Object, required: true },
 		canWrite: { type: Boolean, default: false }, // technician: creating the plan (the service checks again)

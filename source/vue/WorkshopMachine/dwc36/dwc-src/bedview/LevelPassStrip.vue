@@ -43,6 +43,6 @@ export default {
 .level-pass-strip { display: flex; flex-wrap: wrap; gap: 8px; }
 .level-pass-card { border: 1px solid rgba(128, 128, 128, 0.4); border-radius: 6px; padding: 6px 8px; min-width: 112px; }
 .level-bar-before { fill: rgba(128, 128, 128, 0.6); }
-.level-bar-after { fill: #ffb74d; }
+.level-bar-after { fill: #ffa726; }
 .level-bar-ok { fill: #66bb6a; }
 </style>

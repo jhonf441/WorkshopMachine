@@ -25,7 +25,7 @@
 			<div v-if="pointer.captured.previous" class="text-caption">{{ t('offsets.pointer_previous', { text: previous }) }}</div>
 		</v-alert>
 		<div class="text-caption machine-faint mt-2">{{ t('offsets.pointer_sign') }}</div>
-		<div v-if="!canRun" class="text-caption machine-faint mt-2">{{ t('run.needs_technician') }}</div>
+		<lock-reason min="technician" class="mt-2" />
 	</div>
 </template>
 
@@ -38,8 +38,10 @@
 
 import { textMixin } from './text-mixin.js'
 import { parsePower, correctionText, zonesNoteKey, MAX_POWER } from '../lib/laser-pointer.js'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
+	components: { LockReason },
 	mixins: [textMixin],
 	props: {
 		pointer: { type: Object, required: true }, // state.pointer, edited in place

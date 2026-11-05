@@ -6,7 +6,7 @@
 		</div>
 		<p class="text-body-2 machine-faint">{{ t('motion.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<v-alert v-if="!canEdit" dense outlined type="info" class="mb-3">{{ t('motion.read_only') }}</v-alert>
+		<role-note v-if="!canEdit" min="admin" class="mb-3" />
 		<v-alert v-if="motion && !motion.configRead" dense outlined type="info" class="mb-3">{{ t('motion.config_unread') }}</v-alert>
 		<div v-if="!rows.length" class="text-body-2 machine-faint">{{ t('motion.no_axes') }}</div>
 		<div v-else style="overflow-x:auto"><motion-table :rows="rows" :highlight="param" /></div>
@@ -63,9 +63,10 @@ import { planModule } from './plan-module.js'
 import { trialModule } from './trial-module.js'
 import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { tableRows, PARAMS, DRIVER_MODES, paramOf, editRows, draftOf, changes, valid, planValues, previewLine, rangeOf } from '../lib/motion-table.js'
+import RoleNote from './RoleNote.vue'
 
 export default {
-	components: { HelpTip, ErrorNotice, MotionTable, PlanReview, TryPanel },
+	components: { RoleNote, HelpTip, ErrorNotice, MotionTable, PlanReview, TryPanel },
 	mixins: [planModule(), trialModule()],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

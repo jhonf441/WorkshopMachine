@@ -10,8 +10,8 @@
 		"gcode_not_sent": "This G-code is only shown: the page does not send it to the machine."
 	},
 	"lock": {
-		"signed_out": "Signed out: sign in to use this.",
-		"role": "Your role cannot do this: it needs a higher role."
+		"signed_out": "Sign-in required.",
+		"role": "Requires a higher role than yours. Your role: {role}."
 	},
 	"groups": {
 		"probing": "Probing",
@@ -52,7 +52,6 @@
 	},
 	"page": {
 		"lead": "Check, calibrate and look after the machine: probe, levelling, mesh, offsets, limits and maintenance.",
-		"read_only": "Read only: your role can see the results but cannot start procedures.",
 		"running_now": "{kind} running",
 		"stop_all": "Stop",
 		"stop_hint": "Stops the procedure at the end of its current step. It is not the emergency stop.",
@@ -185,7 +184,6 @@
 		"check_bed": "Nothing on the bed that the probe could hit",
 		"start": "Start",
 		"starting": "Starting...",
-		"needs_technician": "Starting procedures needs the technician role.",
 		"refuse_no_vision_measure": "The camera cannot measure on this machine.",
 		"refuse_tool_not_current": "That tool is not the active one: the run never changes tool.",
 		"refuse_bad_target": "The system or tool is not valid.",
@@ -314,7 +312,6 @@
 		"done_clear": "Compensation cleared.",
 		"done_save": "Mesh saved.",
 		"done_taper": "Taper applied.",
-		"read_only": "Loading, clearing, saving and taper need the technician role.",
 		"open_height_map": "Open in the DWC Height Map (3D)",
 		"err_grid": "The mesh could not be read.",
 		"no_service_meshes": "The service does not include the mesh library yet."
@@ -612,7 +609,6 @@
 		"title": "Tool and work offsets",
 		"intro": "The offset of each tool and the work coordinate systems G54 to G59.3. The tools are edited here (a configuration change with a preview); the work systems are the zones of the Workbench and are edited there.",
 		"intro_no_workbench": "The offset of each tool and the work coordinate systems G54 to G59.3. The tools are edited here (a configuration change with a preview); the work systems are only shown here.",
-		"read_only": "Read only: editing offsets needs the technician role.",
 		"tools_title": "Tools",
 		"work_title": "Work systems",
 		"col_tool": "Tool",
@@ -687,7 +683,6 @@
 	"height": {
 		"title": "Tool height",
 		"intro": "How the height of each mode is measured, the BLTouch trigger height, the fine adjustment and the paper. It applies to every zone.",
-		"read_only": "Read only: calibrating the height needs the technician role.",
 		"card_title": "Calibrate the height in {mode} (applies to every zone)",
 		"not_current": "The machine is not in {mode} mode now: you can change the fine adjustment and the method, but the probe measurements are only made in the active mode.",
 		"how": "How it is measured:",
@@ -767,7 +762,6 @@
 		"commands_label": "Commands it runs on a cut",
 		"review": "Review the change",
 		"admin_hint": "A wrong value can switch the machine off in the middle of a job or leave it unprotected: only an administrator changes it, with a preview.",
-		"read_only": "Read only: changing the voltages needs the administrator role.",
 		"plan_title": "Power-loss voltages change: review before applying",
 		"err_number": "Type two voltages: the first between {sMin} and {sMax} V and the second between {rMin} and {rMax} V.",
 		"err_order": "The resume voltage must be higher than the trigger voltage.",
@@ -814,7 +808,6 @@
 		"resume_confirm": "Resume? Tap again",
 		"resume_blocked": "Something in the list is missing: it cannot be resumed yet.",
 		"resume_need_ack": "Tick the three confirmations to be able to resume.",
-		"resume_role": "Resuming needs the technician or administrator role.",
 		"resume_sent": "Command sent. The machine runs the prologue first and then the job; in laser and CNC it asks you to confirm again on the machine.",
 		"files_title": "Files a power cut leaves",
 		"files_help": "The firmware writes resurrect.g while a job runs; it is what resumes the job after a cut. resurrect-prologue.g runs first: in laser and CNC it asks for confirmation and switches the spindle and pump off.",
@@ -826,7 +819,6 @@
 	"limits": {
 		"title": "Axis limits",
 		"intro": "The soft limits (M208) of each axis and the endstop verification.",
-		"read_only": "Read only: changing the limits needs the administrator role.",
 		"no_axes": "The board reports no axes.",
 		"config_unread": "The configuration could not be read: only the board values are shown.",
 		"warn_bad_limits": "The limits of this axis are not consistent.",
@@ -868,7 +860,6 @@
 	"calibration": {
 		"title": "Calibration",
 		"intro": "Assistants for steps per mm, squareness and backlash. Each one shows its sum, the service does the final calculation and the result is sent as a plan that is reviewed before applying.",
-		"read_only": "Read only: preparing and applying changes needs the technician role.",
 		"tab_steps": "Steps per mm",
 		"tab_skew": "Squareness",
 		"tab_backlash": "Backlash",
@@ -896,7 +887,6 @@
 		"err_sample": "Each measurement must be between 0 and 2 mm, with at most 20 rows.",
 		"err_multiplier": "The multiplier must be between 1 and 100.",
 		"steps_intro": "Command a move of a known length, measure what the axis really travelled and the new value comes from the formula.",
-		"steps_admin": "Changing steps per mm (M92) needs the administrator role. You can compute the value but not apply it.",
 		"commanded": "Commanded",
 		"measured": "Measured",
 		"steps_current": "Current value of axis {axis}: {value} steps/mm",
@@ -944,7 +934,6 @@
 	"motion": {
 		"title": "Motion parameters",
 		"intro": "Current, microstepping, speed, acceleration and jerk of each axis and extruder, as the board reports them.",
-		"read_only": "Read only: changing these parameters needs the administrator role.",
 		"config_unread": "The configuration could not be read: the driver mode may be missing.",
 		"no_axes": "The board reports no axes.",
 		"units": "Current in mA, percentages in %, speed and jerk (M566) in mm/min, acceleration in mm/s², printing jerk (M205) in mm/s. A dash is a value the board does not report. * = interpolated, or default mode (the configuration does not set it).",
@@ -991,7 +980,6 @@
 	"shaping": {
 		"title": "Input shaping",
 		"intro": "Reduces vibration (ringing) after direction changes by filtering the motion with a resonance frequency of the machine (M593).",
-		"read_only": "Read only: changing input shaping needs the technician role.",
 		"current_title": "Current state",
 		"not_reported": "The board does not report input shaping (firmware without support or not configured).",
 		"state_on": "Active",
@@ -1027,7 +1015,6 @@
 		"ringing_accels": "Accelerations",
 		"ringing_repeats": "Repeats",
 		"ringing_generate": "Generate the G-code",
-		"ringing_needs_technician": "Generating the G-code needs the technician role.",
 		"ringing_gcode": "Test G-code",
 		"ringing_measure": "After the test: count the ripples",
 		"ringing_ripples": "Ripples counted",
@@ -1071,7 +1058,6 @@
 		"plan_title": "Maintenance plan",
 		"edit": "Edit plan",
 		"defaults": "Put the default items back",
-		"needs_technician": "Marking an item as done and editing the plan need the technician role.",
 		"history_title": "Last done",
 		"done_marked": "Marked as done.",
 		"plan_saved": "Plan saved.",
@@ -1407,7 +1393,8 @@
 		"state_alone": "On",
 		"state_pending": "On - {n} to do",
 		"state_ready": "On and ready",
-		"use": "Use this mode",
+		"use": "The machine uses this mode",
+		"profile_note": "These switches only save in the machine profile which modes it uses. They do not change the mode the machine is in now.",
 		"fff": "3D printing (FFF)",
 		"laser": "Laser",
 		"cnc": "CNC",
@@ -1425,14 +1412,13 @@
 		"none_title": "No mode selected",
 		"none_text": "Select at least the modes you use. Until then the plugins do not show mode steps.",
 		"files_note": "Switching a mode off never deletes its macro or its settings file.",
-		"use_suggested": "Use the suggestion",
-		"needs_technician": "Only a technician or an administrator can switch modes on or off."
+		"needs_technician": "Only a technician or an administrator can save the machine modes.",
+		"use_suggested": "Save the suggestion in the profile"
 	},
 	"workarea": {
 		"title": "Work area",
 		"intro": "The part of the bed where the tool may work in each mode. The Work table draws it, the laser editor respects it and an origin outside it cannot be saved. It is measured by taking the tool by hand to two opposite corners, or typed.",
 		"intro_no_workbench": "The part of the bed where the tool may work in each mode. It is measured by taking the tool by hand to two opposite corners, or typed.",
-		"read_only": "Read only: saving the area or moving the tool needs the technician role.",
 		"mode_note": "The area of {mode} is shown and changed. The mode in use now is {current}.",
 		"saved": "Saved",
 		"not_measured": "Not measured",
@@ -1502,7 +1488,6 @@
 		"title": "Create a tool",
 		"intro": "I lead you step by step to add a tool with its driver, heaters, fans and temperature sensors. Nothing is written to the machine until you review the exact lines and confirm; a backup is saved before writing.",
 		"mock_notice": "Demo data: the service part is not installed yet. What you see here is an example and does not change the machine.",
-		"read_only": "Only a technician can create tools. You can walk through the steps to see how it works, but the plan cannot be created.",
 		"back": "Back",
 		"next": "Next",
 		"fix_first": "Fix what is marked in red to continue.",

@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('calibration.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('calibration.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<v-alert v-if="!canWrite" dense outlined type="info" class="mb-3">{{ t('calibration.read_only') }}</v-alert>
+		<role-note v-if="!canWrite" min="technician" class="mb-3" />
 		<v-btn-toggle v-model="tab" mandatory dense class="mb-4">
 			<v-btn v-for="a in ASSISTANTS" :key="a" :value="a" small>{{ t('calibration.tab_' + a) }}</v-btn>
 		</v-btn-toggle>
@@ -28,11 +28,12 @@ import BacklashAssistant from './BacklashAssistant.vue'
 import { textMixin } from './text-mixin.js'
 import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { tableRows } from '../lib/motion-table.js'
+import RoleNote from './RoleNote.vue'
 
 const ASSISTANTS = ['steps', 'skew', 'backlash']
 
 export default {
-	components: { ErrorNotice, StepsAssistant, SquarenessAssistant, BacklashAssistant },
+	components: { RoleNote, ErrorNotice, StepsAssistant, SquarenessAssistant, BacklashAssistant },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

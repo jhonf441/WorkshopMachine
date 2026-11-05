@@ -2,7 +2,7 @@
 	<div class="probe-module">
 		<div class="text-h6 mb-1">{{ t('probe.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('probe.intro') }}</p>
-		<v-alert v-if="!canRun" dense outlined type="info" class="mb-3">{{ t('page.read_only') }}</v-alert>
+		<role-note v-if="!canRun" min="technician" class="mb-3" />
 		<v-card outlined class="mb-4 pa-3"><probe-bed :model="bedModel" /></v-card>
 		<v-row v-if="canRun" dense>
 			<v-col cols="6" sm="3">
@@ -34,9 +34,10 @@ import ProbeBed from '../bedview/ProbeBed.vue'
 import { bedLayoutMixin } from './bed-layout-mixin.js'
 import { RUN_KINDS } from '../api/machine-api.js'
 import { repeatParams, thresholdsOf, resultView } from '../lib/probe.js'
+import RoleNote from './RoleNote.vue'
 
 export default {
-	components: { RunStart, RunProgress, ProbeResult, ProbeBed },
+	components: { RoleNote, RunStart, RunProgress, ProbeResult, ProbeBed },
 	mixins: [bedLayoutMixin(), runModule([RUN_KINDS.probeRepeat], { probe: 0, samples: 10 })],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

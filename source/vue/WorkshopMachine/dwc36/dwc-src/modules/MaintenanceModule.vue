@@ -20,7 +20,7 @@
 					<v-btn v-if="canEdit && !ms.editing" small outlined @click="edit()"><v-icon small left>mdi-pencil</v-icon>{{ t('maintenance.edit') }}</v-btn>
 				</v-card-title>
 				<v-card-text>
-					<v-alert v-if="!canMark" dense outlined type="info" class="mb-2">{{ t('maintenance.needs_technician') }}</v-alert>
+					<role-note v-if="!canMark" min="technician" class="mb-2" />
 					<maintenance-plan-editor v-if="ms.editing" :state="ms" @save="savePlan()" @cancel="cancelEdit()" />
 					<template v-else>
 						<maintenance-plan :rows="plan" :can-mark="canMark" :marking="ms.marking" @done="markDone" />
@@ -65,9 +65,10 @@ import { planRows, counterRows, historyRows, defaultLabelKey } from '../lib/main
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
 import { detailOf } from '../lib/refusal.js'
+import RoleNote from './RoleNote.vue'
 
 export default {
-	components: { HelpTip, ErrorNotice, MaintenanceCounters, MaintenancePlan, MaintenancePlanEditor, MaintenanceHistory },
+	components: { RoleNote, HelpTip, ErrorNotice, MaintenanceCounters, MaintenancePlan, MaintenancePlanEditor, MaintenanceHistory },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

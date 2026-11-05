@@ -10,8 +10,8 @@
 		"gcode_not_sent": "Este G-code solo se muestra: la página no lo envía a la máquina."
 	},
 	"lock": {
-		"signed_out": "Sin sesión: inicia sesión para usar esto.",
-		"role": "Tu rol no permite esto: hace falta un rol más alto."
+		"signed_out": "Requiere iniciar sesión.",
+		"role": "Requiere un rol superior al tuyo. Tu rol: {role}."
 	},
 	"groups": {
 		"probing": "Sondeo",
@@ -52,7 +52,6 @@
 	},
 	"page": {
 		"lead": "Revisa, calibra y cuida la máquina: sonda, nivelación, malla, offsets, límites y mantenimiento.",
-		"read_only": "Solo lectura: tu rol puede ver los resultados pero no iniciar procedimientos.",
 		"running_now": "{kind} en curso",
 		"stop_all": "Detener",
 		"stop_hint": "Detiene el procedimiento al terminar su paso actual. No es la parada de emergencia.",
@@ -185,7 +184,6 @@
 		"check_bed": "No hay nada sobre la mesa que la sonda pueda golpear",
 		"start": "Iniciar",
 		"starting": "Iniciando...",
-		"needs_technician": "Iniciar procedimientos requiere rol de técnico.",
 		"refuse_no_vision_measure": "La cámara no puede medir en esta máquina.",
 		"refuse_tool_not_current": "Esa herramienta no es la activa: la corrida nunca cambia de herramienta.",
 		"refuse_bad_target": "El sistema o la herramienta no es válido.",
@@ -314,7 +312,6 @@
 		"done_clear": "Compensación quitada.",
 		"done_save": "Malla guardada.",
 		"done_taper": "Atenuación aplicada.",
-		"read_only": "Cargar, quitar, guardar y atenuar requiere rol de técnico.",
 		"open_height_map": "Abrir en el Mapa de alturas de DWC (3D)",
 		"err_grid": "No se pudo leer la malla.",
 		"no_service_meshes": "El servicio todavía no incluye la biblioteca de mallas."
@@ -612,7 +609,6 @@
 		"title": "Offsets de herramientas y de trabajo",
 		"intro": "Los desplazamientos de cada herramienta y los sistemas de coordenadas de trabajo G54 a G59.3. Las herramientas se editan aquí (un cambio en la configuración con vista previa); los sistemas de trabajo son las zonas de la Mesa de trabajo y se editan allá.",
 		"intro_no_workbench": "Los desplazamientos de cada herramienta y los sistemas de coordenadas de trabajo G54 a G59.3. Las herramientas se editan aquí (un cambio en la configuración con vista previa); los sistemas de trabajo solo se muestran aquí.",
-		"read_only": "Solo lectura: editar offsets necesita el rol de técnico.",
 		"tools_title": "Herramientas",
 		"work_title": "Sistemas de trabajo",
 		"col_tool": "Herramienta",
@@ -687,7 +683,6 @@
 	"height": {
 		"title": "Altura de la herramienta",
 		"intro": "Cómo se mide la altura de cada modo, la altura de disparo del BLTouch, el ajuste fino y el papel. Vale para todas las zonas.",
-		"read_only": "Solo lectura: calibrar la altura necesita el rol de técnico.",
 		"card_title": "Calibrar la altura en {mode} (vale para todas las zonas)",
 		"not_current": "La máquina no está en modo {mode} ahora: puedes cambiar el ajuste fino y el método, pero las medidas con la sonda solo se hacen en el modo activo.",
 		"how": "Cómo se mide:",
@@ -767,7 +762,6 @@
 		"commands_label": "Comandos que ejecuta al cortarse",
 		"review": "Revisar el cambio",
 		"admin_hint": "Un valor mal puesto puede hacer que la máquina se apague en pleno trabajo o que no reaccione: solo un administrador lo cambia, con vista previa.",
-		"read_only": "Solo lectura: cambiar los voltajes necesita el rol de administrador.",
 		"plan_title": "Cambio de voltajes de corte: revisa antes de aplicar",
 		"err_number": "Escribe dos voltajes: el primero entre {sMin} y {sMax} V y el segundo entre {rMin} y {rMax} V.",
 		"err_order": "El voltaje de reanudar debe ser mayor que el de activación.",
@@ -814,7 +808,6 @@
 		"resume_confirm": "¿Reanudar? Toca otra vez",
 		"resume_blocked": "Falta algo de la lista: todavía no se puede reanudar.",
 		"resume_need_ack": "Marca las tres confirmaciones para poder reanudar.",
-		"resume_role": "Reanudar necesita el rol de técnico o administrador.",
 		"resume_sent": "Orden enviada. La máquina corre primero el prologue y luego el trabajo; en láser y CNC te vuelve a pedir confirmar en la máquina.",
 		"files_title": "Archivos que deja un corte",
 		"files_help": "El firmware escribe resurrect.g mientras corre un trabajo; con él se puede reanudar después de un corte. resurrect-prologue.g lo ejecuta antes: en láser y CNC pide confirmación y apaga el husillo y la bomba.",
@@ -826,7 +819,6 @@
 	"limits": {
 		"title": "Límites de los ejes",
 		"intro": "Los límites de software (M208) de cada eje y la verificación de los finales de carrera.",
-		"read_only": "Solo lectura: cambiar los límites necesita el rol de administrador.",
 		"no_axes": "La placa no informa los ejes.",
 		"config_unread": "No se pudo leer la configuración: solo se muestran los valores de la placa.",
 		"warn_bad_limits": "Los límites de este eje no son coherentes.",
@@ -868,7 +860,6 @@
 	"calibration": {
 		"title": "Calibración",
 		"intro": "Asistentes para pasos por mm, escuadra y holgura. Cada uno muestra su cuenta, el servicio hace el cálculo definitivo y el resultado se envía como un plan que se revisa antes de aplicar.",
-		"read_only": "Solo lectura: preparar y aplicar cambios necesita el rol de técnico.",
 		"tab_steps": "Pasos por mm",
 		"tab_skew": "Escuadra",
 		"tab_backlash": "Holgura",
@@ -896,7 +887,6 @@
 		"err_sample": "Cada medición debe estar entre 0 y 2 mm, y como máximo hay 20 filas.",
 		"err_multiplier": "El multiplicador debe estar entre 1 y 100.",
 		"steps_intro": "Ordena un movimiento de longitud conocida, mide lo que el eje recorrió de verdad y el valor nuevo sale de la fórmula.",
-		"steps_admin": "Cambiar los pasos por mm (M92) necesita el rol de administrador. Puedes calcular el valor, pero no aplicarlo.",
 		"commanded": "Ordenado",
 		"measured": "Medido",
 		"steps_current": "Valor actual del eje {axis}: {value} pasos/mm",
@@ -944,7 +934,6 @@
 	"motion": {
 		"title": "Parámetros de movimiento",
 		"intro": "Corriente, micropasos, velocidad, aceleración y jerk de cada eje y extrusor, como los informa la placa.",
-		"read_only": "Solo lectura: cambiar estos parámetros necesita el rol de administrador.",
 		"config_unread": "La configuración no se pudo leer: el modo del driver puede faltar.",
 		"no_axes": "La placa no informa de ejes.",
 		"units": "Corriente en mA, porcentajes en %, velocidad y jerk (M566) en mm/min, aceleración en mm/s², jerk de impresión (M205) en mm/s. Un guion es un dato que la placa no informa. * = interpolado, o modo por defecto (la configuración no lo fija).",
@@ -991,7 +980,6 @@
 	"shaping": {
 		"title": "Input shaping",
 		"intro": "Reduce las vibraciones (ringing) tras los cambios de dirección filtrando el movimiento con una frecuencia propia de la máquina (M593).",
-		"read_only": "Solo lectura: cambiar el input shaping necesita el rol de técnico.",
 		"current_title": "Estado actual",
 		"not_reported": "La placa no informa de input shaping (firmware sin soporte o no configurado).",
 		"state_on": "Activo",
@@ -1027,7 +1015,6 @@
 		"ringing_accels": "Aceleraciones",
 		"ringing_repeats": "Repeticiones",
 		"ringing_generate": "Generar el G-code",
-		"ringing_needs_technician": "Generar el G-code necesita el rol de técnico.",
 		"ringing_gcode": "G-code de la prueba",
 		"ringing_measure": "Después de la prueba: cuenta las ondas",
 		"ringing_ripples": "Ondas contadas",
@@ -1071,7 +1058,6 @@
 		"plan_title": "Plan de mantenimiento",
 		"edit": "Editar plan",
 		"defaults": "Volver a poner las tareas por defecto",
-		"needs_technician": "Marcar una tarea como hecha y editar el plan requieren el rol técnico.",
 		"history_title": "Últimas veces",
 		"done_marked": "Marcada como hecha.",
 		"plan_saved": "Plan guardado.",
@@ -1407,7 +1393,8 @@
 		"state_alone": "Activo",
 		"state_pending": "Activo - faltan {n}",
 		"state_ready": "Activo y listo",
-		"use": "Usar este modo",
+		"use": "La máquina usa este modo",
+		"profile_note": "Estos interruptores solo guardan en el perfil de la máquina qué modos usa. No cambian el modo en que está la máquina ahora.",
 		"fff": "Impresión 3D (FFF)",
 		"laser": "Láser",
 		"cnc": "CNC",
@@ -1425,14 +1412,13 @@
 		"none_title": "Ningún modo seleccionado",
 		"none_text": "Selecciona al menos los modos que usas. Mientras tanto los complementos no muestran pasos de modos.",
 		"files_note": "Apagar un modo nunca borra su macro ni su archivo de ajustes.",
-		"use_suggested": "Usar lo sugerido",
-		"needs_technician": "Solo un técnico o un administrador puede encender o apagar modos."
+		"needs_technician": "Solo un técnico o un administrador puede guardar los modos de la máquina.",
+		"use_suggested": "Guardar lo sugerido en el perfil"
 	},
 	"workarea": {
 		"title": "Área de trabajo",
 		"intro": "La zona de la cama donde puede trabajar la herramienta en cada modo. Mesa de trabajo la dibuja, el editor láser la respeta y no deja guardar un origen fuera de ella. Se mide con la herramienta llevado a mano a dos esquinas opuestas, o se escribe.",
 		"intro_no_workbench": "La zona de la cama donde puede trabajar la herramienta en cada modo. Se mide con la herramienta llevada a mano a dos esquinas opuestas, o se escribe.",
-		"read_only": "Solo lectura: guardar el área o mover la herramienta necesita el rol de técnico.",
 		"mode_note": "Se muestra y se cambia el área de {mode}. El modo en uso ahora es {current}.",
 		"saved": "Guardada",
 		"not_measured": "Sin medir",
@@ -1502,7 +1488,6 @@
 		"title": "Crear herramienta",
 		"intro": "Te guío paso a paso para dar de alta una herramienta con su driver, calentadores, ventiladores y sensores de temperatura. Nada se escribe en la máquina hasta que revises las líneas exactas y confirmes; antes de escribir se guarda un respaldo.",
 		"mock_notice": "Datos de demostración: la parte del servicio todavía no está instalada. Lo que ves aquí es de ejemplo y no cambia la máquina.",
-		"read_only": "Solo un técnico puede crear herramientas. Puedes recorrer los pasos para ver cómo es, pero no se puede crear el plan.",
 		"back": "Atrás",
 		"next": "Siguiente",
 		"fix_first": "Corrige lo marcado en rojo para seguir.",

@@ -8,7 +8,7 @@
 			<span v-if="detection.reasonKey" class="text-caption warning--text">{{ t(detection.reasonKey) }}</span>
 			<span v-else-if="detection.kinds.length < 3" class="text-caption machine-faint">{{ t('level.reason_' + detection.mode) }}</span>
 		</div>
-		<v-alert v-if="!canRun" dense outlined type="info" class="mb-3">{{ t('page.read_only') }}</v-alert>
+		<role-note v-if="!canRun" min="technician" class="mb-3" />
 		<v-card outlined class="mb-4 pa-3">
 			<level-bed
 				:model="bedModel" :lp="lp" :service-level="serviceLevel" :last-level="lastLevel" :result="rs.result" :editable="canRun && !busy && detection.kinds.length > 0"
@@ -53,9 +53,10 @@ import { pointSetsMixin } from './pointsets-mixin.js'
 import { draftKeyOf } from '../state/bed-state.js'
 import { createLevelPoints, pointsOf } from '../state/level-points-state.js'
 import { KINDS, detect, runParams, defaultsOf } from '../lib/level.js'
+import RoleNote from './RoleNote.vue'
 
 export default {
-	components: { RunStart, RunProgress, LevelPasses, LevelBed },
+	components: { RoleNote, RunStart, RunProgress, LevelPasses, LevelBed },
 	mixins: [bedLayoutMixin(), pointSetsMixin(), runModule(KINDS, { kind: 'level.measure', maxPasses: 5, toleranceMm: 0.02 })],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

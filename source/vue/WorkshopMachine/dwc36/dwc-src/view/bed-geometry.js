@@ -17,7 +17,7 @@
 import { makeScale, legendStops, textOn } from './color-scale.js'
 import { gridStats } from '../lib/mesh-grid.js'
 
-export const DEFAULT_PALETTE = { bedFill: '#37474f', bedStroke: '#90a4ae', gridLine: 'rgba(0,0,0,0.25)', text: '#eceff1', region: '#ffb74d', marker: '#212121' }
+export const DEFAULT_PALETTE = { bedFill: '#37474f', bedStroke: '#90a4ae', gridLine: 'rgba(0,0,0,0.25)', text: '#eceff1', region: '#ffa726', marker: '#212121' }
 
 export const LIGHT_PALETTE = { bedFill: '#eceff1', bedStroke: '#546e7a', gridLine: 'rgba(0,0,0,0.25)', text: '#212121', region: '#e65100', marker: '#212121' }
 

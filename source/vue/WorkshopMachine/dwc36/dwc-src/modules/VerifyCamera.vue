@@ -1,10 +1,7 @@
 <template>
 	<div class="verify-camera">
 		<p class="text-body-2 machine-faint">{{ t('verify.intro') }}</p>
-		<details class="wf-more" v-if="mode === 'manual'">
-			<summary>{{ t('common.how_it_works') }}</summary>
-		<v-alert dense outlined type="info">{{ t('verify.manual') }}</v-alert>
-		</details>
+		<help-guide v-if="mode === 'manual'" :title="t('common.how_it_works')"><p class="text-body-2">{{ t('verify.manual') }}</p></help-guide>
 		<div v-else-if="mode === 'checking'" class="text-body-2 machine-faint">{{ t('common.loading') }}</div>
 		<template v-else>
 			<div class="d-flex align-start flex-wrap" style="gap:8px">
@@ -22,7 +19,7 @@
 			</div>
 			<div class="text-caption machine-faint mt-1">{{ vs.form.target === 'tool' ? t('verify.tool_note') : t('verify.system_note') }}</div>
 			<div class="text-caption machine-faint">{{ t('verify.moves_note') }}</div>
-			<div v-if="!canRun" class="text-caption machine-faint">{{ t('run.needs_technician') }}</div>
+			<lock-reason min="technician" />
 			<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 			<v-alert v-if="lastResult" dense outlined :type="lastResult.view.outcome === 'ok' ? 'success' : 'warning'" class="mt-3">{{ t('verify.last_' + lastResult.view.outcome) }}</v-alert>
 			<div v-if="!rows.length" class="text-body-2 machine-faint mt-3">{{ t('verify.no_rows') }}</div>
@@ -74,9 +71,11 @@ import { RUN_KINDS4, normalizeVerification } from '../api/machine-api-p4.js'
 import { modeOf, runParams, tableRows, worstError, outcomeView, systemName, TARGETS, METHODS, SYSTEMS } from '../lib/verification.js'
 import { createVerifyState, addResult, seed, rowsOf } from '../state/verify-state.js'
 import { formatNumber } from '../lib/format.js'
+import LockReason from '../LockReason.vue' // vue/_shared36
+import HelpGuide from '../HelpGuide.vue' // vue/_shared36
 
 export default {
-	components: { RunProgress },
+	components: { HelpGuide, LockReason, RunProgress },
 	mixins: [runModule([RUN_KINDS4.offsetsVerify], {})],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

@@ -8,11 +8,12 @@
 
 import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { textKey } from '../lib/plugin-texts.js'
+import { withLockParams } from './lock-params.js'
 
 export const textMixin = {
 	methods: {
 		t(key, params) {
-			return this.$t('plugins.WorkshopMachine.' + key, params)
+			return this.$t('plugins.WorkshopMachine.' + key, withLockParams(key, params))
 		},
 		tx(key, params) {
 			return this.t(textKey(key, name => pluginActive(this.$store, name)), params)

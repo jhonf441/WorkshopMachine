@@ -5,6 +5,7 @@
 //
 //   lockKey(e)        'lock.signed_out' (needs signing in) | 'lock.role' (the role is too low) | '' (not a refusal of this kind)
 //   lockKeyOf(reason) the same from the reason / code string that refusalOf() returns
+//   causeOf(e)        'session' | 'role' | '' : the cause for <session-notice> / <lock-reason> (the sentence is theirs, not a key of this plugin)
 //   detailOf(e)       the raw message of the error, '' for a refusal of this kind (the sentence already says it)
 //   messageOf(e, t)   one line for a person: the lock sentence, else the message of the error; t = this.t of a component
 
@@ -16,6 +17,11 @@ export function lockKeyOf(reason) {
 
 export function lockKey(e) {
 	return lockKeyOf(e && e.code)
+}
+
+export function causeOf(e) {
+	const key = lockKey(e)
+	return key === 'lock.signed_out' ? 'session' : key ? 'role' : ''
 }
 
 export function detailOf(e) {

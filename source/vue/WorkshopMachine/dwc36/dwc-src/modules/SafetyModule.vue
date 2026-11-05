@@ -5,7 +5,7 @@
 		<div class="d-flex align-center flex-wrap" style="gap:8px">
 			<v-btn color="primary" :disabled="!startAllowed" :loading="busy" @click="start(kind, {})"><v-icon left>mdi-shield-search</v-icon>{{ t('safety.run') }}</v-btn>
 			<span class="text-caption machine-faint">{{ t('safety.no_motion') }}</span>
-			<span v-if="!canRun" class="text-caption machine-faint">{{ t('run.needs_technician') }}</span>
+			<lock-reason min="technician" />
 		</div>
 		<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 		<template v-if="result">
@@ -55,9 +55,10 @@ import RunProgress from './RunProgress.vue'
 import { RUN_KINDS2, normalizeSafety } from '../api/machine-api-p2.js'
 import { checkRows, summaryOf, severityView, detailText, SEVERITIES } from '../lib/safety.js'
 import { formatDate } from '../lib/format.js'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
-	components: { RunProgress },
+	components: { LockReason, RunProgress },
 	mixins: [runModule([RUN_KINDS2.safetyCheck], {})],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

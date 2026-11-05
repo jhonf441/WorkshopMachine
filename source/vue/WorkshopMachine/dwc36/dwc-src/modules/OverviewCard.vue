@@ -2,7 +2,8 @@
 	<v-card outlined class="overview-card">
 		<v-card-title class="text-subtitle-1 pb-1">{{ t('overview.title') }}</v-card-title>
 		<v-card-text>
-			<div v-if="!overview" class="text-body-2 machine-faint">{{ failed ? lockText || t('overview.no_data') : t('common.loading') }}</div>
+			<session-notice v-if="!overview && lockKind" :kind="lockKind" needed="operator" />
+			<div v-else-if="!overview" class="text-body-2 machine-faint">{{ failed ? t('overview.no_data') : t('common.loading') }}</div>
 			<template v-else>
 				<v-alert v-if="!overview.ready.live" dense outlined type="warning" class="mb-3">{{ t('overview.no_live') }}</v-alert>
 				<v-alert v-if="overview.run.active" dense outlined type="info" icon="mdi-cog-play-outline" class="mb-3">{{ t('overview.running', { kind: kindName(overview.run.kind) }) }}</v-alert>
@@ -42,13 +43,15 @@
 // machine.overview, which every role may read (no values of offsets or limits).
 
 import { textMixin } from './text-mixin.js'
+import SessionNotice from '../SessionNotice.vue' // vue/_shared36
 import { kindRows, readyItems } from '../lib/traffic.js'
 import { overviewLight } from '../lib/maintenance.js'
 
 export default {
+	components: { SessionNotice },
 	mixins: [textMixin],
 	props: {
-		lockText: { type: String, default: '' }, // the sentence of a refusal by session or role: it replaces "no data"
+		lockKind: { type: String, default: '' }, // the cause of a refusal ('session' | 'role'): the standard notice replaces "no data"
 		failed: { type: Boolean, default: false }, // the load failed: say there is no data instead of "Loading..." forever
 		overview: { type: Object, default: null } // normalizeOverview(...)
 	},

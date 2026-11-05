@@ -20,7 +20,7 @@
 				<v-btn small color="primary" :disabled="!hasChange || flowBusy" @click="propose()">{{ t('power.review') }}</v-btn>
 				<span class="text-caption machine-faint">{{ t('power.admin_hint') }}</span>
 			</div>
-			<v-alert v-else dense outlined type="info" class="mt-2">{{ t('power.read_only') }}</v-alert>
+			<role-note v-else min="admin" class="mt-2" />
 		</template>
 		<template v-if="view">
 			<div class="text-subtitle-1 mt-5 mb-1">{{ t('power.files_title') }}</div>
@@ -53,7 +53,7 @@
 							<v-btn small :color="armed ? 'error' : 'primary'" :disabled="!!resumeWhy || resuming" @click="resumeTap()"><v-icon small left>mdi-play-circle-outline</v-icon>{{ t(armed ? 'power.resume_confirm' : 'power.resume_btn') }}</v-btn>
 							<span v-if="resumeWhy" class="text-caption machine-faint">{{ t(resumeWhy) }}</span>
 						</div>
-						<v-alert v-else dense outlined type="info" class="mt-1 mb-0">{{ t('power.resume_role') }}</v-alert>
+						<lock-reason v-else min="technician" class="mt-1" />
 						<error-notice :error="resumeError" />
 						<v-alert v-if="resumeSent" dense outlined type="success" class="mt-2 mb-0">{{ t('power.resume_sent') }}</v-alert>
 					</div>
@@ -101,10 +101,12 @@ import { textMixin } from './text-mixin.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { isWorking } from '../state/plan-state.js'
 import { KIND_POWER, KIND_PROLOGUE, POWER_RANGE, ACK_KEYS, powerDraft, powerChange, powerState, fileLines, prologueFacts, resumeRows, resumeBlock } from '../lib/power.js'
+import RoleNote from './RoleNote.vue'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
 	mixins: [textMixin],
-	components: { ErrorNotice, PlanReview },
+	components: { LockReason, RoleNote, ErrorNotice, PlanReview },
 	props: {
 		api: { type: Object, required: true },
 		canEdit: { type: Boolean, default: false }, // admin (workshopCan): the two voltages

@@ -1,12 +1,9 @@
 <template>
 	<div class="area-module">
 		<div class="text-h6 mb-1">{{ t('workarea.title') }}</div>
-		<details class="wf-more">
-			<summary>{{ t('common.how_it_works') }}</summary>
-		<p class="text-body-2 machine-faint">{{ tx('workarea.intro') }}</p>
-		</details>
+		<help-guide :title="t('common.how_it_works')"><p class="text-body-2">{{ tx('workarea.intro') }}</p></help-guide>
 		<error-notice :error="st.loadError" retry @retry="reload()" />
-		<v-alert v-if="!canWrite" dense outlined type="info" class="mb-3">{{ t('workarea.read_only') }}</v-alert>
+		<role-note v-if="!canWrite" min="technician" class="mb-3" />
 		<template v-if="st.data">
 			<v-alert v-if="macrosMissing" dense outlined type="warning" class="mb-3">{{ tx('workarea.macros_missing') }}</v-alert>
 			<v-alert v-if="!st.data.file" dense outlined type="info" class="mb-3">{{ t('workarea.file_missing') }}</v-alert>
@@ -29,7 +26,7 @@
 			<v-card outlined class="mb-3">
 				<v-card-text>
 					<area-hand
-						:corners="st.corners" :release-block="blockText('release')" :capture-block="blockText('capture')" :released="st.released"
+						:corners="st.corners" :release-block="blockedWhy('release')" :capture-block="blockedWhy('capture')" :released="st.released"
 						:working="st.working" :can-write="canWrite" :here-ok="!!toolPoint(axes)" @release="doRelease()" @capture="doCapture" @here="doHere"
 					/>
 				</v-card-text>
@@ -48,7 +45,7 @@
 						<v-btn value="b" small>{{ t('workarea.tool_b') }}</v-btn>
 						<v-btn value="goto" small :disabled="!canWrite" :title="t('workarea.tool_goto_tip')">{{ t('workarea.tool_goto') }}</v-btn>
 					</v-btn-toggle>
-					<div v-if="st.tool === 'goto' && blockText('goto')" class="text-caption machine-faint mb-1">{{ blockText('goto') }}</div>
+					<div v-if="st.tool === 'goto' && blockedWhy('goto')" class="text-caption machine-faint mb-1">{{ blockedWhy('goto') }}</div>
 					<area-map :reach="st.data.reach" :saved="saved" :draft="check.rect" :corners="st.corners" :editable="canWrite" @region="onRegion" @pick="onPick" />
 				</v-card-text>
 			</v-card>
@@ -56,11 +53,11 @@
 				<v-card-text>
 					<div class="text-subtitle-2 mb-1">{{ t('workarea.frame_title') }}</div>
 					<p class="text-body-2 machine-faint">{{ t('workarea.frame_intro') }}</p>
-					<v-btn small outlined :disabled="!canWrite || !!block('frame')" :loading="st.working === 'frame'" :title="blockText('frame')" @click="doFrame()">
+					<v-btn small outlined :disabled="!canWrite || !!block('frame')" :loading="st.working === 'frame'" :title="blockedWhy('frame')" @click="doFrame()">
 						<v-icon small left>mdi-vector-rectangle</v-icon>{{ t('workarea.frame') }}
 					</v-btn>
 					<div v-if="dirty" class="text-caption machine-faint mt-1">{{ t('workarea.frame_save_first') }}</div>
-					<div v-else-if="blockText('frame') && !st.working" class="text-caption machine-faint mt-1">{{ blockText('frame') }}</div>
+					<div v-else-if="blockedWhy('frame') && !st.working" class="text-caption machine-faint mt-1">{{ blockedWhy('frame') }}</div>
 				</v-card-text>
 			</v-card>
 		</template>
@@ -83,9 +80,11 @@ import AreaMap from './AreaMap.vue'
 import { textMixin } from './text-mixin.js'
 import { blockKey, toolPoint } from '../lib/workarea.js'
 import { createAreaState, selectMode, setField, setRect, setCorner, savedRect, checked, isDirty, blocked, load, save, remove, release, capture, hereCorner, gotoPoint, frame, loadPositions, pickPosition } from '../state/area-state.js'
+import RoleNote from './RoleNote.vue'
+import HelpGuide from '../HelpGuide.vue' // vue/_shared36
 
 export default {
-	components: { ErrorNotice, AreaFields, AreaHand, AreaSaved, AreaMap },
+	components: { HelpGuide, RoleNote, ErrorNotice, AreaFields, AreaHand, AreaSaved, AreaMap },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
@@ -123,7 +122,7 @@ export default {
 		block(action) {
 			return blocked(this.st, action)
 		},
-		blockText(action) {
+		blockedWhy(action) {
 			const key = blockKey(this.block(action))
 			return key ? this.tx(key, { mode: this.st.mode }) : ''
 		},

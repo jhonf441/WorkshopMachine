@@ -16,7 +16,7 @@
 			<v-btn color="primary" :disabled="!ready" :loading="starting" @click="go()">
 				<v-icon left>mdi-play</v-icon>{{ starting ? t('run.starting') : label || t('run.start') }}
 			</v-btn>
-			<span v-if="!allowed" class="text-caption machine-faint">{{ t('run.needs_technician') }}</span>
+			<lock-reason v-if="!allowed" min="technician" />
 			<span v-else-if="disabledText" class="text-caption warning--text">{{ disabledText }}</span>
 			<span v-else-if="!autoOk" class="text-caption error--text">{{ t('run.auto_blocked') }}</span>
 		</div>
@@ -31,10 +31,12 @@
 
 import { textMixin } from './text-mixin.js'
 import { AUTO_CHECKS, homedCheck, probeCheck } from '../lib/precheck.js'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export const DEFAULT_CHECKS = ['homed', 'probe', 'clear', 'bed', 'estop']
 
 export default {
+	components: { LockReason },
 	mixins: [textMixin],
 	props: {
 		allowed: { type: Boolean, default: false }, // the role may start (technician)

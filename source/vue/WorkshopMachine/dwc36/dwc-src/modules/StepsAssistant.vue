@@ -1,7 +1,7 @@
 <template>
 	<div class="steps-assistant">
 		<p class="text-body-2 machine-faint">{{ t('calibration.steps_intro') }}</p>
-		<v-alert v-if="!canEdit" dense outlined type="info" class="mb-3">{{ t('calibration.steps_admin') }}</v-alert>
+		<role-note v-if="!canEdit" min="admin" class="mb-3" />
 		<div v-if="!rows.length" class="text-body-2 machine-faint">{{ t('calibration.no_axes') }}</div>
 		<template v-else>
 			<div class="d-flex flex-wrap align-center" style="gap:12px">
@@ -48,9 +48,10 @@ import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import { FIELD_ERRORS, fieldInvalid, fieldMessage, blockKey, numberOf, TEST_MOVE_MAX_MM } from '../lib/number-field.js'
 import { planModule } from './plan-module.js'
 import { stepsResult, stepsInput, testMoveGcode, CALC_STEPS } from '../lib/steps-calc.js'
+import RoleNote from './RoleNote.vue'
 
 export default {
-	components: { PlanReview, GcodeBlock, CalcWarnings, ErrorNotice },
+	components: { RoleNote, PlanReview, GcodeBlock, CalcWarnings, ErrorNotice },
 	mixins: [planModule()],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('height.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('height.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<v-alert v-if="!canWrite" dense outlined type="info" class="mb-3">{{ t('height.read_only') }}</v-alert>
+		<role-note v-if="!canWrite" min="technician" class="mb-3" />
 		<template v-if="h">
 			<v-alert v-if="missing.length" dense outlined type="warning" class="mb-3">
 				<div>{{ t('height.hook_missing', { files: missing.join(', ') }) }}</div>
@@ -83,9 +83,10 @@ import { textMixin } from './text-mixin.js'
 import { messageOf } from '../lib/refusal.js'
 import { HEIGHT_MODES } from '../api/machine-api-p8.js'
 import { modeView, blockReason, defaultPoint, parseAdjust, parsePaper, nudged, changeOf, hookMissing, szpRecord, parseSzpOutput, NUDGE, todayText } from '../lib/height.js'
+import RoleNote from './RoleNote.vue'
 
 export default {
-	components: { ErrorNotice, HeightWizard, HeightSzp },
+	components: { RoleNote, ErrorNotice, HeightWizard, HeightSzp },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
@@ -245,6 +246,6 @@ export default {
 <style>
 .height-module .height-field { max-width: 110px; }
 /* why an assistant cannot start now: next to the button, readable (the disabled button alone does not say it) */
-.height-module .height-block { font-size: 12px; line-height: 1.4; color: #ffb74d; }
+.height-module .height-block { font-size: 13px; line-height: 1.4; color: var(--wf-warn); }
 .theme--light .height-module .height-block { color: #b26a00; }
 </style>

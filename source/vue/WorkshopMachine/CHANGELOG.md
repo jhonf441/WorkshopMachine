@@ -1,5 +1,9 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.27 -- 2026-11-05
+
+- Session notices and help standard: one voice for sign-in and role refusals, shared help tips, identity change resets what the session showed
+
 ## 1.8.26 -- 2026-11-04
 
 - Help of fields and cards is the shared help-tip; sign out no longer reopens the PIN dialog

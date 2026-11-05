@@ -69,7 +69,7 @@ export default {
 </script>
 
 <style>
-.bedv { width: 100%; --bv-limits: #2f3b41; --bv-line: #78909c; --bv-grid: rgba(255, 255, 255, 0.09); --bv-text: #eceff1; --bv-faint: #b0bec5; --bv-ok: #a5d6a7; --bv-warn: #ffb74d; --bv-bad: #ef9a9a; --bv-info: #90caf9; --bv-region: #ffe082; --bv-card: #263238; }
+.bedv { width: 100%; --bv-limits: #2f3b41; --bv-line: #78909c; --bv-grid: rgba(255, 255, 255, 0.09); --bv-text: #eceff1; --bv-faint: #b0bec5; --bv-ok: #a5d6a7; --bv-warn: #ffa726; --bv-bad: #ef9a9a; --bv-info: #64b5f6; --bv-region: #ffd54f; --bv-card: #263238; }
 .theme--light .bedv { --bv-limits: #f5f7f8; --bv-line: #546e7a; --bv-grid: rgba(0, 0, 0, 0.09); --bv-text: #212121; --bv-faint: #616161; --bv-ok: #2e7d32; --bv-warn: #b26a00; --bv-bad: #c62828; --bv-info: #1565c0; --bv-region: #8d6e00; --bv-card: #ffffff; }
 .bedv-svg { display: block; max-width: 100%; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .bedv text { fill: var(--bv-text); font-size: 11px; }

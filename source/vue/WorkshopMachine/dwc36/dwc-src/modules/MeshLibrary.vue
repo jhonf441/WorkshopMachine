@@ -25,7 +25,7 @@
 				</tr>
 			</tbody>
 		</v-simple-table>
-		<div v-if="!canWrite" class="text-caption machine-faint mt-2">{{ t('mesh.read_only') }}</div>
+		<lock-reason min="technician" class="mt-2" />
 		<template v-if="canWrite">
 			<div class="d-flex align-start flex-wrap mt-3" style="gap:8px">
 				<v-text-field v-model="name" :label="t('mesh.save_name')" dense outlined hide-details="auto" style="max-width:240px" :error-messages="nameError" />
@@ -53,8 +53,10 @@
 
 import { textMixin } from './text-mixin.js'
 import { saveName, taperParams } from '../lib/mesh-grid.js'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
+	components: { LockReason },
 	mixins: [textMixin],
 	props: {
 		meshes: { type: Array, default: () => [] },

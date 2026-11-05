@@ -11,7 +11,7 @@
 		<div v-if="canGenerate" class="mt-3">
 			<v-btn small color="primary" :loading="loading" @click="generate()">{{ t('shaping.ringing_generate') }}</v-btn>
 		</div>
-		<div v-else class="text-caption machine-faint mt-3">{{ t('shaping.ringing_needs_technician') }}</div>
+		<lock-reason v-else min="technician" class="mt-3" />
 		<error-notice :error="error" />
 		<gcode-block v-if="test" class="mt-3" :title="t('shaping.ringing_gcode')" :text="test.gcode" />
 		<div class="text-body-2 font-weight-medium mt-4">{{ t('shaping.ringing_measure') }}</div>
@@ -37,9 +37,10 @@ import GcodeBlock from './GcodeBlock.vue'
 import { textMixin } from './text-mixin.js'
 import { AXES_CHOICES, ringingFrequency, testOptions, RIPPLES } from '../lib/ringing.js'
 import { fieldInvalid, fieldMessage, blockKey } from '../lib/number-field.js'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
-	components: { ErrorNotice, GcodeBlock },
+	components: { LockReason, ErrorNotice, GcodeBlock },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true },

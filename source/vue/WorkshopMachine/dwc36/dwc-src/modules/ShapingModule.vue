@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('shaping.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('shaping.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<v-alert v-if="!canEdit" dense outlined type="info" class="mb-3">{{ t('shaping.read_only') }}</v-alert>
+		<role-note v-if="!canEdit" min="technician" class="mb-3" />
 		<v-card outlined class="mb-4">
 			<v-card-title class="text-subtitle-1 pb-0">{{ t('shaping.current_title') }}</v-card-title>
 			<v-card-text>
@@ -62,6 +62,7 @@ import RingingTest from './RingingTest.vue'
 import { planModule } from './plan-module.js'
 import { trialModule } from './trial-module.js'
 import { TYPES, KIND_SHAPING, FREQ_MIN, draftOf, check, lineOf, planValues, stateView, warningKey } from '../lib/shaping.js'
+import RoleNote from './RoleNote.vue'
 
 const NOT_LOADED = {
 	available: false, current: { type: null, frequency: null, damping: null, minAcceleration: null }, types: TYPES, minFrequency: FREQ_MIN,
@@ -69,7 +70,7 @@ const NOT_LOADED = {
 }
 
 export default {
-	components: { ErrorNotice, PlanReview, TryPanel, ShapingTuner, RingingTest },
+	components: { RoleNote, ErrorNotice, PlanReview, TryPanel, ShapingTuner, RingingTest },
 	mixins: [planModule(), trialModule()],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

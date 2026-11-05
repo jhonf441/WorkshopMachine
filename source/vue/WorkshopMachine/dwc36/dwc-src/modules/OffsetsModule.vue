@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('offsets.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ tx('offsets.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<v-alert v-if="!canWrite" dense outlined type="info" class="mb-3">{{ t('offsets.read_only') }}</v-alert>
+		<role-note v-if="!canWrite" min="technician" class="mb-3" />
 		<template v-if="os.data">
 			<v-card outlined class="mb-4">
 				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.tools_title') }}</v-card-title>
@@ -73,11 +73,12 @@ import { pairOf, crossReasonKey } from '../lib/laser-pointer.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
 import { detailOf } from '../lib/refusal.js'
+import RoleNote from './RoleNote.vue'
 
 const NO_DRAFT = {} // the work table is never edited here
 
 export default {
-	components: { ErrorNotice, OffsetsTable, OffsetsSnapshots, LaserPointer, PlanReview, VerifyCamera, WorkbenchLink },
+	components: { RoleNote, ErrorNotice, OffsetsTable, OffsetsSnapshots, LaserPointer, PlanReview, VerifyCamera, WorkbenchLink },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

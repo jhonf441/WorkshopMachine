@@ -4,7 +4,10 @@
 		<v-alert dense outlined type="warning" class="mb-3">{{ t('calibration.backlash_fixed') }}</v-alert>
 		<div class="d-flex flex-wrap align-center" style="gap:12px">
 			<v-select v-model="axis" :items="axisItems" :label="t('calibration.axis')" dense outlined hide-details style="max-width:120px" />
-			<v-text-field v-model="multiplier" type="number" :min="1" :max="100" step="any" inputmode="decimal" :label="t('calibration.backlash_multiplier')" dense outlined hide-details="auto" style="max-width:210px" :hint="t('calibration.backlash_multiplier_hint')" :error-messages="msg(multiplier, RANGE_MULT)" @keydown="blockKey" />
+			<wf-field id="backlash-multiplier" :label="t('calibration.backlash_multiplier')" style="max-width:210px" :message="msg(multiplier, RANGE_MULT)[0] || ''" level="error">
+				<template #help><help-tip :title="t('calibration.backlash_multiplier')" :what="t('calibration.backlash_multiplier_hint')" /></template>
+				<v-text-field id="backlash-multiplier" v-model="multiplier" type="number" :min="1" :max="100" step="any" inputmode="decimal" :aria-label="t('calibration.backlash_multiplier')" dense outlined hide-details @keydown="blockKey" />
+			</wf-field>
 		</div>
 		<v-simple-table dense class="mt-3">
 			<thead>
@@ -53,9 +56,11 @@ import CalcWarnings from './CalcWarnings.vue'
 import { planModule } from './plan-module.js'
 import { FIELD_ERRORS, fieldInvalid, fieldMessage, blockKey } from '../lib/number-field.js'
 import { backlashResult, backlashInput, emptyEntry, CALC_BACKLASH, SAMPLES_MAX } from '../lib/backlash-calc.js'
+import WfField from '../WfField.vue' // vue/_shared36
+import HelpTip from '../HelpTip.vue' // vue/_shared36
 
 export default {
-	components: { PlanReview, CalcWarnings },
+	components: { WfField, HelpTip, PlanReview, CalcWarnings },
 	mixins: [planModule()],
 	props: {
 		api: { type: Object, required: true },

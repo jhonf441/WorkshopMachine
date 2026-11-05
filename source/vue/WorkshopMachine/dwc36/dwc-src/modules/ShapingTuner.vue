@@ -10,7 +10,7 @@
 				<v-select v-if="accelerometer.count > 1" v-model="index" :items="indexes" :label="t('shaping.tuner_index')" dense outlined hide-details style="max-width:160px" />
 			</div>
 			<run-start v-if="canRun" class="mt-3" :allowed="canRun" :checks="['homed', 'clear', 'bed', 'estop']" :busy="!startAllowed" :starting="rs.status === 'starting'" :label="t('shaping.tuner_start')" @start="start(kind, params())" />
-			<div v-else class="text-caption machine-faint mt-2">{{ t('run.needs_technician') }}</div>
+			<lock-reason v-else min="technician" class="mt-2" />
 			<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 			<v-card v-if="tuning" outlined class="mt-3">
 				<v-card-text>
@@ -35,9 +35,10 @@ import { runModule } from './run-module.js'
 import RunStart from './RunStart.vue'
 import RunProgress from './RunProgress.vue'
 import { RUN_KINDS3, normalizeTuning } from '../api/machine-api-p3.js'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
-	components: { RunStart, RunProgress },
+	components: { LockReason, RunStart, RunProgress },
 	mixins: [runModule([RUN_KINDS3.shapingTune], {})],
 	props: {
 		api: { type: Object, required: true },

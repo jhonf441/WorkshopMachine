@@ -39,7 +39,10 @@
 						<v-select v-model="h.sensorPreset" :items="presetItems" dense outlined hide-details :placeholder="t('toolwiz.sensor_pick')" :error="show && !h.sensorPreset" />
 					</tool-row>
 					<tool-row :label="t('toolwiz.max_row')" topic="maxtemp" :field="'heater.' + i + '.max'" :issues="issues" :show="show">
-						<v-text-field v-model="h.maxTemp" type="number" suffix="C" dense outlined hide-details style="max-width: 200px" :hint="hintOf(h)" persistent-hint @keydown="blockKey" />
+						<div style="max-width: 200px">
+							<v-text-field v-model="h.maxTemp" type="number" suffix="C" dense outlined hide-details @keydown="blockKey" />
+							<div class="wf-field-msg is-hint">{{ hintOf(h) }}</div>
+						</div>
 					</tool-row>
 				</tool-choice-card>
 			</div>

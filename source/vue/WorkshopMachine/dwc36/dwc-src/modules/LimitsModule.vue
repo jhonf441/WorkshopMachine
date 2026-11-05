@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('limits.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('limits.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<v-alert v-if="!canEdit" dense outlined type="info" class="mb-3">{{ t('limits.read_only') }}</v-alert>
+		<role-note v-if="!canEdit" min="admin" class="mb-3" />
 		<v-alert v-for="w in warnings" :key="w.code + w.axis" dense outlined type="warning" class="mb-2">{{ t(w.textKey) }}<span v-if="w.axis"> ({{ w.axis }})</span></v-alert>
 		<v-alert v-if="limits && !limits.configRead" dense outlined type="info" class="mb-2">{{ t('limits.config_unread') }}</v-alert>
 		<div v-if="!rows.length" class="text-body-2 machine-faint">{{ t('limits.no_axes') }}</div>
@@ -43,7 +43,7 @@
 		<div class="text-subtitle-1 mt-6 mb-1">{{ t('limits.verify_title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('limits.verify_intro') }}</p>
 		<run-start v-if="canRun" :allowed="canRun" :checks="['homed', 'clear', 'bed', 'estop']" :busy="!startAllowed" :starting="rs.status === 'starting'" :label="t('limits.verify_start')" @start="start(kind, {})" />
-		<div v-else class="text-caption machine-faint">{{ t('run.needs_technician') }}</div>
+		<lock-reason v-else min="technician" />
 		<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 		<endstop-result v-if="verify" class="mt-3" :result="verify" />
 		<div v-else-if="!busy" class="text-body-2 machine-faint mt-2">{{ t('limits.verify_none') }}</div>
@@ -67,9 +67,11 @@ import { RUN_KINDS2, normalizeVerify } from '../api/machine-api-p2.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { isWorking } from '../state/plan-state.js'
 import { limitRows, draftOf, changedLimits, limitsValid, planValues, travel, warningRows, KIND_LIMITS } from '../lib/limits.js'
+import RoleNote from './RoleNote.vue'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
-	components: { ErrorNotice, RunStart, RunProgress, PlanReview, EndstopResult },
+	components: { LockReason, RoleNote, ErrorNotice, RunStart, RunProgress, PlanReview, EndstopResult },
 	mixins: [runModule([RUN_KINDS2.homingVerify], {})],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
