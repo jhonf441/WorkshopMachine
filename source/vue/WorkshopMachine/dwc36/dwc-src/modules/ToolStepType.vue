@@ -3,15 +3,15 @@
 		<div class="text-h6 mb-1">{{ t('toolwiz.type_title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('toolwiz.type_intro') }}</p>
 		<tool-row :label="t('toolwiz.type_row')" topic="type" field="type" :issues="issues" :show="show">
-			<div class="toolwiz-cards">
+			<div class="toolwiz-cards toolwiz-cards--types">
 				<tool-choice-card v-for="id in types" :key="id" clickable :selected="w.draft.type === id" @pick="pick(id)">
 					<div class="d-flex align-center" style="gap: 8px">
 						<v-icon large>{{ info(id).icon }}</v-icon>
 						<div class="flex-grow-1" style="min-width: 0">
-							<div class="text-subtitle-1 font-weight-medium toolwiz-clamp-1">{{ t('toolwiz.type_' + id) }}</div>
+							<div class="text-subtitle-1 font-weight-medium toolwiz-clamp-2">{{ t('toolwiz.type_' + id) }}</div>
 							<div class="text-caption toolwiz-clamp-2">{{ t('toolwiz.type_' + id + '_about') }}</div>
+							<v-chip v-if="hint && info(id).mode.toLowerCase() === hint" x-small color="info" text-color="white" class="mt-1">{{ t('toolwiz.type_suggested') }}</v-chip>
 						</div>
-						<v-chip v-if="hint && info(id).mode.toLowerCase() === hint" x-small color="info" text-color="white">{{ t('toolwiz.type_suggested') }}</v-chip>
 					</div>
 				</tool-choice-card>
 			</div>

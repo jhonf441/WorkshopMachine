@@ -8,6 +8,7 @@
 
 import { NOT_THERE } from '../api/machine-api-p7.js'
 import { refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 import { refusalKey } from '../lib/runs.js'
 
 export const OFF_REASONS = ['no_store', 'error'] // bed.sets_off_<reason>
@@ -20,7 +21,7 @@ function failure(st, e) {
 	st.noticeKey = ''
 	if (e && e.code === 'conflict') st.errorKey = 'bed.set_err_conflict'
 	else st.errorKey = refusalKey(refusalOf(e))
-	st.errorDetail = e && e.message && e.code !== 'conflict' ? String(e.message) : ''
+	st.errorDetail = e && e.code !== 'conflict' ? detailOf(e) : ''
 }
 
 export async function loadSets(st, api) {

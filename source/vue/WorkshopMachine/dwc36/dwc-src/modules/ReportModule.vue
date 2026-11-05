@@ -32,6 +32,7 @@ import { buildReport } from '../lib/report-model.js'
 import { bedOf } from '../lib/mesh-grid.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 
 export default {
 	components: { ReportView },
@@ -66,7 +67,7 @@ export default {
 			try {
 				loadDone(this.rs, await this.api.history.report(targetOf(this.rs)))
 			} catch (e) {
-				loadFailed(this.rs, planErrorKey(refusalOf(e)), e && e.message)
+				loadFailed(this.rs, planErrorKey(refusalOf(e)), detailOf(e))
 			}
 		},
 		print() {

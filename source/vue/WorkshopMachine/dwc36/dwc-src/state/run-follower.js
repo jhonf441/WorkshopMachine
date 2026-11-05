@@ -7,6 +7,7 @@
 import { adoptRuns, beginStart, startFailed, stopAsked } from './run-state.js'
 import { isActive, refusalKey } from '../lib/runs.js'
 import { refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 
 export function createFollower(options) {
 	const api = options.api
@@ -33,7 +34,7 @@ export function createFollower(options) {
 		try {
 			adoptRuns(state, await api.runs())
 		} catch (e) {
-			state.error = { key: refusalKey(refusalOf(e)), params: {}, detail: e && e.message ? String(e.message) : '' }
+			state.error = { key: refusalKey(refusalOf(e)), params: {}, detail: detailOf(e) }
 		} finally {
 			busyRefresh = false
 		}
@@ -58,7 +59,7 @@ export function createFollower(options) {
 					state.error = null
 				} else {
 					startFailed(state, refusalKey(reason), {})
-					state.error.detail = e && e.message ? String(e.message) : ''
+					state.error.detail = detailOf(e)
 				}
 				changed(state)
 				return state
@@ -71,7 +72,7 @@ export function createFollower(options) {
 			try {
 				await api.stop()
 			} catch (e) {
-				state.error = { key: refusalKey(refusalOf(e)), params: {}, detail: e && e.message ? String(e.message) : '' }
+				state.error = { key: refusalKey(refusalOf(e)), params: {}, detail: detailOf(e) }
 			}
 			return refresh()
 		},

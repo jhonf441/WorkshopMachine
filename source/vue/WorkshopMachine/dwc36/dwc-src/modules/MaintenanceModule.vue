@@ -64,6 +64,7 @@ import {
 import { planRows, counterRows, historyRows, defaultLabelKey } from '../lib/maintenance.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 
 export default {
 	components: { ErrorNotice, MaintenanceCounters, MaintenancePlan, MaintenancePlanEditor, MaintenanceHistory },
@@ -97,14 +98,14 @@ export default {
 				loaded(this.ms, await this.api.maintenance.get())
 				this.loadError = null
 			} catch (e) {
-				loadFailed(this.ms, planErrorKey(refusalOf(e)), e && e.message)
+				loadFailed(this.ms, planErrorKey(refusalOf(e)), detailOf(e))
 				this.loadError = e
 			}
 		},
 		// a refusal of the service as one line: its reason text and its own message
 		failure(e) {
 			if (e && e.code === 'cancelled') return ''
-			return this.t(planErrorKey(refusalOf(e))) + (e && e.message ? ' (' + e.message + ')' : '')
+			return this.t(planErrorKey(refusalOf(e))) + (detailOf(e) ? ' (' + detailOf(e) + ')' : '')
 		},
 		async markDone(id) {
 			this.notice = ''

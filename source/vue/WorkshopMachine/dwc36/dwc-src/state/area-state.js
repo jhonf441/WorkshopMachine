@@ -12,6 +12,7 @@
 //   released  true between "release X and Y" and the next corner measurement (the motors have no force)
 // The actions take the api (createMachineApi(...).workarea) so a test passes a fake.
 
+import { lockKey } from '../lib/refusal.js'
 import { draftOf, parseDraft, rectProblems, cornersRect, sameRect, blockReason, toolPoint } from '../lib/workarea.js'
 
 export function createAreaState() {
@@ -107,7 +108,8 @@ async function work(state, name, fn) {
 		return true
 	} catch (e) {
 		if (e && e.code === 'cancelled') return false
-		state.error = e && e.message ? e.message : String(e)
+		state.errorKey = lockKey(e)
+		state.error = state.errorKey ? '' : e && e.message ? e.message : String(e)
 		return false
 	} finally {
 		state.working = ''

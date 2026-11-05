@@ -11,6 +11,7 @@
 import { createTryState, tryBegin, tryPending, tryFinishing, tryEnded, tryFailed, tryReset, isOver } from './try-state.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 
 // reasons of machine.try that have their own text (try.err_<reason>)
 export const TRY_REASONS = ['try_pending', 'busy_run', 'no_previous', 'board_error', 'not_found', 'revert_failed', 'job_running']
@@ -46,7 +47,7 @@ async function start(ctx, gcodeKind, values, seconds) {
 		} else tryFailed(ctx.state, 'try.err_other', '')
 	} catch (e) {
 		if (cancelled(e)) tryReset(ctx.state)
-		else tryFailed(ctx.state, tryErrorKey(refusalOf(e)), e && e.message ? String(e.message) : '')
+		else tryFailed(ctx.state, tryErrorKey(refusalOf(e)), detailOf(e))
 	}
 	ctx.changed(ctx.state)
 	return ctx.state
@@ -64,7 +65,7 @@ async function finish(ctx, action) {
 	} catch (e) {
 		if (cancelled(e)) tryPending(ctx.state, trial)
 		else if (refusalOf(e) === 'not_found') ended(ctx, 'expired') // it ended by itself in the meantime
-		else tryFailed(ctx.state, tryErrorKey(refusalOf(e)), e && e.message ? String(e.message) : '')
+		else tryFailed(ctx.state, tryErrorKey(refusalOf(e)), detailOf(e))
 	}
 	ctx.changed(ctx.state)
 	return ctx.state

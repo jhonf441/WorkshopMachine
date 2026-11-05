@@ -1,5 +1,18 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.8.25 -- 2026-11-04
+
+- Rebuilt with the readable text colours, the shared start-up card and the session notice
+
+## 1.8.24 -- 2026-11-04
+
+- SideTabs: the side bar renders again (the v-for template was missing)
+
+## 1.8.23 -- 2026-11-04
+
+- The side bar keeps its fold arrow and its pin fixed: only the items scroll inside the bar.
+- Create tool, step 1: the six tool types in three columns (two or one when narrow), the name can use two lines and the "Suggested" chip goes under the text, so nothing is cut.
+
 ## 1.8.22 -- 2026-11-04
 
 - ErrorNotice: no second sign-in notice (the page bar chip says it)

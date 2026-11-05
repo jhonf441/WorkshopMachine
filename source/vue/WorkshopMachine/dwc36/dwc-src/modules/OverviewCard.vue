@@ -2,7 +2,7 @@
 	<v-card outlined class="overview-card">
 		<v-card-title class="text-subtitle-1 pb-1">{{ t('overview.title') }}</v-card-title>
 		<v-card-text>
-			<div v-if="!overview" class="text-body-2 machine-faint">{{ failed ? t('overview.no_data') : t('common.loading') }}</div>
+			<div v-if="!overview" class="text-body-2 machine-faint">{{ failed ? lockText || t('overview.no_data') : t('common.loading') }}</div>
 			<template v-else>
 				<v-alert v-if="!overview.ready.live" dense outlined type="warning" class="mb-3">{{ t('overview.no_live') }}</v-alert>
 				<v-alert v-if="overview.run.active" dense outlined type="info" icon="mdi-cog-play-outline" class="mb-3">{{ t('overview.running', { kind: kindName(overview.run.kind) }) }}</v-alert>
@@ -48,6 +48,7 @@ import { overviewLight } from '../lib/maintenance.js'
 export default {
 	mixins: [textMixin],
 	props: {
+		lockText: { type: String, default: '' }, // the sentence of a refusal by session or role: it replaces "no data"
 		failed: { type: Boolean, default: false }, // the load failed: say there is no data instead of "Loading..." forever
 		overview: { type: Object, default: null } // normalizeOverview(...)
 	},

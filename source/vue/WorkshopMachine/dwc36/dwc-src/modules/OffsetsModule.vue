@@ -72,6 +72,7 @@ import { toolValues, toolChange, KIND_TOOLS } from '../lib/offsets.js'
 import { pairOf, crossReasonKey } from '../lib/laser-pointer.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 
 const NO_DRAFT = {} // the work table is never edited here
 
@@ -121,7 +122,7 @@ export default {
 				this.loadError = null
 				await this.loadSnapshots()
 			} catch (e) {
-				loadFailed(this.os, planErrorKey(refusalOf(e)), e && e.message)
+				loadFailed(this.os, planErrorKey(refusalOf(e)), detailOf(e))
 				this.loadError = e
 			}
 		},
@@ -154,7 +155,7 @@ export default {
 				this.notice = doneKey ? this.t(doneKey) : ''
 				return out
 			} catch (e) {
-				if (!e || e.code !== 'cancelled') this.opError = this.t(this.reasonKey(e)) + (e && e.message ? ' (' + e.message + ')' : '')
+				if (!e || e.code !== 'cancelled') this.opError = this.t(this.reasonKey(e)) + (detailOf(e) ? ' (' + detailOf(e) + ')' : '')
 				return null
 			} finally {
 				this.working = false

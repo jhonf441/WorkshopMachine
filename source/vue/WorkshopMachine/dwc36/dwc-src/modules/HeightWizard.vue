@@ -44,6 +44,7 @@
 // job); the numbers and the decisions are in lib/height.js.
 
 import { textMixin } from './text-mixin.js'
+import { messageOf } from '../lib/refusal.js'
 import { WIZARD_STEPS, JOG_STEPS, MARK_HEIGHT, clampPoint, k0Record, triggerShift, todayText } from '../lib/height.js'
 
 export default {
@@ -87,7 +88,7 @@ export default {
 				this.$emit('moved')
 				return r
 			} catch (e) {
-				this.error = String((e && e.message) || e)
+				this.error = messageOf(e, k => this.t(k))
 				return null
 			} finally {
 				this.busy = false

@@ -33,6 +33,8 @@ export function hasChanges(plan) {
 	return !!plan && plan.files.some(f => f.changed)
 }
 
+import { lockKeyOf } from './refusal.js'
+
 // refusal reasons of machine.config.plan / apply / history.restore that have their own text (plan.err_<reason>)
 export const ERROR_REASONS = [
 	'plan_expired', 'kind_mismatch', 'role', 'busy_run', 'nothing_to_apply', 'conflict', 'no_config', 'not_utf8', 'bad_value', 'no_points',
@@ -42,5 +44,6 @@ export const ERROR_REASONS = [
 ]
 
 export function planErrorKey(reason) {
+	if (lockKeyOf(reason)) return lockKeyOf(reason)
 	return 'plan.err_' + (ERROR_REASONS.indexOf(reason) >= 0 ? reason : 'other')
 }

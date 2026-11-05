@@ -9,6 +9,10 @@
 		"copied": "Copiado",
 		"gcode_not_sent": "Este G-code solo se muestra: la página no lo envía a la máquina."
 	},
+	"lock": {
+		"signed_out": "Sin sesión: inicia sesión para usar esto.",
+		"role": "Tu rol no permite esto: hace falta un rol más alto."
+	},
 	"groups": {
 		"probing": "Sondeo",
 		"geometry": "Geometría",
@@ -49,7 +53,6 @@
 	"page": {
 		"lead": "Revisa, calibra y cuida la máquina: sonda, nivelación, malla, offsets, límites y mantenimiento.",
 		"read_only": "Solo lectura: tu rol puede ver los resultados pero no iniciar procedimientos.",
-		"viewer_only": "Tu rol ve el resumen. Identifícate como operador o técnico para ver los módulos.",
 		"running_now": "{kind} en curso",
 		"stop_all": "Detener",
 		"stop_hint": "Detiene el procedimiento al terminar su paso actual. No es la parada de emergencia.",
@@ -163,7 +166,6 @@
 		"refuse_busy_run": "Ya hay un procedimiento en curso.",
 		"refuse_motion_denied": "El movimiento no está libre ahora (trabajo en curso o reservado).",
 		"refuse_not_implemented": "El servicio todavía no incluye este procedimiento.",
-		"refuse_forbidden": "Tu rol no permite esto.",
 		"refuse_unavailable": "El servicio no responde.",
 		"refuse_other": "No se pudo iniciar el procedimiento.",
 		"auto_title": "Se comprueba solo:",
@@ -408,7 +410,6 @@
 		"err_no_limits": "No se encontraron los límites M208 en la configuración.",
 		"err_not_implemented": "El servicio todavía no incluye este cambio.",
 		"err_invalid_args": "El servicio no aceptó los datos.",
-		"err_forbidden": "Tu rol no permite esto.",
 		"err_motion_denied": "El movimiento no está libre (hay un trabajo o alguien lo reservó).",
 		"err_file_changed": "El archivo de la SD cambió desde que se hizo el registro.",
 		"err_not_found": "No se encontró el registro.",

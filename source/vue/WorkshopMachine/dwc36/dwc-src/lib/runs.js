@@ -8,6 +8,8 @@ const ACTIVE = ['queued', 'running', 'stopping']
 // codes of error.code that have their own text (run.error_<code>); anything else uses run.error_failed
 export const ERROR_CODES = ['stop', 'machine_halted', 'reservation_lost', 'reserved', 'forbidden_code', 'bad_reply', 'vision_unavailable', 'vision_not_found', 'vision_bad_answer', 'failed']
 // refusals of machine.run (error.reason or error code); anything else uses run.refuse_other
+import { lockKeyOf } from './refusal.js'
+
 export const REFUSAL_CODES = ['no_probe', 'not_homed', 'unsupported_kinematics', 'heater_fault', 'no_model', 'busy_run', 'motion_denied', 'not_implemented', 'forbidden', 'unavailable', 'no_vision_measure', 'tool_not_current', 'bad_target', 'out_of_reach']
 
 // phases a procedure reports (machine_*.py ctx.progress); each has its own text run.phase_<phase>, an unknown one is shown as it is
@@ -33,6 +35,7 @@ export function errorKey(run) {
 }
 
 export function refusalKey(reason) {
+	if (lockKeyOf(reason)) return lockKeyOf(reason) // who the person is, not what the machine did
 	return 'run.refuse_' + (REFUSAL_CODES.indexOf(reason) >= 0 ? reason : 'other')
 }
 

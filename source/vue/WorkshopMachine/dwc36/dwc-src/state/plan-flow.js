@@ -8,6 +8,7 @@
 import { createPlanState, planBegin, planLoaded, planFailed, setAccept, canAccept, canApply, applyBegin, applyDone, applyCancelled, applyFailed, planReset } from './plan-state.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 
 export function createPlanFlow(options) {
 	const state = createPlanState()
@@ -15,7 +16,7 @@ export function createPlanFlow(options) {
 	let again = null // how to ask for the same plan again, accepting the current state of the files
 
 	function fail(fn, e) {
-		fn(state, planErrorKey(refusalOf(e)), e && e.message ? String(e.message) : '')
+		fn(state, planErrorKey(refusalOf(e)), detailOf(e))
 	}
 
 	return {

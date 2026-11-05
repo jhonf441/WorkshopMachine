@@ -8,7 +8,9 @@
 		</div>
 		<div class="text-body-2 machine-faint mb-3">{{ t('modes.intro') }}</div>
 
-		<v-alert v-if="loaded && !state.answered" dense outlined type="info" class="mb-3">
+		<!-- the profile could not be read because of who the person is: say it instead of the question "which modes?" -->
+		<v-alert v-if="lockLine" dense outlined type="info" class="mb-3">{{ lockLine }}</v-alert>
+		<v-alert v-else-if="loaded && !state.answered" dense outlined type="info" class="mb-3">
 			<div class="font-weight-medium">{{ t('modes.none_title') }}</div>
 			<div class="text-body-2">{{ t('modes.none_text') }}</div>
 			<v-btn small color="primary" class="mt-2" :disabled="!canWrite || saving" @click="confirmSuggestion">{{ t('modes.use_suggested') }}</v-btn>
@@ -50,6 +52,8 @@
 import { loadModes, saveModes, readModeFacts } from '../machine-modes-store.js' // vue/_shared36
 import { MODES, detectModes, modesState, enabledList, usesSeveralModes, modeRows, guideDefs, effectiveModes, modeCardState, MODES_CHANGED, MODES_GUIDE } from '../machine-modes.js'
 import { textMixin } from './text-mixin.js'
+import { workshopProfile } from '../machine-profile.js' // vue/_shared36
+import { lockKey } from '../lib/refusal.js'
 
 const ICONS = { fff: 'mdi-printer-3d-nozzle', laser: 'mdi-laser-pointer', cnc: 'mdi-saw-blade' }
 const CHIP = { off: undefined, alone: 'primary', pending: 'warning', ready: 'success' }
@@ -60,11 +64,15 @@ export default {
 		canWrite: { type: Boolean, default: false }
 	},
 	data() {
-		return { ICONS, CHIP, info: null, loaded: false, saving: false, texts: {}, bootCalls: null };
+		return { ICONS, CHIP, info: null, loadError: null, loaded: false, saving: false, texts: {}, bootCalls: null };
 	},
 	computed: {
 		state() {
 			return this.info ? this.info.state : modesState(null, null);
+		},
+		lockLine() {
+			const key = lockKey(this.loadError);
+			return key ? this.t(key) : '';
 		},
 		detected() {
 			return this.info ? this.info.detected : detectModes(null);
@@ -115,6 +123,7 @@ export default {
 			} catch (e) {
 				/* the question stays as it was */
 			}
+			this.loadError = this.info && !this.info.viaService ? workshopProfile.error() : null;
 			await this.readFacts();
 			this.loaded = true;
 		},

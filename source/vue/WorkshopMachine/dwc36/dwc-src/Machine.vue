@@ -8,27 +8,28 @@
 				<!-- STOP: every role, while a procedure lasts (machine.stop; it is not the emergency stop) -->
 				<template v-if="runningKind">
 					<v-chip small color="info" outlined><v-icon x-small left>mdi-cog-play-outline</v-icon>{{ t('page.running_now', { kind: kindName(runningKind) }) }}</v-chip>
-					<v-btn small color="error" :title="t('page.stop_hint')" @click="stopAll()"><v-icon small left>mdi-stop</v-icon>{{ t('page.stop_all') }}</v-btn>
+					<v-btn small color="error darken-2" :title="t('page.stop_hint')" @click="stopAll()"><v-icon small left>mdi-stop</v-icon>{{ t('page.stop_all') }}</v-btn>
 				</template>
 				<v-btn small icon :title="t('page.refresh')" :loading="loading" @click="load()"><v-icon small>mdi-refresh</v-icon></v-btn>
 			</template>
 			<!-- start-up of the machine modes: the chip is here like in every page; its cards are in the "Modes" section -->
 			<template v-slot:startup><modes-startup /></template>
 		</page-header>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<error-notice :error="shownError" retry @retry="load()" />
+		<hidden-note :sections="allSections" class="mb-2" />
 		<div class="mb-3">
 			<div>
 				<div class="st-layout">
 					<side-tabs v-model="section" :items="sideItems" />
 					<!-- one module at a time, mounted only while it is open (DESIGN.md 3) -->
-					<div class="st-body">
+					<div :key="sessionKey" class="st-body">
 						<template v-if="section === 'overview'">
-							<overview-card :overview="snapshot" :failed="!!loadError" />
+							<overview-card :overview="snapshot" :failed="!!loadError" :lock-text="overviewLock" />
 							<v-alert v-if="unavailable.length" dense outlined type="warning" class="mt-3">
 								<div class="font-weight-medium">{{ t('page.unavailable_title') }}</div>
 								<div v-for="u in unavailable" :key="u.id" class="text-body-2">{{ u.name }}: {{ u.reason }}</div>
 							</v-alert>
-							<v-alert v-if="!caps.read" dense outlined type="info" class="mt-3">{{ t('page.viewer_only') }}</v-alert>
+							<v-alert v-if="!caps.read" dense outlined type="info" class="mt-3">{{ lockText('operator') }}</v-alert>
 						</template>
 						<probe-module v-else-if="section === 'probe'" :api="api" :published="published" :can-run="caps.run" :thresholds="snapshot && snapshot.thresholds" :axes="axes" :now="now" />
 						<level-module v-else-if="section === 'level'" :api="api" :published="published" :can-run="caps.run" :can-write="caps.run" :ready="snapshot && snapshot.ready" :profile="snapshot && snapshot.levelling" :axes="axes" :now="now" />
@@ -76,6 +77,7 @@ import ServiceNotice from './ServiceNotice.vue' // vue/_shared
 import PageHeader from './PageHeader.vue' // header of every page (vue/_shared)
 import { levelOfColor } from './page-health.js'
 import ErrorNotice from './ErrorNotice.vue'
+import HiddenNote from './HiddenNote.vue' // vue/_shared36
 import SideTabs from './SideTabs.vue'
 import ControlHolderChip from './ControlHolderChip.vue'
 import OverviewCard from './modules/OverviewCard.vue'
@@ -101,7 +103,8 @@ import { roleMixin } from './role-mixin.js'
 import { pluginOf } from './workshop-ids.js'
 import { machineApi } from './api/machine-client.js'
 import { normalizeRuns } from './api/machine-api.js'
-import { moduleItems, allowedModule, capabilitiesOf } from './lib/gating.js'
+import { MODULES, moduleItems, allowedModule, capabilitiesOf } from './lib/gating.js'
+import { lockKey } from './lib/refusal.js'
 import { lightView, worstLight } from './lib/traffic.js'
 import { querySection, askedPoint as askedPointOf, askedParam as askedParamOf, takeQuery } from './lib/cross-page.js'
 
@@ -121,9 +124,9 @@ function savedSection(query) {
 
 export default {
 	mixins: [roleMixin],
-	components: { PageHeader, ServiceNotice, ErrorNotice, SideTabs, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, ReportModule },
+	components: { PageHeader, ServiceNotice, ErrorNotice, SideTabs, HiddenNote, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, ReportModule },
 	data() {
-		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null }
+		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null, sessionKey: 0 }
 	},
 	computed: {
 		secStyle() {
@@ -153,6 +156,17 @@ export default {
 		},
 		caps() {
 			return capabilitiesOf(min => this.atLeast(min), (op, ctx) => this.canDo(op, ctx)) // workshopCan: the server's table
+		},
+		// a refusal because of who the person is is said by the lock sentence (overview card, viewer note), not by the error notice
+		shownError() {
+			return lockKey(this.loadError) ? null : this.loadError
+		},
+		overviewLock() {
+			return lockKey(this.loadError) ? this.lockText('operator') || this.t(lockKey(this.loadError)) : ''
+		},
+		// every module with its role: the quiet note says when the person does not see some
+		allSections() {
+			return MODULES.map(m => ({ id: m.id, min: m.min }))
 		},
 		sideItems() {
 			return moduleItems(this.snapshot && this.snapshot.modules, min => this.atLeast(min)).map(i => ({
@@ -229,6 +243,11 @@ export default {
 		openReport(id) {
 			this.reportTarget = id
 			this.section = 'report'
+		},
+		// the person signed in or out or the role changed: the open module is mounted again (its data is read when it opens)
+		onSessionChange() {
+			this.sessionKey++
+			this.load()
 		},
 		reloadSoon() {
 			clearTimeout(this.reloadTimer)

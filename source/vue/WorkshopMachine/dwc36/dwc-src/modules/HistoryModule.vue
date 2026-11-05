@@ -35,6 +35,7 @@ import { createPlanFlow } from '../state/plan-flow.js'
 import { listArgs } from '../lib/history.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 
 export default {
 	components: { ErrorNotice, HistoryList, RecordDetail, RecordCompare, PlanReview },
@@ -71,7 +72,7 @@ export default {
 				loaded(this.hs, await this.api.history.list(listArgs(this.hs.filters)))
 				this.loadError = null
 			} catch (e) {
-				loadFailed(this.hs, planErrorKey(refusalOf(e)), e && e.message)
+				loadFailed(this.hs, planErrorKey(refusalOf(e)), detailOf(e))
 				this.loadError = e
 			}
 		},

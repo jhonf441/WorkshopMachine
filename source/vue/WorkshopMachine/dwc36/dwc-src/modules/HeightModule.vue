@@ -80,6 +80,7 @@ import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import HeightWizard from './HeightWizard.vue'
 import HeightSzp from './HeightSzp.vue'
 import { textMixin } from './text-mixin.js'
+import { messageOf } from '../lib/refusal.js'
 import { HEIGHT_MODES } from '../api/machine-api-p8.js'
 import { modeView, blockReason, defaultPoint, parseAdjust, parsePaper, nudged, changeOf, hookMissing, szpRecord, parseSzpOutput, NUDGE, todayText } from '../lib/height.js'
 
@@ -182,7 +183,7 @@ export default {
 					this.opError = this.t('height.conflict')
 					await this.load()
 				} else {
-					this.opError = String((e && e.message) || e)
+					this.opError = messageOf(e, k => this.t(k))
 				}
 				return false
 			} finally {
@@ -212,7 +213,7 @@ export default {
 				this.szpOut = r.output
 				if (a === 1) this.szpSR = parseSzpOutput(r.output)
 			} catch (e) {
-				this.opError = String((e && e.message) || e)
+				this.opError = messageOf(e, k => this.t(k))
 			} finally {
 				this.busy = false
 			}
@@ -232,7 +233,7 @@ export default {
 				this.notice = this.t('height.hook_done', { files: r.added.join(', ') || '-' })
 				this.h = Object.assign({}, this.h, { hooks: r.hooks, applied: true })
 			} catch (e) {
-				this.opError = String((e && e.message) || e)
+				this.opError = messageOf(e, k => this.t(k))
 			} finally {
 				this.busy = false
 			}

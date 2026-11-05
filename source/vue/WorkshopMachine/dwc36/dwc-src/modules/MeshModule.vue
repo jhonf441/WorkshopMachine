@@ -48,6 +48,7 @@ import { pointSetsMixin } from './pointsets-mixin.js'
 import { draftKeyOf } from '../state/bed-state.js'
 import MeshLibrary from './MeshLibrary.vue'
 import { RUN_KINDS, refusalOf } from '../api/machine-api.js'
+import { detailOf } from '../lib/refusal.js'
 import { normalizeGrid, probeParams, qualityThresholds } from '../lib/mesh-grid.js'
 import { meshArea } from '../lib/bed-mesh-plan.js'
 import { gridFromPoints, effectiveInputs } from '../lib/point-grid.js'
@@ -159,7 +160,7 @@ export default {
 			this.grid = grid
 		},
 		failText(e) {
-			return this.t(refusalKey(refusalOf(e))) + (e && e.message ? ' (' + e.message + ')' : '')
+			return this.t(refusalKey(refusalOf(e))) + (detailOf(e) ? ' (' + detailOf(e) + ')' : '')
 		},
 		async show(id) {
 			this.opError = ''

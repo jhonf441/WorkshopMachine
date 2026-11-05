@@ -17,6 +17,8 @@ export default {
 
 <style>
 .toolwiz-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); grid-auto-rows: 1fr; align-items: stretch; gap: 8px; }
+/* the types of tool (6 cards): three columns when there is room, then two, then one; never five narrow ones with the name cut */
+.toolwiz-cards--types { grid-template-columns: repeat(auto-fit, minmax(max(240px, calc((100% - 16px) / 3)), 1fr)); }
 .toolwiz-cards--wide { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); grid-auto-rows: auto; }
 .toolwiz-cards--compact { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
 .toolwiz-card { box-sizing: border-box; min-width: 0; min-height: 88px; padding: 12px; display: flex; flex-direction: column; justify-content: center; }

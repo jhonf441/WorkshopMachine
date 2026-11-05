@@ -9,6 +9,10 @@
 		"copied": "Copied",
 		"gcode_not_sent": "This G-code is only shown: the page does not send it to the machine."
 	},
+	"lock": {
+		"signed_out": "Signed out: sign in to use this.",
+		"role": "Your role cannot do this: it needs a higher role."
+	},
 	"groups": {
 		"probing": "Probing",
 		"geometry": "Geometry",
@@ -49,7 +53,6 @@
 	"page": {
 		"lead": "Check, calibrate and look after the machine: probe, levelling, mesh, offsets, limits and maintenance.",
 		"read_only": "Read only: your role can see the results but cannot start procedures.",
-		"viewer_only": "Your role sees the overview. Identify yourself as operator or technician to see the modules.",
 		"running_now": "{kind} running",
 		"stop_all": "Stop",
 		"stop_hint": "Stops the procedure at the end of its current step. It is not the emergency stop.",
@@ -163,7 +166,6 @@
 		"refuse_busy_run": "A procedure is already running.",
 		"refuse_motion_denied": "The movement is not free now (a job is running or it is reserved).",
 		"refuse_not_implemented": "The service does not include this procedure yet.",
-		"refuse_forbidden": "Your role does not allow this.",
 		"refuse_unavailable": "The service does not answer.",
 		"refuse_other": "The procedure could not be started.",
 		"auto_title": "Checked by itself:",
@@ -408,7 +410,6 @@
 		"err_no_limits": "The M208 limits were not found in the configuration.",
 		"err_not_implemented": "The service does not include this change yet.",
 		"err_invalid_args": "The service did not accept the data.",
-		"err_forbidden": "Your role does not allow this.",
 		"err_motion_denied": "The movement is not free (a job is running or someone reserved it).",
 		"err_file_changed": "The file on the SD changed since the record was made.",
 		"err_not_found": "The record was not found.",

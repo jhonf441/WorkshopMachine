@@ -7,6 +7,7 @@
 //
 // status: 'idle' | 'loading' | 'ready' | 'unavailable' (the service has no machine.layout: local geometry only) | 'error'
 
+import { detailOf } from '../lib/refusal.js'
 import { bedOf } from '../lib/mesh-grid.js'
 import { reachOf } from '../lib/bed-mesh-plan.js'
 
@@ -36,7 +37,7 @@ export async function loadLayout(state, api, mode, draft) {
 		state.error = ''
 	} catch (e) {
 		state.status = e && NOT_THERE.indexOf(e.code) >= 0 ? 'unavailable' : 'error'
-		state.error = e && e.message ? String(e.message) : ''
+		state.error = detailOf(e)
 	}
 	return state.status
 }
