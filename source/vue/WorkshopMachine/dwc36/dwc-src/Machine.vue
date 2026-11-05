@@ -131,6 +131,7 @@ export default {
 	mixins: [roleMixin],
 	// what the person who left had read must not stay (ESTANDAR 3): the modules are mounted again by sessionKey, the page keeps these
 	sessionData: ['snapshot', 'loadError', 'reportTarget', 'askedPoint', 'askedParam'],
+	sessionErrors: ['loadError'], // what a refusal or a failure said: cleared when the person signs in, out or changes role (role-mixin.js)
 	components: { RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, HiddenNote, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, ReportModule },
 	data() {
 		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null, sessionKey: 0 }
