@@ -1,5 +1,17 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.9.2 -- 2026-11-05
+
+- QA batch: offsets table aligned with row states, clear review button, Workbench link
+
+## 1.9.1 -- 2026-11-05
+
+- Bed heaters: shows the beds the board has, the last row can be removed, labels aligned
+
+## 1.9.0 -- 2026-11-05
+
+- Bed heaters assistant: define the beds of a split bed (sensor, heater, M140 P H) with the plan of the configuration
+
 ## 1.8.28 -- 2026-11-05
 
 - Session state, refusals and notices unified; errors kept as objects; 403 names the action

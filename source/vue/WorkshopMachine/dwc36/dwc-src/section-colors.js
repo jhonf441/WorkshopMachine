@@ -19,6 +19,7 @@ export const SECTION_COLORS = {
 	maintenance: '#6D8B3A',
 	modes: '#3949AB',
 	toolwiz: '#00897B',
+	beds: '#C2185B',
 	history: '#607D8B',
 	report: '#546E7A'
 }

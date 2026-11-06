@@ -10,7 +10,7 @@
 				<v-card-text>
 					<offsets-table
 						:sets="os.data.tools" :axes="toolAxes" :draft="os.drafts.tools" :editable="canWrite" :per-row="canWrite" :first-column="t('offsets.col_tool')"
-						:empty-text="t('offsets.no_tools')" @review="proposeTool"
+						:empty-text="t('offsets.no_tools')" :reviewing="reviewKey" :saved="savedKey" @review="proposeTool"
 					/>
 					<div v-if="canWrite" class="text-caption machine-faint mt-1">{{ t('offsets.one_tool') }}</div>
 				</v-card-text>
@@ -24,7 +24,7 @@
 					<div v-if="workbenchOn" class="d-flex align-center flex-wrap mt-2" style="gap:8px"><workbench-link :zone="os.data.current" /></div>
 				</v-card-text>
 			</v-card>
-			<plan-review v-if="ps.status !== 'idle'" class="mb-4" :state="ps" :title="t('offsets.plan_title')" :role-ok="canWrite" @apply="applyPlan()" @reset="flow.reset()" />
+			<plan-review v-if="ps.status !== 'idle'" class="mb-4" :state="ps" :title="reviewKey ? t('offsets.plan_title_tool', { tool: reviewLabel }) : t('offsets.plan_title')" :role-ok="canWrite" @apply="applyPlan()" @reset="resetPlan()" />
 			<v-card v-if="canWrite" outlined class="mb-4">
 				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.snapshots_title') }}</v-card-title>
 				<v-card-text>
@@ -68,7 +68,7 @@ import { textMixin } from './text-mixin.js'
 import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { createOffsetsState, loadBegin, loaded, loadFailed, axesFor, changesFor, pointerMarked, pointerCaptured, pointerReset } from '../state/offsets-state.js'
 import { createPlanFlow } from '../state/plan-flow.js'
-import { toolValues, toolChange, KIND_TOOLS } from '../lib/offsets.js'
+import { toolValues, toolChange, keyOf, setLabel, KIND_TOOLS } from '../lib/offsets.js'
 import { pairOf, crossReasonKey } from '../lib/laser-pointer.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
@@ -90,7 +90,7 @@ export default {
 		now: { type: Number, default: 0 }
 	},
 	data() {
-		return { os: createOffsetsState(), ps: null, flow: null, loadError: null, working: false, notice: '', opError: '', taken: null, laser: null, noDraft: NO_DRAFT }
+		return { os: createOffsetsState(), ps: null, flow: null, loadError: null, working: false, notice: '', opError: '', taken: null, laser: null, noDraft: NO_DRAFT, reviewKey: '', reviewDraft: '', savedKey: '' }
 	},
 	computed: {
 		workbenchOn() {
@@ -107,6 +107,20 @@ export default {
 		},
 		pair() {
 			return pairOf(this.toolPair, this.laser)
+		},
+		// the tool whose plan is open, as the table names it ("T1 Pellet extruder")
+		reviewLabel() {
+			const set = ((this.os.data && this.os.data.tools) || []).find(s => keyOf(s) === this.reviewKey)
+			return set ? setLabel(set) : this.reviewKey
+		}
+	},
+	watch: {
+		// the plan on screen is of the values that were reviewed: when the row is edited again the plan is closed (it would be applied with other numbers)
+		'os.drafts.tools': {
+			deep: true,
+			handler() {
+				if (this.reviewKey && this.ps && this.ps.status === 'review' && JSON.stringify(this.os.drafts.tools[this.reviewKey]) !== this.reviewDraft) this.resetPlan()
+			}
 		}
 	},
 	created() {
@@ -140,11 +154,22 @@ export default {
 			const change = toolChange(changesFor(this.os), key)
 			if (!change) return null
 			const values = toolValues(change)
+			this.reviewKey = key
+			this.reviewDraft = JSON.stringify(this.os.drafts.tools[key])
+			this.savedKey = ''
 			return this.flow.propose(async () => ({ plan: await this.api.config.plan(KIND_TOOLS, values), conflict: null }))
 		},
 		async applyPlan() {
 			await this.flow.apply(this.canWrite)
-			if (this.ps.status === 'done') await this.load()
+			if (this.ps.status === 'done') {
+				this.savedKey = this.reviewKey // the row says it was saved (and the notice of the plan says where: the configuration of the machine)
+				this.reviewKey = ''
+				await this.load()
+			}
+		},
+		resetPlan() {
+			this.flow.reset()
+			this.reviewKey = ''
 		},
 		// one service call with its busy flag, notice and error text
 		async act(call, doneKey) {

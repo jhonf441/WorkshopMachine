@@ -31,6 +31,7 @@ export const MODULES = [
 	{ id: 'maintenance', icon: 'mdi-wrench-clock', min: 'operator', group: 'groups.operation' },
 	{ id: 'modes', icon: 'mdi-toggle-switch-outline', min: 'operator', group: 'groups.operation' },
 	{ id: 'toolwiz', icon: 'mdi-wrench-cog-outline', min: 'technician', group: 'groups.operation' },
+	{ id: 'beds', icon: 'mdi-radiator', min: 'technician', group: 'groups.operation' },
 	{ id: 'history', icon: 'mdi-history', min: 'technician', group: 'groups.records' },
 	{ id: 'report', icon: 'mdi-file-document-outline', min: 'technician', group: 'groups.records' }
 ]

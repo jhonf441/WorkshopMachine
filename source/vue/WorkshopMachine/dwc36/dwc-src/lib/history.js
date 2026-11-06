@@ -11,7 +11,7 @@ export const KNOWN_KINDS = [
 	'probe.read', 'probe.repeat', 'probe.accuracy', 'probe.trigger', 'probe.offset', 'level.g32', 'level.g30', 'level.measure', 'mesh.probe',
 	'homing.verify', 'homing.repeat', 'offsets.verify',
 	'config.g31', 'config.m671', 'config.bed', 'config.g10', 'config.m557', 'config.m593', 'config.m425', 'config.m556', 'config.m376',
-	'config.m208', 'config.m92', 'config.m906', 'config.m913', 'config.m917', 'config.m569', 'config.m584',
+	'config.m208', 'config.m92', 'config.m906', 'config.m913', 'config.m917', 'config.m569', 'config.m584', 'config.bed_heaters',
 	'safety.check', 'offsets.snapshot', 'laser.pointer'
 ]
 

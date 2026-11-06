@@ -54,6 +54,7 @@
 						<maintenance-module v-else-if="section === 'maintenance'" :api="api" :can-mark="caps.maintenanceDone" :can-edit="caps.maintenanceEdit" />
 						<modes-module v-else-if="section === 'modes'" :can-write="caps.run" />
 						<tool-wizard-module v-else-if="section === 'toolwiz'" :api="api" :can-write="caps.configure('config.tool')" :busy="!!runningKind" />
+						<beds-module v-else-if="section === 'beds'" :api="api" :can-write="caps.configure('config.bed_heaters')" :busy="!!runningKind" :asked="askedBeds" />
 						<history-module
 							v-else-if="section === 'history'" :api="api" :configure="caps.configure" :axes="axes" :quality="snapshot && snapshot.meshQuality" @report="openReport"
 						/>
@@ -99,6 +100,7 @@ import HistoryModule from './modules/HistoryModule.vue'
 import ModesModule from './modules/ModesModule.vue'
 import ModesStartup from './modules/ModesStartup.vue'
 import ToolWizardModule from './modules/ToolWizardModule.vue'
+import BedsModule from './modules/BedsModule.vue'
 import ReportModule from './modules/ReportModule.vue'
 import { roleMixin } from './role-mixin.js'
 import { pluginOf } from './workshop-ids.js'
@@ -111,7 +113,7 @@ import { roleLabel } from './notice-kind.js' // vue/_shared36
 import { ts } from './shared-t.js' // vue/_shared36
 import { workshopRole } from './workshop-auth.js' // vue/_shared36
 import { lightView, worstLight } from './lib/traffic.js'
-import { querySection, askedPoint as askedPointOf, askedParam as askedParamOf, takeQuery } from './lib/cross-page.js'
+import { querySection, askedPoint as askedPointOf, askedParam as askedParamOf, askedBeds as askedBedsOf, takeQuery } from './lib/cross-page.js'
 
 const SECTION_KEY = 'workshopMachineSection' // this page's own memory of the last module (no other plugin writes it: they send ?layout=)
 const RELOAD_MS = 250
@@ -130,11 +132,11 @@ function savedSection(query) {
 export default {
 	mixins: [roleMixin],
 	// what the person who left had read must not stay (ESTANDAR 3): the modules are mounted again by sessionKey, the page keeps these
-	sessionData: ['snapshot', 'loadError', 'reportTarget', 'askedPoint', 'askedParam'],
+	sessionData: ['snapshot', 'loadError', 'reportTarget', 'askedPoint', 'askedParam', 'askedBeds'],
 	sessionErrors: ['loadError'], // what a refusal or a failure said: cleared when the person signs in, out or changes role (role-mixin.js)
-	components: { RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, HiddenNote, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, ReportModule },
+	components: { RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, HiddenNote, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, BedsModule, ReportModule },
 	data() {
-		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null, sessionKey: 0 }
+		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), askedBeds: askedBedsOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null, sessionKey: 0 }
 	},
 	computed: {
 		secStyle() {
@@ -204,6 +206,7 @@ export default {
 			if (id !== 'report') this.reportTarget = ''
 			if (id !== 'height') this.askedPoint = null // the Workbench's Z point was for that one visit
 			if (id !== 'motion') this.askedParam = null // and the parameter the 3D printing page asked for
+			if (id !== 'beds') this.askedBeds = null // and the beds its Bed zones section asked to define
 			try {
 				localStorage.setItem(SECTION_KEY, id)
 			} catch (e) {
@@ -246,6 +249,7 @@ export default {
 			if (!taken) return
 			if (taken.point) this.askedPoint = taken.point
 			if (taken.param) this.askedParam = taken.param
+			if (taken.beds) this.askedBeds = taken.beds
 			if (taken.section) this.section = this.snapshot ? allowedModule(taken.section, this.snapshot.modules, min => this.atLeast(min)) : taken.section
 			this.$router.replace({ path: this.$route.path, query: taken.rest }).catch(() => {})
 		},
