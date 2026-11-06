@@ -17,18 +17,18 @@
 				<v-card-title class="text-subtitle-1 pb-0">
 					{{ t('maintenance.plan_title') }}
 					<v-spacer />
-					<v-btn v-if="canEdit && !ms.editing" small outlined @click="edit()"><v-icon small left>mdi-pencil</v-icon>{{ t('maintenance.edit') }}</v-btn>
+					<v-btn v-if="!ms.editing" small outlined :disabled="!canEdit" @click="edit()"><v-icon small left>mdi-pencil</v-icon>{{ t('maintenance.edit') }}</v-btn>
 				</v-card-title>
 				<v-card-text>
-					<role-note v-if="!canMark" min="technician" class="mb-2" />
 					<maintenance-plan-editor v-if="ms.editing" :state="ms" @save="savePlan()" @cancel="cancelEdit()" />
 					<template v-else>
 						<maintenance-plan :rows="plan" :can-mark="canMark" :marking="ms.marking" @done="markDone" />
 						<div class="d-flex align-center flex-wrap mt-2" style="gap:8px">
-							<v-btn v-if="canEdit && ms.data.planEmpty" small outlined @click="restoreDefaults()"><v-icon small left>mdi-playlist-plus</v-icon>{{ t('maintenance.defaults') }}</v-btn>
+							<v-btn v-if="ms.data.planEmpty" small outlined :disabled="!canEdit" @click="restoreDefaults()"><v-icon small left>mdi-playlist-plus</v-icon>{{ t('maintenance.defaults') }}</v-btn>
 							<span class="text-caption machine-faint">{{ ms.data.notify ? t('maintenance.notify_on') : t('maintenance.notify_off') }}</span>
 						</div>
 					</template>
+					<lock-reason v-if="!canMark || !canEdit" min="technician" class="mt-2" />
 				</v-card-text>
 			</v-card>
 			<v-card outlined class="mb-4">
@@ -65,10 +65,10 @@ import { planRows, counterRows, historyRows, defaultLabelKey } from '../lib/main
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
 import { detailOf } from '../lib/refusal.js'
-import RoleNote from './RoleNote.vue'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
-	components: { RoleNote, HelpTip, ErrorNotice, MaintenanceCounters, MaintenancePlan, MaintenancePlanEditor, MaintenanceHistory },
+	components: { LockReason, HelpTip, ErrorNotice, MaintenanceCounters, MaintenancePlan, MaintenancePlanEditor, MaintenanceHistory },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

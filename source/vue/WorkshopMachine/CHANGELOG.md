@@ -1,5 +1,33 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.12.4 -- 2026-11-06
+
+- Side bar and session: the bar follows the session, the real icon with a small lock, the needed role under the name; a page follows a sign-in made in another tab
+
+## 1.12.3 -- 2026-11-06
+
+- Roles y permisos: una razon por grupo, rechazos nunca en rojo, controles bloqueados visibles, secciones con candado, permisos con allow/deny
+
+## 1.12.2 -- 2026-11-06
+
+- Macros of sys/workshop/macros are now in folders (axis, zcal, focus, work, guard, laser, probe, system); install together with the service and the SD migration
+
+## 1.12.1 -- 2026-11-06
+
+- Roles y permisos: secciones con candado y cubierta que dice el rol, sin modal ni tarjeta de sesion automaticos, apagado total para todos, Puesta en marcha gris por rol
+
+## 1.12.0 -- 2026-11-06
+
+- Beds and tool pins: temperature inputs only, readable labels, thermocouple and PT100 sensors, UTF-8 fix
+
+## 1.11.0 -- 2026-11-06
+
+- Beds: edit the heater and sensor of a defined bed
+
+## 1.10.0 -- 2026-11-06
+
+- Beds: defined beds shown with their card, board limits from the object model
+
 ## 1.9.2 -- 2026-11-05
 
 - QA batch: offsets table aligned with row states, clear review button, Workbench link

@@ -1,5 +1,11 @@
 # WorkshopMachine (Machine: check, calibrate and maintain)
 
+<!-- notice:start -->
+> **Read before installing.** This plugin runs with real permissions on your machine. Read [SECURITY.md](SECURITY.md) and the section **Permissions and what it changes** below: they say what it can do, which files it writes, and what it sends outside your network (nothing, unless you turn a feature on).
+
+> **The Workshop users and roles do not protect DWC itself.** Anyone who can open DWC on your network can send G-code, move the machine, edit `config.g` and upload files, whatever the Workshop roles say: Duet has no roles of its own. Set a DWC password (`M551`) and keep the machine on a network you trust.
+<!-- notice:end -->
+
 
 
 Page `/Plugins/Machine` ("Machine"). It checks, calibrates and looks after the machine: probe, levelling, mesh, offsets, height, limits, work area, calibration wizards, motion tuning, input shaping, safety diagnostic, maintenance counters, machine modes, history with restore and printable reports. Every change to the configuration goes through a plan with preview and a backup (nothing is written to a driver directly).

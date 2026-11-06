@@ -25,11 +25,11 @@ export const ERROR_CODES = ['type', 'name', 'tool_number', 'tool_exists', 'drive
 export const TYPE_IDS = Object.keys(TOOL_TYPES)
 
 // Temperature sensor presets: what the person picks instead of typing M308 parameters. `need` is the pin capability the sensor takes
-// (thermistors and PT1000 read an analogue input, the others a SPI chip).
+// (thermistors and PT1000 read a dedicated temperature input "temp", the others a SPI chip).
 export const SENSOR_PRESETS = [
-	{ id: 'ntc100k_3950', need: 'adc', hint: 280 },
-	{ id: 'ntc100k_semitec', need: 'adc', hint: 300 },
-	{ id: 'pt1000', need: 'adc', hint: 450 },
+	{ id: 'ntc100k_3950', need: 'temp', hint: 280 },
+	{ id: 'ntc100k_semitec', need: 'temp', hint: 300 },
+	{ id: 'pt1000', need: 'temp', hint: 450 },
 	{ id: 'pt100_max31865', need: 'spi', hint: 450 },
 	{ id: 'thermocouple_k_max31856', need: 'spi', hint: 450 }
 ]

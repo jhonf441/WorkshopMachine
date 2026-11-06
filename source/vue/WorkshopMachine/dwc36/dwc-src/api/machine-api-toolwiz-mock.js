@@ -14,8 +14,8 @@ const FREE = [
 	{ pin: 'out2', name: 'OUT2', capabilities: ['pwm', 'digital'], board: 'main' },
 	{ pin: 'out5', name: 'OUT5', capabilities: ['pwm', 'digital'], board: 'main' },
 	{ pin: 'out6', name: 'OUT6', capabilities: ['digital'], board: 'main' },
-	{ pin: 'temp1', name: 'TEMP1', capabilities: ['adc'], board: 'main' },
-	{ pin: 'temp2', name: 'TEMP2', capabilities: ['adc'], board: 'main' },
+	{ pin: 'temp1', name: 'TEMP1', capabilities: ['adc', 'temp'], board: 'main' },
+	{ pin: 'temp2', name: 'TEMP2', capabilities: ['adc', 'temp'], board: 'main' },
 	{ pin: 'spi.cs1', name: 'SPI CS1', capabilities: ['spi'], board: 'main' }
 ]
 

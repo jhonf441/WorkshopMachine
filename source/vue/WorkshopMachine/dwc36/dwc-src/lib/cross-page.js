@@ -52,11 +52,11 @@ export function askedParam(query) {
 	return typeof p === 'string' && MOTION_PARAMS.indexOf(p) >= 0 ? p : null
 }
 
-// the bed numbers the query asks to define (?beds=1,2,3: whole numbers 0..31, no repeats, at most 8), or null
+// the bed numbers the query asks to define (?beds=1,2,3: whole numbers 0..31, no repeats; how many the board holds is checked by the page against its limits), or null
 export function askedBeds(query) {
 	const raw = one((query || {}).beds)
 	if (typeof raw !== 'string' && typeof raw !== 'number') return null
-	const list = String(raw).split(',').map(s => s.trim()).filter(s => /^\d+$/.test(s)).map(Number).filter((n, i, a) => n <= 31 && a.indexOf(n) === i).slice(0, 8)
+	const list = String(raw).split(',').map(s => s.trim()).filter(s => /^\d+$/.test(s)).map(Number).filter((n, i, a) => n <= 31 && a.indexOf(n) === i)
 	return list.length ? list : null
 }
 

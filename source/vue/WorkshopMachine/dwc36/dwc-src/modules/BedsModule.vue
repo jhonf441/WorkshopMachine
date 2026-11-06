@@ -12,6 +12,20 @@
 			<span v-if="!info.defined.length">{{ t('beds.defined_none') }}</span>
 			<div v-if="info.inFiles.length" class="machine-faint">{{ t('beds.in_files', { list: info.inFiles.join(', ') }) }}</div>
 		</div>
+		<v-card v-for="d in definedList" :key="'dc' + d.bed" outlined class="pa-3 mb-3 beds-defined" :data-bed="d.bed">
+			<div class="d-flex align-center" style="gap: 8px">
+				<v-icon small>mdi-check-circle-outline</v-icon>
+				<span class="text-subtitle-1 font-weight-medium">{{ t('beds.bed_n', { n: d.bed }) }}</span>
+				<v-chip v-if="!d.loaded" x-small label outlined color="warning">{{ t('beds.defined_unloaded') }}</v-chip>
+			</div>
+			<div class="text-body-2 machine-faint mt-1">
+				<span v-if="d.heater !== null">{{ t('beds.d_heater', { heater: d.heater }) }}</span>
+				<span v-if="d.sensor !== null"> · {{ d.sensorName ? t('beds.d_sensor_named', { sensor: d.sensor, name: d.sensorName }) : t('beds.d_sensor', { sensor: d.sensor }) }}</span>
+				<span v-if="d.max !== null"> · {{ t('beds.d_max', { max: d.max }) }}</span>
+				<span v-if="d.state"> · {{ d.state }}</span>
+			</div>
+			<bed-edit-card v-if="d.loaded" class="mt-2" :api="api" :row="d" :can-write="canWrite" :busy="busy" :model="model" />
+		</v-card>
 
 		<v-card v-for="(b, i) in draft.beds" :key="i" outlined class="pa-3 mb-3">
 			<div class="d-flex align-center mb-2" style="gap: 8px">
@@ -31,12 +45,28 @@
 					<div v-if="shown(i, 'name')" class="text-caption error--text">{{ message(i, 'name') }}</div>
 				</div>
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-preset-' + i" class="text-caption">{{ t('beds.f_sensor_preset') }}</label></div>
-					<v-select :id="'bd-preset-' + i" v-model="b.sensorPreset" :items="presetItems" dense outlined hide-details :disabled="!!applied" :aria-label="t('beds.f_sensor_preset')" />
+					<div class="beds-label"><label :for="'bd-preset-' + i" class="text-caption">{{ t('beds.f_sensor_preset') }}</label><help-tip :title="t('beds.preset_' + b.sensorPreset)" :what="t('beds.help.sensor_' + b.sensorPreset + '_what')" :why="t('beds.help.sensor_' + b.sensorPreset + '_why')" :if-missing="t('beds.help.sensor_' + b.sensorPreset + '_missing')" :how="t('beds.help.sensor_' + b.sensorPreset + '_how')" /></div>
+					<v-select :id="'bd-preset-' + i" v-model="b.sensorPreset" :items="presetItems" dense outlined hide-details :disabled="!!applied" :aria-label="t('beds.f_sensor_preset')" @change="presetChanged(b, $event)" />
 				</div>
+				<div v-if="b.sensorPreset === 'thermistor'" class="beds-field">
+					<div class="beds-label"><label :for="'bd-therm-' + i" class="text-caption">{{ t('beds.f_thermistor_kind') }}</label></div>
+					<v-select :id="'bd-therm-' + i" v-model="b.thermistorKind" :items="thermistorItems" dense outlined hide-details :disabled="!!applied" :aria-label="t('beds.f_thermistor_kind')" />
+				</div>
+				<template v-if="b.sensorPreset === 'thermistor' && b.thermistorKind === 'custom'">
+					<div class="beds-field">
+						<div class="beds-label"><label :for="'bd-tt-' + i" class="text-caption">{{ t('beds.f_therm_t') }}</label></div>
+						<v-text-field :id="'bd-tt-' + i" v-model="b.thermT" dense outlined hide-details inputmode="numeric" :disabled="!!applied" :error="shown(i, 'thermT')" :aria-label="t('beds.f_therm_t')" />
+						<div v-if="shown(i, 'thermT')" class="text-caption error--text">{{ message(i, 'thermT') }}</div>
+					</div>
+					<div class="beds-field">
+						<div class="beds-label"><label :for="'bd-tb-' + i" class="text-caption">{{ t('beds.f_therm_b') }}</label></div>
+						<v-text-field :id="'bd-tb-' + i" v-model="b.thermB" dense outlined hide-details inputmode="numeric" :disabled="!!applied" :error="shown(i, 'thermB')" :aria-label="t('beds.f_therm_b')" />
+						<div v-if="shown(i, 'thermB')" class="text-caption error--text">{{ message(i, 'thermB') }}</div>
+					</div>
+				</template>
 				<div class="beds-field">
 					<div class="beds-label"><label :for="'bd-spin-' + i" class="text-caption">{{ t('beds.f_sensor_pin') }}</label><help-tip :title="t('beds.f_pins')" :what="t('beds.help.pins_what')" :why="t('beds.help.pins_why')" :if-missing="t('beds.help.pins_missing')" :how="t('beds.help.pins_how')" /></div>
-					<v-select :id="'bd-spin-' + i" v-model="b.sensorPin" :items="pinItems('adc', b.sensorPin)" dense outlined hide-details :placeholder="t('beds.pin_pick')" :no-data-text="t('beds.pin_no_free')" :disabled="!!applied" :error="shown(i, 'sensorPin')" :aria-label="t('beds.f_sensor_pin')" />
+					<v-select :id="'bd-spin-' + i" v-model="b.sensorPin" :items="pinItems(sensorNeed(b.sensorPreset), b.sensorPin)" dense outlined hide-details :placeholder="t('beds.pin_pick')" :no-data-text="t('beds.pin_no_free')" :disabled="!!applied" :error="shown(i, 'sensorPin')" :aria-label="t('beds.f_sensor_pin')" />
 					<div v-if="shown(i, 'sensorPin')" class="text-caption error--text">{{ message(i, 'sensorPin') }}</div>
 				</div>
 				<div class="beds-field">
@@ -57,8 +87,8 @@
 		</v-card>
 		<div v-if="!draft.beds.length" class="text-body-2 machine-faint mb-3">{{ t('beds.empty') }}</div>
 		<div class="d-flex align-center flex-wrap mb-4" style="gap: 12px">
-			<v-btn small outlined :disabled="!!applied || draft.beds.length >= maxBeds" @click="addBed()"><v-icon small left>mdi-plus</v-icon>{{ t('beds.add_bed') }}</v-btn>
-			<span class="text-caption" :class="{ 'warning--text': draft.beds.length >= maxBeds }">{{ draft.beds.length >= maxBeds ? t('beds.beds_limit', { max: maxBeds }) : t('beds.beds_count', { n: draft.beds.length, max: maxBeds }) }}</span>
+			<v-btn small outlined :disabled="!!applied || roomLeft <= 0" @click="addBed()"><v-icon small left>mdi-plus</v-icon>{{ t('beds.add_bed') }}</v-btn>
+			<span class="text-caption" :class="{ 'warning--text': roomLeft <= 0 }">{{ roomLeft <= 0 ? t('beds.beds_limit', { max: maxBeds }) : t('beds.beds_count', { n: definedCount + draft.beds.length, max: maxBeds }) }}</span>
 		</div>
 
 		<div class="text-subtitle-1 font-weight-medium mb-1">{{ t('beds.lines_title') }}</div>
@@ -106,35 +136,49 @@ import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import HelpTip from '../HelpTip.vue' // vue/_shared36
 import RoleNote from './RoleNote.vue'
 import PlanReview from './PlanReview.vue'
+import BedEditCard from './BedEditCard.vue'
 import { textMixin } from './text-mixin.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { isWorking } from '../state/plan-state.js'
-import { PRESETS, OUTPUT_KINDS, OUTPUT_NEED, createDraft, emptyBed, toSpec, specKey, pinChoices, bedIssues, formIssues, fieldOfError } from '../lib/beds-spec.js'
+import { PRESETS, THERMISTOR_KINDS, OUTPUT_KINDS, OUTPUT_NEED, MAX_BED, sensorNeed, boardLimits, definedRows, dropDefined, createDraft, emptyBed, toSpec, specKey, pinChoices, bedIssues, formIssues, fieldOfError } from '../lib/beds-spec.js'
 import { lineKind } from '../lib/toolwiz-preview.js'
+import { pinOptionText } from '../lib/pin-kinds.js'
 
 const NO_PINS = { free: [], used: [], freeDrivers: null }
 
 export default {
 	mixins: [textMixin],
-	components: { ErrorNotice, HelpTip, RoleNote, PlanReview },
+	components: { ErrorNotice, HelpTip, RoleNote, PlanReview, BedEditCard },
 	props: {
 		api: { type: Object, required: true },
 		canWrite: { type: Boolean, default: false }, // technician: creating the plan (the service checks again)
 		busy: { type: Boolean, default: false }, // a procedure is running: the machine is not free
+		model: { type: Object, default: null }, // the live object model (limits.bedHeaters, heat.heaters): what the board supports and what each defined bed is
 		asked: { type: Array, default: null } // the bed numbers another plugin asked for (the 3D printing page: the beds its zones use and the board lacks)
 	},
 	data() {
 		return { draft: createDraft(this.asked), info: null, pins: NO_PINS, loadError: null, tried: false, preview: null, previewLoading: false, previewError: null, applied: null, ps: null, flow: null, timer: null }
 	},
 	computed: {
+		// how many beds THIS board supports: its own limit (object model limits.bedHeaters), else what the service read from it, else the highest number RRF allows
 		maxBeds() {
-			return this.info ? this.info.maxBeds : 8
+			return boardLimits(this.model).beds || (this.info && this.info.maxBeds) || MAX_BED + 1
+		},
+		definedCount() {
+			return this.definedBeds.filter((n, i, a) => a.indexOf(n) === i).length
+		},
+		// the beds the board has or the files define, with their details: shown in their own cards, never reduced to an error on a new row
+		definedList() {
+			return this.info ? definedRows(this.info, this.model) : []
+		},
+		roomLeft() {
+			return Math.max(0, this.maxBeds - this.definedCount - this.draft.beds.length)
 		},
 		definedBeds() {
 			return this.info ? this.info.defined.map(d => d.bed).concat(this.info.inFiles) : []
 		},
 		ctx() {
-			return { definedBeds: this.definedBeds, pins: this.pins, canWrite: this.canWrite, busy: this.busy }
+			return { definedBeds: this.definedBeds, pins: this.pins, canWrite: this.canWrite, busy: this.busy, maxBeds: this.maxBeds }
 		},
 		issues() {
 			return bedIssues(this.draft, this.ctx)
@@ -154,6 +198,9 @@ export default {
 		presetItems() {
 			return PRESETS.map(p => ({ value: p, text: this.t('beds.preset_' + p) }))
 		},
+		thermistorItems() {
+			return THERMISTOR_KINDS.map(k => ({ value: k, text: this.t('beds.therm_' + k) }))
+		},
 		kindItems() {
 			return OUTPUT_KINDS.map(k => ({ value: k, text: this.t('beds.kind_' + k) }))
 		}
@@ -166,7 +213,7 @@ export default {
 			this.schedulePreview()
 		},
 		asked(v) {
-			if (v && !this.applied) this.draft = createDraft(v, this.firstFree())
+			if (v && !this.applied) this.draft = this.seed(v)
 		}
 	},
 	created() {
@@ -178,6 +225,11 @@ export default {
 		clearTimeout(this.timer)
 	},
 	methods: {
+		// the rows of the form for the beds asked: the ones the board already has are not new rows (they have their own card above)
+		seed(beds) {
+			const d = dropDefined(createDraft(beds, this.firstFree()), this.definedBeds)
+			return d.beds.length ? d : createDraft(null, this.firstFree())
+		},
 		firstFree() {
 			return this.info && this.info.next.beds.length ? this.info.next.beds[0] : null
 		},
@@ -186,6 +238,7 @@ export default {
 				this.info = await this.api.beds.get()
 				this.pins = await this.api.beds.pins()
 				this.loadError = null
+				if (this.asked && !this.applied) this.draft = this.seed(this.asked)
 				if (!this.asked && this.draft.beds.length === 1 && this.draft.beds[0].bed === '' && this.firstFree() !== null) this.draft.beds[0].bed = String(this.firstFree())
 			} catch (e) {
 				this.loadError = e
@@ -194,8 +247,14 @@ export default {
 		outputNeed(b) {
 			return OUTPUT_NEED[b.outputKind] || 'pwm'
 		},
+		sensorNeed,
 		pinItems(need, current) {
-			return pinChoices(this.pins, need, this.draft, current).map(p => ({ value: p.pin, text: p.pin + ' - ' + p.capabilities.join('/') }))
+			return pinChoices(this.pins, need, this.draft, current).map(p => ({ value: p.pin, text: pinOptionText(p.pin, p.capabilities, key => this.t(key)) }))
+		},
+		// a new sensor type that needs another kind of pin (a temperature input -> a SPI chip select) drops the pin that no longer fits; one that still fits stays
+		presetChanged(b, preset) {
+			const pin = this.pins.free.find(p => p.pin === String(b.sensorPin || '').replace(/^[!^]+/, ''))
+			if (!pin || pin.capabilities.indexOf(sensorNeed(preset)) < 0) b.sensorPin = ''
 		},
 		// the message of a field of one bed (the person sees it once they try to continue, or once the service refuses it)
 		issueOf(i, key) {

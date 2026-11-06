@@ -28,6 +28,7 @@
 import ToolRow from './ToolRow.vue'
 import { textMixin } from './text-mixin.js'
 import { pinSlots, pinOptions, setPin } from '../lib/toolwiz-pins.js'
+import { pinOptionText } from '../lib/pin-kinds.js'
 
 export default {
 	mixins: [textMixin],
@@ -47,7 +48,7 @@ export default {
 			return this.t('toolwiz.slot_' + s.role, { n: m ? Number(m[1]) + 1 : 1 })
 		},
 		optionsOf(s) {
-			return pinOptions(this.pins, s, this.slots).map(p => ({ text: p.name + (p.board ? ' (' + p.board + ')' : '') + ' - ' + p.capabilities.join('/'), value: p.pin }))
+			return pinOptions(this.pins, s, this.slots).map(p => ({ text: pinOptionText(p.name + (p.board ? ' (' + p.board + ')' : ''), p.capabilities, key => this.t(key)), value: p.pin }))
 		},
 		choose(id, pin) {
 			setPin(this.w.draft, id, pin)

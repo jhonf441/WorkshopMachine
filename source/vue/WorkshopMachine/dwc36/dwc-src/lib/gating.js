@@ -55,6 +55,30 @@ export function moduleItems(modules, atLeast) {
 	})
 }
 
+// ALL the modules for the side bar: the ones the role cannot use carry `locked: <role that opens it>` (a lock in the bar, a cover when opened;
+// AWS rule: what you cannot use stays in its place with the reason). The ones the machine cannot use are disabled as in moduleItems.
+export function lockedModuleItems(modules, atLeast) {
+	return MODULES.map(m => {
+		const state = (modules && modules[m.id]) || null
+		const locked = !canSeeModule(m, atLeast)
+		const off = !locked && !!state && state.available === false
+		const item = { id: m.id, icon: m.icon, labelKey: 'modules.' + m.id, groupKey: m.group, disabled: off, reasonKey: off ? 'reasons.' + (state.reason || 'unknown') : null }
+		return locked ? Object.assign(item, { locked: m.min }) : item
+	})
+}
+
+// the role that opens the module `id`, or '' when the role may open it
+export function lockedModule(id, atLeast) {
+	const m = MODULES.find(x => x.id === id)
+	return m && !canSeeModule(m, atLeast) ? m.min : ''
+}
+
+// `wanted` when it is a module of the page and the role may open it (or it is locked: the cover says why) and the machine supports it; else the first usable one
+export function openableModule(wanted, modules, atLeast) {
+	if (lockedModule(wanted, atLeast)) return wanted
+	return allowedModule(wanted, modules, atLeast)
+}
+
 // `wanted` when the role may open it and the machine supports it, otherwise the first module that is usable
 export function allowedModule(wanted, modules, atLeast) {
 	const items = moduleItems(modules, atLeast)

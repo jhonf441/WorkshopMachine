@@ -10,7 +10,6 @@
 		<!-- the switches store which modes the machine uses in its profile: they never change the mode the machine is in (H4, a state of the scope) -->
 		<div class="wf-note is-info mb-3" role="note"><v-icon :size="16" class="wf-note-icon" aria-hidden="true">mdi-information-outline</v-icon><span>{{ t('modes.profile_note') }}</span></div>
 
-		<role-note v-if="!canWrite" min="technician" class="mb-3" />
 		<!-- the profile could not be read because of who the person is: say it instead of the question "which modes?" -->
 		<session-notice v-if="lockCause" :kind="lockCause" needed="technician" class="mb-3" />
 		<v-alert v-else-if="loaded && !state.answered" dense outlined type="info" class="mb-3">
@@ -30,7 +29,7 @@
 					<div class="text-caption machine-faint mb-2">{{ tx('modes.' + c.id + '_about') }}</div>
 					<v-switch
 						:input-value="effective[c.id]" :label="t('modes.use')" dense hide-details color="primary"
-						:disabled="!canWrite || saving" :title="canWrite ? undefined : t('modes.needs_technician')" @change="toggle(c.id, $event)"
+						:disabled="!canWrite || saving" @change="toggle(c.id, $event)"
 					/>
 					<v-chip v-if="!state.answered && detected[c.id]" x-small outlined class="mt-1">{{ t('modes.suggested') }}</v-chip>
 					<div v-if="c.state === 'off'" class="text-caption machine-faint mt-2">{{ t('modes.off_hint') }}</div>
@@ -41,6 +40,7 @@
 				</v-card>
 			</v-col>
 		</v-row>
+		<lock-reason v-if="!lockCause" min="technician" class="mt-2" />
 
 		<div v-if="loaded && allReady" class="text-body-2 mt-3">{{ t('modes.all_ready') }}</div>
 		<div class="text-caption machine-faint mt-3">{{ t('modes.files_note') }}</div>
@@ -57,13 +57,13 @@ import { textMixin } from './text-mixin.js'
 import { workshopProfile } from '../machine-profile.js' // vue/_shared36
 import { causeOf } from '../lib/refusal.js'
 import SessionNotice from '../SessionNotice.vue' // vue/_shared36
-import RoleNote from './RoleNote.vue'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 const ICONS = { fff: 'mdi-printer-3d-nozzle', laser: 'mdi-laser-pointer', cnc: 'mdi-saw-blade' }
 const CHIP = { off: undefined, alone: 'primary', pending: 'warning', ready: 'success' }
 
 export default {
-	components: { RoleNote, SessionNotice },
+	components: { LockReason, SessionNotice },
 	mixins: [textMixin],
 	props: {
 		canWrite: { type: Boolean, default: false }

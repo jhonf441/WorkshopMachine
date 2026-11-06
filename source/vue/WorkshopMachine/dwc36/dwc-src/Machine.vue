@@ -16,20 +16,20 @@
 			<template v-slot:startup><modes-startup /></template>
 		</page-header>
 		<error-notice :error="shownError" retry @retry="load()" />
-		<hidden-note :sections="allSections" class="mb-2" />
 		<div class="mb-3">
 			<div>
 				<div class="st-layout">
 					<side-tabs v-model="section" :items="sideItems" />
 					<!-- one module at a time, mounted only while it is open (DESIGN.md 3) -->
 					<div :key="sessionKey" class="st-body">
-						<template v-if="section === 'overview'">
+						<locked-cover v-if="lockedNow" :needed="lockedNow" />
+						<template v-else-if="section === 'overview'">
 							<overview-card :overview="snapshot" :failed="!!loadError" :lock-kind="overviewCause" />
 							<v-alert v-if="unavailable.length" dense outlined type="warning" class="mt-3">
 								<div class="font-weight-medium">{{ t('page.unavailable_title') }}</div>
 								<div v-for="u in unavailable" :key="u.id" class="text-body-2">{{ u.name }}: {{ u.reason }}</div>
 							</v-alert>
-							<role-note v-if="!caps.read" min="operator" class="mt-3" />
+							<role-note v-if="!caps.read && !overviewCause" min="operator" class="mt-3" />
 						</template>
 						<probe-module v-else-if="section === 'probe'" :api="api" :published="published" :can-run="caps.run" :thresholds="snapshot && snapshot.thresholds" :axes="axes" :now="now" />
 						<level-module v-else-if="section === 'level'" :api="api" :published="published" :can-run="caps.run" :can-write="caps.run" :ready="snapshot && snapshot.ready" :profile="snapshot && snapshot.levelling" :axes="axes" :now="now" />
@@ -54,7 +54,7 @@
 						<maintenance-module v-else-if="section === 'maintenance'" :api="api" :can-mark="caps.maintenanceDone" :can-edit="caps.maintenanceEdit" />
 						<modes-module v-else-if="section === 'modes'" :can-write="caps.run" />
 						<tool-wizard-module v-else-if="section === 'toolwiz'" :api="api" :can-write="caps.configure('config.tool')" :busy="!!runningKind" />
-						<beds-module v-else-if="section === 'beds'" :api="api" :can-write="caps.configure('config.bed_heaters')" :busy="!!runningKind" :asked="askedBeds" />
+						<beds-module v-else-if="section === 'beds'" :api="api" :can-write="caps.configure('config.bed_heaters')" :busy="!!runningKind" :asked="askedBeds" :model="model" />
 						<history-module
 							v-else-if="section === 'history'" :api="api" :configure="caps.configure" :axes="axes" :quality="snapshot && snapshot.meshQuality" @report="openReport"
 						/>
@@ -78,7 +78,7 @@ import ServiceNotice from './ServiceNotice.vue' // vue/_shared
 import PageHeader from './PageHeader.vue' // header of every page (vue/_shared)
 import { levelOfColor } from './page-health.js'
 import ErrorNotice from './ErrorNotice.vue'
-import HiddenNote from './HiddenNote.vue' // vue/_shared36
+import LockedCover from './LockedCover.vue' // the cover of a module the role cannot open (vue/_shared36)
 import RoleNote from './modules/RoleNote.vue'
 import SideTabs from './SideTabs.vue'
 import ControlHolderChip from './ControlHolderChip.vue'
@@ -106,7 +106,7 @@ import { roleMixin } from './role-mixin.js'
 import { pluginOf } from './workshop-ids.js'
 import { machineApi } from './api/machine-client.js'
 import { normalizeRuns } from './api/machine-api.js'
-import { MODULES, moduleItems, allowedModule, capabilitiesOf } from './lib/gating.js'
+import { MODULES, moduleItems, lockedModuleItems, lockedModule, openableModule, capabilitiesOf } from './lib/gating.js'
 import { lockKey, causeOf } from './lib/refusal.js'
 import { withLockParams, useRoleName } from './modules/lock-params.js'
 import { roleLabel } from './notice-kind.js' // vue/_shared36
@@ -134,7 +134,7 @@ export default {
 	// what the person who left had read must not stay (ESTANDAR 3): the modules are mounted again by sessionKey, the page keeps these
 	sessionData: ['snapshot', 'loadError', 'reportTarget', 'askedPoint', 'askedParam', 'askedBeds'],
 	sessionErrors: ['loadError'], // what a refusal or a failure said: cleared when the person signs in, out or changes role (role-mixin.js)
-	components: { RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, HiddenNote, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, BedsModule, ReportModule },
+	components: { RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, LockedCover, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, BedsModule, ReportModule },
 	data() {
 		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), askedBeds: askedBedsOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null, sessionKey: 0 }
 	},
@@ -180,9 +180,13 @@ export default {
 			return MODULES.map(m => ({ id: m.id, min: m.min }))
 		},
 		sideItems() {
-			return moduleItems(this.snapshot && this.snapshot.modules, min => this.atLeast(min)).map(i => ({
+			return lockedModuleItems(this.snapshot && this.snapshot.modules, min => this.atLeast(min)).map(i => Object.assign({
 				id: i.id, icon: i.icon, label: this.t(i.labelKey), group: i.groupKey ? this.t(i.groupKey) : undefined, disabled: i.disabled, badge: i.disabled ? '!' : ''
-			}))
+			}, i.locked ? { locked: i.locked } : {}))
+		},
+		// the role that opens the open module, or '' when this role may
+		lockedNow() {
+			return lockedModule(this.section, min => this.atLeast(min))
 		},
 		// a module the machine cannot use stays in the bar, disabled, and the overview says why
 		unavailable() {
@@ -250,7 +254,7 @@ export default {
 			if (taken.point) this.askedPoint = taken.point
 			if (taken.param) this.askedParam = taken.param
 			if (taken.beds) this.askedBeds = taken.beds
-			if (taken.section) this.section = this.snapshot ? allowedModule(taken.section, this.snapshot.modules, min => this.atLeast(min)) : taken.section
+			if (taken.section) this.section = this.snapshot ? openableModule(taken.section, this.snapshot.modules, min => this.atLeast(min)) : taken.section
 			this.$router.replace({ path: this.$route.path, query: taken.rest }).catch(() => {})
 		},
 		// the History module asks for the report of one record
@@ -272,7 +276,7 @@ export default {
 			try {
 				this.snapshot = this.atLeast('operator') ? await this.api.state() : await this.api.overview()
 				this.loadError = null
-				this.section = allowedModule(this.section, this.snapshot.modules, min => this.atLeast(min))
+				this.section = openableModule(this.section, this.snapshot.modules, min => this.atLeast(min))
 			} catch (e) {
 				this.loadError = e
 			} finally {

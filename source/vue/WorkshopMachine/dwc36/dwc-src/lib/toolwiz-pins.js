@@ -23,10 +23,10 @@ export function normalizePins(raw) {
 }
 
 // what the item needs: heater, fan and the output of a spindle or laser take a PWM output, a sensor depends on its preset
-export const PIN_NEED = { heater: ['pwm'], fan: ['pwm'], output: ['pwm'], sensor: ['adc'] }
+export const PIN_NEED = { heater: ['pwm'], fan: ['pwm'], output: ['pwm'], sensor: ['temp'] }
 
 export function needsOf(role, preset) {
-	if (role === 'sensor') return [(presetOf(preset) || { need: 'adc' }).need]
+	if (role === 'sensor') return [(presetOf(preset) || { need: 'temp' }).need]
 	return PIN_NEED[role] || ['digital']
 }
 

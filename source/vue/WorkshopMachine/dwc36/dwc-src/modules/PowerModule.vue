@@ -49,11 +49,10 @@
 						<div v-if="view.resume.needsAck" class="d-flex flex-column mb-1">
 							<v-checkbox v-for="k in ackKeys" :key="k" v-model="ack[k]" dense hide-details class="mt-0" :label="t('power.ack_' + k)" :disabled="!canResume" />
 						</div>
-						<div v-if="canResume" class="d-flex align-center flex-wrap" style="gap:8px">
-							<v-btn small :color="armed ? 'error' : 'primary'" :disabled="!!resumeWhy || resuming" @click="resumeTap()"><v-icon small left>mdi-play-circle-outline</v-icon>{{ t(armed ? 'power.resume_confirm' : 'power.resume_btn') }}</v-btn>
-							<span v-if="resumeWhy" class="text-caption machine-faint">{{ t(resumeWhy) }}</span>
+						<div class="d-flex align-center flex-wrap" style="gap:8px">
+							<v-btn small :color="armed ? 'error' : 'primary'" :disabled="!canResume || !!resumeWhy || resuming" @click="resumeTap()"><v-icon small left>mdi-play-circle-outline</v-icon>{{ t(armed ? 'power.resume_confirm' : 'power.resume_btn') }}</v-btn>
+							<span v-if="canResume && resumeWhy" class="text-caption machine-faint">{{ t(resumeWhy) }}</span>
 						</div>
-						<lock-reason v-else min="technician" class="mt-1" />
 						<error-notice :error="resumeError" />
 						<v-alert v-if="resumeSent" dense outlined type="success" class="mt-2 mb-0">{{ t('power.resume_sent') }}</v-alert>
 					</div>
@@ -77,8 +76,8 @@
 				<template v-else>
 					<v-alert dense outlined type="warning" class="mt-1 mb-2"><b>{{ t('power.missing_title') }}.</b> {{ t('power.missing_text') }}</v-alert>
 					<div class="d-flex align-center flex-wrap" style="gap:8px">
-						<v-btn v-if="canCreate" small color="primary" :disabled="flowBusy" @click="proposePrologue()"><v-icon small left>mdi-file-plus-outline</v-icon>{{ t('power.create') }}</v-btn>
-						<span class="text-caption machine-faint">{{ t('power.create_admin_only') }}</span>
+						<v-btn small color="primary" :disabled="!canCreate || flowBusy" @click="proposePrologue()"><v-icon small left>mdi-file-plus-outline</v-icon>{{ t('power.create') }}</v-btn>
+						<span v-if="!canCreate" class="text-caption machine-faint">{{ t('power.create_admin_only') }}</span>
 					</div>
 				</template>
 			</div>
@@ -102,11 +101,10 @@ import { createPlanFlow } from '../state/plan-flow.js'
 import { isWorking } from '../state/plan-state.js'
 import { KIND_POWER, KIND_PROLOGUE, POWER_RANGE, ACK_KEYS, powerDraft, powerChange, powerState, fileLines, prologueFacts, resumeRows, resumeBlock } from '../lib/power.js'
 import RoleNote from './RoleNote.vue'
-import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
 	mixins: [textMixin],
-	components: { LockReason, RoleNote, ErrorNotice, PlanReview },
+	components: { RoleNote, ErrorNotice, PlanReview },
 	props: {
 		api: { type: Object, required: true },
 		canEdit: { type: Boolean, default: false }, // admin (workshopCan): the two voltages

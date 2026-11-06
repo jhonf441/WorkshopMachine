@@ -43,7 +43,6 @@
 		<div class="text-subtitle-1 mt-6 mb-1">{{ t('limits.verify_title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('limits.verify_intro') }}</p>
 		<run-start v-if="canRun" :allowed="canRun" :checks="['homed', 'clear', 'bed', 'estop']" :busy="!startAllowed" :starting="rs.status === 'starting'" :label="t('limits.verify_start')" @start="start(kind, {})" />
-		<lock-reason v-else min="technician" />
 		<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 		<endstop-result v-if="verify" class="mt-3" :result="verify" />
 		<div v-else-if="!busy" class="text-body-2 machine-faint mt-2">{{ t('limits.verify_none') }}</div>
