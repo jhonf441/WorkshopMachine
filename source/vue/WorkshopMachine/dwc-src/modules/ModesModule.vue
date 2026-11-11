@@ -62,13 +62,14 @@ const loaded = ref(false)
 const saving = ref(false)
 const texts = ref({})
 const bootCalls = ref(null)
+const unmigrated = ref([])
 
 const state = computed(() => (info.value ? info.value.state : modesState(null, null)))
 const detected = computed(() => (info.value ? info.value.detected : detectModes(null)))
 // before the first answer the switches show what the board suggests (nothing is saved until the person touches one)
 const effective = computed(() => effectiveModes(state.value, detected.value))
 // the rows of the guide (the chip of the header opens it): only with two or more modes on, and only the ones whose file could be read
-const defs = computed(() => guideDefs(state.value, bootCalls.value, texts.value))
+const defs = computed(() => guideDefs(state.value, bootCalls.value, texts.value, unmigrated.value))
 const cards = computed(() => MODES.map(m => {
 	const mine = defs.value.filter(d => d.mode === m && (d.state === 'missing' || d.state === 'example'))
 	return { id: m, state: modeCardState(state.value, m, defs.value), pending: mine.length }
@@ -84,11 +85,13 @@ async function readFacts() {
 	if (!usesSeveralModes(state.value)) {
 		texts.value = {}
 		bootCalls.value = null
+		unmigrated.value = []
 		return
 	}
 	const f = await readModeFacts(modeRows(enabledList(state.value)))
 	texts.value = f.texts
 	bootCalls.value = f.bootCalls
+	unmigrated.value = f.unmigrated || []
 }
 async function load() {
 	try {

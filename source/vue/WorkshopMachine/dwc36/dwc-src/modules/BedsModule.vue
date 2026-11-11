@@ -24,7 +24,7 @@
 				<span v-if="d.max !== null"> · {{ t('beds.d_max', { max: d.max }) }}</span>
 				<span v-if="d.state"> · {{ d.state }}</span>
 			</div>
-			<bed-edit-card v-if="d.loaded" class="mt-2" :api="api" :row="d" :can-write="canWrite" :busy="busy" :model="model" />
+			<bed-edit-card v-if="d.loaded" class="mt-2" :api="api" :row="d" :can-write="canWrite" :busy="busy" :model="model" :zones="definedList" @applied="load()" />
 		</v-card>
 
 		<v-card v-for="(b, i) in draft.beds" :key="i" outlined class="pa-3 mb-3">
@@ -48,35 +48,23 @@
 					<div class="beds-label"><label :for="'bd-preset-' + i" class="text-caption">{{ t('beds.f_sensor_preset') }}</label><help-tip :title="t('beds.preset_' + b.sensorPreset)" :what="t('beds.help.sensor_' + b.sensorPreset + '_what')" :why="t('beds.help.sensor_' + b.sensorPreset + '_why')" :if-missing="t('beds.help.sensor_' + b.sensorPreset + '_missing')" :how="t('beds.help.sensor_' + b.sensorPreset + '_how')" /></div>
 					<v-select :id="'bd-preset-' + i" v-model="b.sensorPreset" :items="presetItems" dense outlined hide-details :disabled="!!applied" :aria-label="t('beds.f_sensor_preset')" @change="presetChanged(b, $event)" />
 				</div>
-				<div v-if="b.sensorPreset === 'thermistor'" class="beds-field">
-					<div class="beds-label"><label :for="'bd-therm-' + i" class="text-caption">{{ t('beds.f_thermistor_kind') }}</label></div>
-					<v-select :id="'bd-therm-' + i" v-model="b.thermistorKind" :items="thermistorItems" dense outlined hide-details :disabled="!!applied" :aria-label="t('beds.f_thermistor_kind')" />
-				</div>
-				<template v-if="b.sensorPreset === 'thermistor' && b.thermistorKind === 'custom'">
-					<div class="beds-field">
-						<div class="beds-label"><label :for="'bd-tt-' + i" class="text-caption">{{ t('beds.f_therm_t') }}</label></div>
-						<v-text-field :id="'bd-tt-' + i" v-model="b.thermT" dense outlined hide-details inputmode="numeric" :disabled="!!applied" :error="shown(i, 'thermT')" :aria-label="t('beds.f_therm_t')" />
-						<div v-if="shown(i, 'thermT')" class="text-caption error--text">{{ message(i, 'thermT') }}</div>
-					</div>
-					<div class="beds-field">
-						<div class="beds-label"><label :for="'bd-tb-' + i" class="text-caption">{{ t('beds.f_therm_b') }}</label></div>
-						<v-text-field :id="'bd-tb-' + i" v-model="b.thermB" dense outlined hide-details inputmode="numeric" :disabled="!!applied" :error="shown(i, 'thermB')" :aria-label="t('beds.f_therm_b')" />
-						<div v-if="shown(i, 'thermB')" class="text-caption error--text">{{ message(i, 'thermB') }}</div>
-					</div>
-				</template>
+				<bed-sensor-fields :bed="b" :index="i" :disabled="!!applied" :shown="shown" :message="message" />
 				<div class="beds-field">
 					<div class="beds-label"><label :for="'bd-spin-' + i" class="text-caption">{{ t('beds.f_sensor_pin') }}</label><help-tip :title="t('beds.f_pins')" :what="t('beds.help.pins_what')" :why="t('beds.help.pins_why')" :if-missing="t('beds.help.pins_missing')" :how="t('beds.help.pins_how')" /></div>
 					<v-select :id="'bd-spin-' + i" v-model="b.sensorPin" :items="pinItems(sensorNeed(b.sensorPreset), b.sensorPin)" dense outlined hide-details :placeholder="t('beds.pin_pick')" :no-data-text="t('beds.pin_no_free')" :disabled="!!applied" :error="shown(i, 'sensorPin')" :aria-label="t('beds.f_sensor_pin')" />
 					<div v-if="shown(i, 'sensorPin')" class="text-caption error--text">{{ message(i, 'sensorPin') }}</div>
 				</div>
+				<!-- the output pin comes first: the page deduces from it whether the heater hangs from a MOSFET of the board (no relay, nothing to ask) or needs a relay -->
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-kind-' + i" class="text-caption">{{ t('beds.f_output_kind') }}</label></div>
-					<v-select :id="'bd-kind-' + i" v-model="b.outputKind" :items="kindItems" dense outlined hide-details :disabled="!!applied" :aria-label="t('beds.f_output_kind')" @change="b.outputPin = ''" />
+					<div class="beds-label"><label :for="'bd-opin-' + i" class="text-caption">{{ t('beds.f_output_pin') }}</label><help-tip :title="t('beds.f_output_pin')" :what="t('beds.help.output_what')" :why="t('beds.help.output_why')" :if-missing="t('beds.help.output_missing')" :how="t('beds.help.output_how')" /></div>
+					<v-select :id="'bd-opin-' + i" v-model="b.outputPin" :items="outputItems(b)" dense outlined hide-details :placeholder="t('beds.pin_pick')" :no-data-text="t('beds.pin_no_free')" :disabled="!!applied" :error="shown(i, 'outputPin')" :aria-label="t('beds.f_output_pin')" @change="outputPinChanged(b, $event)" />
+					<div v-if="shown(i, 'outputPin')" class="text-caption error--text">{{ message(i, 'outputPin') }}</div>
 				</div>
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-opin-' + i" class="text-caption">{{ t('beds.f_output_pin') }}</label></div>
-					<v-select :id="'bd-opin-' + i" v-model="b.outputPin" :items="pinItems(outputNeed(b), b.outputPin)" dense outlined hide-details :placeholder="t('beds.pin_pick')" :no-data-text="t('beds.pin_no_free')" :disabled="!!applied" :error="shown(i, 'outputPin')" :aria-label="t('beds.f_output_pin')" />
-					<div v-if="shown(i, 'outputPin')" class="text-caption error--text">{{ message(i, 'outputPin') }}</div>
+					<div class="beds-label"><label :for="'bd-kind-' + i" class="text-caption">{{ t('beds.f_output_kind') }}</label><help-tip :title="t('beds.f_output_kind')" :what="t('beds.help.kind_what')" :why="t('beds.help.kind_why')" :if-missing="t('beds.help.kind_missing')" :how="t('beds.help.kind_how')" /></div>
+					<div v-if="isDirect(b)" :id="'bd-kind-' + i" class="text-body-2 beds-direct" data-direct="1">{{ t('beds.kind_direct_note', directParams(b)) }}</div>
+					<v-select v-else :id="'bd-kind-' + i" v-model="b.outputKind" :items="relayItems" dense outlined hide-details :disabled="!!applied" :error="shown(i, 'outputKind')" :aria-label="t('beds.f_output_kind')" />
+					<div v-if="shown(i, 'outputKind')" class="text-caption error--text">{{ message(i, 'outputKind') }}</div>
 				</div>
 				<div class="beds-field">
 					<div class="beds-label"><label :for="'bd-max-' + i" class="text-caption">{{ t('beds.f_max_temp') }}</label><help-tip :title="t('beds.f_max_temp')" :what="t('beds.help.max_what')" :why="t('beds.help.max_why')" :if-missing="t('beds.help.max_missing')" :how="t('beds.help.max_how')" /></div>
@@ -86,9 +74,15 @@
 			</div>
 		</v-card>
 		<div v-if="!draft.beds.length" class="text-body-2 machine-faint mb-3">{{ t('beds.empty') }}</div>
+		<!-- no bed or heater MOSFET of the board is free any more: said once, with who has them (the 18 A one first), so a relay is no surprise -->
+		<div v-if="draft.beds.length && directNote" class="wf-note is-info mb-3 beds-direct-none" role="note"><v-icon :size="16" class="wf-note-icon" aria-hidden="true">mdi-information-outline</v-icon><span>{{ directNote }}</span></div>
 		<div class="d-flex align-center flex-wrap mb-4" style="gap: 12px">
 			<v-btn small outlined :disabled="!!applied || roomLeft <= 0" @click="addBed()"><v-icon small left>mdi-plus</v-icon>{{ t('beds.add_bed') }}</v-btn>
-			<span class="text-caption" :class="{ 'warning--text': roomLeft <= 0 }">{{ roomLeft <= 0 ? t('beds.beds_limit', { max: maxBeds }) : t('beds.beds_count', { n: definedCount + draft.beds.length, max: maxBeds }) }}</span>
+			<!-- the limit says where it comes from (the board, the service's read of it, or the RRF ceiling); the "?" tells how the count is made -->
+			<span class="d-inline-flex align-center" style="gap: 2px">
+				<span class="text-caption beds-count" :class="{ 'warning--text': roomLeft <= 0 }">{{ roomLeft <= 0 ? t('beds.beds_limit', { max: maxBeds }) : t('beds.beds_count', { n: definedCount + draft.beds.length, max: maxBeds }) }} · {{ t('beds.limit_src_' + limitSource) }}</span>
+				<help-tip :title="t('beds.limit_title')" :what="t('beds.limit_' + limitSource, { max: maxBeds })" :why="t('beds.limit_why')" :how="t('beds.limit_count', { defined: definedCount, draft: draft.beds.length })" />
+			</span>
 		</div>
 
 		<div class="text-subtitle-1 font-weight-medium mb-1">{{ t('beds.lines_title') }}</div>
@@ -136,19 +130,21 @@ import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
 import HelpTip from '../HelpTip.vue' // vue/_shared36
 import RoleNote from './RoleNote.vue'
 import PlanReview from './PlanReview.vue'
+import BedSensorFields from './BedSensorFields.vue'
 import BedEditCard from './BedEditCard.vue'
 import { textMixin } from './text-mixin.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { isWorking } from '../state/plan-state.js'
-import { PRESETS, THERMISTOR_KINDS, OUTPUT_KINDS, OUTPUT_NEED, MAX_BED, sensorNeed, boardLimits, definedRows, dropDefined, createDraft, emptyBed, toSpec, specKey, pinChoices, bedIssues, formIssues, fieldOfError } from '../lib/beds-spec.js'
+import { PRESET_GROUPS, OUTPUT_LIST_NEED, MAX_BED, sensorNeed, boardLimits, definedRows, dropDefined, createDraft, emptyBed, toSpec, specKey, pinChoices, bedIssues, formIssues, fieldOfError } from '../lib/beds-spec.js'
+import { KIND_DIRECT, RELAY_KINDS, kindForPin, outputOptionKey, outputRole, directFree, directTaken, serviceKindError } from '../lib/bed-output.js'
 import { lineKind } from '../lib/toolwiz-preview.js'
-import { pinOptionText } from '../lib/pin-kinds.js'
+import { pinOptionText, pinKindKey } from '../lib/pin-kinds.js'
 
 const NO_PINS = { free: [], used: [], freeDrivers: null }
 
 export default {
 	mixins: [textMixin],
-	components: { ErrorNotice, HelpTip, RoleNote, PlanReview, BedEditCard },
+	components: { ErrorNotice, HelpTip, RoleNote, PlanReview, BedEditCard, BedSensorFields },
 	props: {
 		api: { type: Object, required: true },
 		canWrite: { type: Boolean, default: false }, // technician: creating the plan (the service checks again)
@@ -163,6 +159,16 @@ export default {
 		// how many beds THIS board supports: its own limit (object model limits.bedHeaters), else what the service read from it, else the highest number RRF allows
 		maxBeds() {
 			return boardLimits(this.model).beds || (this.info && this.info.maxBeds) || MAX_BED + 1
+		},
+		// where that number comes from, so the page can say it: the live object model of the board, the service's read of it, or the RRF ceiling (nobody said)
+		limitSource() {
+			return boardLimits(this.model).beds ? 'board' : this.info && this.info.maxBeds ? 'service' : 'ceiling'
+		},
+		// no bed / heater MOSFET of the board is free: the note says who has them, with the current each one carries
+		directNote() {
+			if (directFree(this.pins).length) return ''
+			const taken = directTaken(this.pins)
+			return taken.length ? this.t('beds.direct_none', { list: taken.map(x => this.t('beds.direct_taken_item', { pin: x.pin, amps: x.amps, by: x.by })).join(', ') }) : ''
 		},
 		definedCount() {
 			return this.definedBeds.filter((n, i, a) => a.indexOf(n) === i).length
@@ -195,14 +201,18 @@ export default {
 		key() {
 			return specKey(this.draft)
 		},
+		// the sensor types grouped (a header and its options: thermistors, platinum RTD, thermocouples, other)
 		presetItems() {
-			return PRESETS.map(p => ({ value: p, text: this.t('beds.preset_' + p) }))
+			const out = []
+			PRESET_GROUPS.forEach(g => {
+				out.push({ header: this.t('beds.group_' + g.id) })
+				g.presets.forEach(p => out.push({ value: p, text: this.t('beds.preset_' + p) }))
+			})
+			return out
 		},
-		thermistorItems() {
-			return THERMISTOR_KINDS.map(k => ({ value: k, text: this.t('beds.therm_' + k) }))
-		},
-		kindItems() {
-			return OUTPUT_KINDS.map(k => ({ value: k, text: this.t('beds.kind_' + k) }))
+		// the relay kinds: only asked when the pin is no MOSFET of the board (a MOSFET output is direct, nothing to choose)
+		relayItems() {
+			return RELAY_KINDS.map(k => ({ value: k, text: this.t('beds.kind_' + k) }))
 		}
 	},
 	watch: {
@@ -228,7 +238,7 @@ export default {
 		// the rows of the form for the beds asked: the ones the board already has are not new rows (they have their own card above)
 		seed(beds) {
 			const d = dropDefined(createDraft(beds, this.firstFree()), this.definedBeds)
-			return d.beds.length ? d : createDraft(null, this.firstFree())
+			return d
 		},
 		firstFree() {
 			return this.info && this.info.next.beds.length ? this.info.next.beds[0] : null
@@ -244,12 +254,26 @@ export default {
 				this.loadError = e
 			}
 		},
-		outputNeed(b) {
-			return OUTPUT_NEED[b.outputKind] || 'pwm'
-		},
 		sensorNeed,
 		pinItems(need, current) {
 			return pinChoices(this.pins, need, this.draft, current).map(p => ({ value: p.pin, text: pinOptionText(p.pin, p.capabilities, key => this.t(key)) }))
+		},
+		// every free output of the board, each saying what it can drive ("out1 - heater MOSFET of the board, up to 6 A"; "io1.out - logic output: needs a relay")
+		outputItems(b) {
+			return pinChoices(this.pins, OUTPUT_LIST_NEED, this.draft, b.outputPin).map(p => {
+				const o = outputOptionKey(p.pin, pinKindKey(p.capabilities))
+				return { value: p.pin, text: o.key ? p.pin + ' - ' + this.t(o.key, o.params) : p.pin }
+			})
+		},
+		// the pin decides: a bed / heater MOSFET is direct (the relay question disappears), any other pin keeps or takes a relay kind
+		outputPinChanged(b, pin) {
+			b.outputKind = kindForPin(pin, b.outputKind)
+		},
+		isDirect(b) {
+			return b.outputKind === KIND_DIRECT
+		},
+		directParams(b) {
+			return { pin: b.outputPin, amps: outputRole(b.outputPin).amps }
 		},
 		// a new sensor type that needs another kind of pin (a temperature input -> a SPI chip select) drops the pin that no longer fits; one that still fits stays
 		presetChanged(b, preset) {
@@ -259,7 +283,9 @@ export default {
 		// the message of a field of one bed (the person sees it once they try to continue, or once the service refuses it)
 		issueOf(i, key) {
 			const field = 'beds.' + i + '.' + key
-			return this.issues.find(x => x.field === field) || (this.preview && this.preview.errors.map(e => ({ field: fieldOfError(e), code: e.code })).find(x => x.field === field)) || null
+			const kind = this.draft.beds[i] ? this.draft.beds[i].outputKind : ''
+			// an older service answers `values` for the direct output it does not know: said as that, not as a vague bad value
+			return this.issues.find(x => x.field === field) || (this.preview && this.preview.errors.map(e => ({ field: fieldOfError(e), code: fieldOfError(e) === field && key === 'outputKind' ? serviceKindError(e.code, kind) : e.code })).find(x => x.field === field)) || null
 		},
 		shown(i, key) {
 			const it = this.issueOf(i, key)
@@ -325,5 +351,6 @@ export default {
 .beds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 .beds-field { min-width: 0; display: flex; flex-direction: column; }
 .beds-label { display: flex; align-items: center; gap: 4px; min-height: 28px; }
+.beds-direct { min-height: 40px; display: flex; align-items: center; padding: 0 12px; border: 1px dashed var(--wf-line, rgba(128, 128, 128, 0.4)); border-radius: 4px; }
 .beds-code { font-family: var(--tp-font-mono, monospace); font-size: 13px; overflow-x: auto; border: 1px solid var(--wf-line, rgba(128, 128, 128, 0.4)); border-radius: 8px; }
 </style>

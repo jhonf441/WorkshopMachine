@@ -69,7 +69,7 @@ export default {
 		canWrite: { type: Boolean, default: false }
 	},
 	data() {
-		return { ICONS, CHIP, info: null, loadError: null, loaded: false, saving: false, texts: {}, bootCalls: null };
+		return { ICONS, CHIP, info: null, loadError: null, loaded: false, saving: false, texts: {}, bootCalls: null, unmigrated: [] };
 	},
 	computed: {
 		state() {
@@ -87,7 +87,7 @@ export default {
 		},
 		// the rows of the guide (the chip of the header opens it): only with two or more modes on, and only the ones whose file could be read
 		defs() {
-			return guideDefs(this.state, this.bootCalls, this.texts);
+			return guideDefs(this.state, this.bootCalls, this.texts, this.unmigrated);
 		},
 		cards() {
 			return MODES.map(m => {
@@ -115,11 +115,13 @@ export default {
 			if (!usesSeveralModes(this.state)) {
 				this.texts = {};
 				this.bootCalls = null;
+				this.unmigrated = [];
 				return;
 			}
 			const f = await readModeFacts(modeRows(enabledList(this.state)));
 			this.texts = f.texts;
 			this.bootCalls = f.bootCalls;
+			this.unmigrated = f.unmigrated || [];
 		},
 		async load() {
 			try {

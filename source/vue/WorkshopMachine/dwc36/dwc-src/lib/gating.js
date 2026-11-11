@@ -56,7 +56,7 @@ export function moduleItems(modules, atLeast) {
 }
 
 // ALL the modules for the side bar: the ones the role cannot use carry `locked: <role that opens it>` (a lock in the bar, a cover when opened;
-// AWS rule: what you cannot use stays in its place with the reason). The ones the machine cannot use are disabled as in moduleItems.
+// locked-in-place rule: what you cannot use stays in its place with the reason). The ones the machine cannot use are disabled as in moduleItems.
 export function lockedModuleItems(modules, atLeast) {
 	return MODULES.map(m => {
 		const state = (modules && modules[m.id]) || null
@@ -100,6 +100,11 @@ export function capabilitiesOf(atLeast, can) {
 		configure: kind => {
 			if (can) return can(OPS2.configApply, { args: { kind } })
 			return ADMIN_KINDS.indexOf(kind) >= 0 ? atLeast('admin') : atLeast('technician')
+		},
+		// restoring a configuration record (machine.history.restore) is for administrators only, whatever the kind, and cannot be delegated
+		restore: kind => {
+			if (can) return can(OPS2.historyRestore, { args: { kind } })
+			return atLeast('admin')
 		},
 		// maintenance (phase 4): "done" is a technician operation, the plan (plan.set) too
 		maintenanceDone: can ? can(OPS4.maintenanceDone, { args: {} }) : atLeast('technician'),

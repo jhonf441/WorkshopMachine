@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "plugin": "WorkshopMachine",
+  "namespace": "machine",
+  "prefixes": [
+    "machine"
+  ],
+  "ui": "ui:machine:open",
+  "operations": [
+    "capabilities.get",
+    "machine.beds.get",
+    "machine.beds.preview",
+    "machine.calc",
+    "machine.config.apply",
+    "machine.config.plan",
+    "machine.height.get",
+    "machine.height.hook",
+    "machine.height.save",
+    "machine.height.step",
+    "machine.history.compare",
+    "machine.history.get",
+    "machine.history.list",
+    "machine.history.restore",
+    "machine.layout",
+    "machine.limits.get",
+    "machine.maintenance.done",
+    "machine.maintenance.get",
+    "machine.maintenance.plan.set",
+    "machine.mark_cross",
+    "machine.mesh.clear",
+    "machine.mesh.delete",
+    "machine.mesh.get",
+    "machine.mesh.list",
+    "machine.mesh.load",
+    "machine.mesh.save",
+    "machine.mesh.taper",
+    "machine.motion.get",
+    "machine.offsets.get",
+    "machine.offsets.snapshot",
+    "machine.overview",
+    "machine.power.get",
+    "machine.power.resume",
+    "machine.report",
+    "machine.run",
+    "machine.runs",
+    "machine.shaping.get",
+    "machine.shaping.test",
+    "machine.state",
+    "machine.stop",
+    "machine.test_move",
+    "machine.tool.get",
+    "machine.tool.pins",
+    "machine.tool.preview",
+    "machine.try",
+    "machine.try.pending",
+    "machine.workarea.get",
+    "machine.workarea.positions",
+    "machine.workarea.release",
+    "machine.workarea.save",
+    "machine.workarea.step",
+    "settings.get",
+    "settings.set"
+  ],
+  "shared": [
+    "capabilities.get",
+    "settings.get",
+    "settings.set"
+  ],
+  "restricted": [
+    "machine.history.restore"
+  ],
+  "targets": [],
+  "profiles": {
+    "readonly": {
+      "title": "MachineReadOnly",
+      "capabilities": [
+        "machine.config_view",
+        "machine.stop",
+        "machine.view"
+      ]
+    },
+    "operator": {
+      "title": "MachineOperator",
+      "capabilities": [
+        "machine.config_view",
+        "machine.stop",
+        "machine.view"
+      ]
+    },
+    "admin": {
+      "title": "MachineAdmin",
+      "capabilities": [
+        "machine.config_apply",
+        "machine.config_view",
+        "machine.height",
+        "machine.maintenance",
+        "machine.meshes",
+        "machine.procedures",
+        "machine.stop",
+        "machine.try",
+        "machine.view",
+        "machine.workarea"
+      ]
+    }
+  }
+}

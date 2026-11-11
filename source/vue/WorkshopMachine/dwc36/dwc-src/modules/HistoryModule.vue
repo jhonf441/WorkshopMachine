@@ -43,6 +43,7 @@ export default {
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
 		configure: { type: Function, required: true }, // kind -> may this person apply a plan of that kind (workshopCan)
+		canRestore: { type: Function, required: true }, // kind -> may this person restore a record of that kind (administrators only: capabilitiesOf(...).restore)
 		axes: { type: Array, default: () => [] }, // move.axes of the DWC model
 		quality: { type: Object, default: null } // profile mesh.quality
 	},
@@ -54,7 +55,7 @@ export default {
 			return comparePair(this.hs)
 		},
 		restoreAllowed() {
-			return this.restoreKind ? this.configure(this.restoreKind) : false
+			return this.restoreKind ? this.allowedFor(this.restoreKind) : false
 		}
 	},
 	created() {
@@ -64,7 +65,7 @@ export default {
 	},
 	methods: {
 		allowedFor(kind) {
-			return this.configure(kind)
+			return this.canRestore(kind) && this.configure(kind)
 		},
 		async load() {
 			loadBegin(this.hs)

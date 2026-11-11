@@ -1,7 +1,7 @@
 'use strict'
 
 // A refusal of the service because of who the person is (HTTP 401 / 403: code login_required / forbidden) is told by its cause, once,
-// in one sentence, never as the key text plus the raw message (owner rule 2026-11-04, AWS-console style). Pure.
+// in one sentence, never as the key text plus the raw message (owner rule 2026-11-04, locked-in-place style). Pure.
 //
 //   lockKey(e)        'lock.signed_out' (needs signing in) | 'lock.role' (the role is too low) | '' (not a refusal of this kind)
 //   lockKeyOf(reason) the same from the reason / code string that refusalOf() returns

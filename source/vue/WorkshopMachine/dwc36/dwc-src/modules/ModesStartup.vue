@@ -13,7 +13,7 @@ import { detectModes, modesState, enabledList, usesSeveralModes, modeRows, guide
 export default {
 	components: { StartupPanel },
 	data() {
-		return { info: null, texts: {}, bootCalls: null };
+		return { info: null, texts: {}, bootCalls: null, unmigrated: [] };
 	},
 	computed: {
 		state() {
@@ -23,7 +23,7 @@ export default {
 			return this.info ? this.info.detected : detectModes(null);
 		},
 		defs() {
-			return guideDefs(this.state, this.bootCalls, this.texts);
+			return guideDefs(this.state, this.bootCalls, this.texts, this.unmigrated);
 		}
 	},
 	mounted() {
@@ -40,11 +40,13 @@ export default {
 			if (!usesSeveralModes(this.state)) {
 				this.texts = {};
 				this.bootCalls = null;
+				this.unmigrated = [];
 				return;
 			}
 			const f = await readModeFacts(modeRows(enabledList(this.state)));
 			this.texts = f.texts;
 			this.bootCalls = f.bootCalls;
+			this.unmigrated = f.unmigrated || [];
 		},
 		async load() {
 			try {

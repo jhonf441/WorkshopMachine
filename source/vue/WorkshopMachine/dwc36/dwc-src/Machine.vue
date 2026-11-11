@@ -56,7 +56,7 @@
 						<tool-wizard-module v-else-if="section === 'toolwiz'" :api="api" :can-write="caps.configure('config.tool')" :busy="!!runningKind" />
 						<beds-module v-else-if="section === 'beds'" :api="api" :can-write="caps.configure('config.bed_heaters')" :busy="!!runningKind" :asked="askedBeds" :model="model" />
 						<history-module
-							v-else-if="section === 'history'" :api="api" :configure="caps.configure" :axes="axes" :quality="snapshot && snapshot.meshQuality" @report="openReport"
+							v-else-if="section === 'history'" :api="api" :configure="caps.configure" :can-restore="caps.restore" :axes="axes" :quality="snapshot && snapshot.meshQuality" @report="openReport"
 						/>
 						<report-module v-else-if="section === 'report'" :key="reportTarget" :api="api" :target="reportTarget" :axes="axes" />
 					</div>

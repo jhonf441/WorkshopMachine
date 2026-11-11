@@ -15,20 +15,23 @@ const panel = ref(null)
 const info = ref(null)
 const texts = ref({})
 const bootCalls = ref(null)
+const unmigrated = ref([])
 
 const state = computed(() => (info.value ? info.value.state : modesState(null, null)))
 const detected = computed(() => (info.value ? info.value.detected : detectModes(null)))
-const defs = computed(() => guideDefs(state.value, bootCalls.value, texts.value))
+const defs = computed(() => guideDefs(state.value, bootCalls.value, texts.value, unmigrated.value))
 
 async function readFacts() {
 	if (!usesSeveralModes(state.value)) {
 		texts.value = {}
 		bootCalls.value = null
+		unmigrated.value = []
 		return
 	}
 	const f = await readModeFacts(modeRows(enabledList(state.value)))
 	texts.value = f.texts
 	bootCalls.value = f.bootCalls
+	unmigrated.value = f.unmigrated || []
 }
 async function load() {
 	try {
