@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('toolwiz.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('toolwiz.intro') }}</p>
 		<v-alert v-if="api.toolwiz.mock" dense outlined type="info" class="text-body-2">{{ t('toolwiz.mock_notice') }}</v-alert>
-		<role-note v-if="!canWrite" min="technician" class="text-body-2" />
+		<role-note v-if="!canWrite" min="technician" class="text-body-2" :subject="$t('plugins.WorkshopMachine.subjects.tool_wizard')" />
 		<v-alert v-if="busy && !w.applied" dense outlined type="warning" class="text-body-2">{{ t('toolwiz.block_busy') }}</v-alert>
 		<error-notice :error="loadError" retry @retry="load()" />
 
@@ -68,11 +68,11 @@ export default {
 		busy: { type: Boolean, default: false } // a procedure is running: the machine is not free
 	},
 	data() {
-		return { w: createWizard(null), tools: { tools: [], nextNumber: null, familyHint: '' }, pins: NO_PINS, loadError: null, tried: false, previewLoading: false, previewError: null, ps: null, flow: null }
+		return { w: createWizard(null), tools: { tools: [], nextNumber: null, familyHint: '', modes: [], machineFile: null }, pins: NO_PINS, loadError: null, tried: false, previewLoading: false, previewError: null, ps: null, flow: null }
 	},
 	computed: {
 		ctx() {
-			return { usedNumbers: this.tools.tools.map(x => x.number), freeDrivers: this.pins.freeDrivers, laserMode: undefined, pins: this.pins, canWrite: this.canWrite, busy: this.busy, familyHint: this.tools.familyHint }
+			return { usedNumbers: this.tools.tools.map(x => x.number), freeDrivers: this.pins.freeDrivers, laserMode: undefined, pins: this.pins, canWrite: this.canWrite, busy: this.busy, familyHint: this.tools.familyHint, machineFile: this.tools.machineFile }
 		},
 		issues() {
 			return stepIssues(this.w, this.w.step, this.ctx)

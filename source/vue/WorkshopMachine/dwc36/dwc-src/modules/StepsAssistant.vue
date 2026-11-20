@@ -1,7 +1,7 @@
 <template>
 	<div class="steps-assistant">
 		<p class="text-body-2 machine-faint">{{ t('calibration.steps_intro') }}</p>
-		<role-note v-if="!canEdit" min="admin" class="mb-3" />
+		<role-note v-if="!canEdit" min="admin" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.steps')" />
 		<div v-if="!rows.length" class="text-body-2 machine-faint">{{ t('calibration.no_axes') }}</div>
 		<template v-else>
 			<div class="d-flex flex-wrap align-center" style="gap:12px">

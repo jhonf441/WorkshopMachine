@@ -8,7 +8,7 @@
 			<span v-if="detection.reasonKey" class="text-caption warning--text">{{ t(detection.reasonKey) }}</span>
 			<span v-else-if="detection.kinds.length < 3" class="text-caption machine-faint">{{ t('level.reason_' + detection.mode) }}</span>
 		</div>
-		<role-note v-if="!canRun" min="technician" class="mb-3" />
+		<role-note v-if="!canRun" min="technician" :ops="accessOps.run" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.level')" />
 		<v-card outlined class="mb-4 pa-3">
 			<level-bed
 				:model="bedModel" :lp="lp" :service-level="serviceLevel" :last-level="lastLevel" :result="rs.result" :editable="canRun && !busy && detection.kinds.length > 0"

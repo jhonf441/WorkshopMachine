@@ -20,7 +20,7 @@
 				<v-btn small color="primary" :disabled="!hasChange || flowBusy" @click="propose()">{{ t('power.review') }}</v-btn>
 				<span class="text-caption machine-faint">{{ t('power.admin_hint') }}</span>
 			</div>
-			<role-note v-else min="admin" class="mt-2" />
+			<role-note v-else min="admin" class="mt-2" :subject="$t('plugins.WorkshopMachine.subjects.power_admin')" />
 		</template>
 		<template v-if="view">
 			<div class="text-subtitle-1 mt-5 mb-1">{{ t('power.files_title') }}</div>
@@ -52,6 +52,7 @@
 						<div class="d-flex align-center flex-wrap" style="gap:8px">
 							<v-btn small :color="armed ? 'error' : 'primary'" :disabled="!canResume || !!resumeWhy || resuming" @click="resumeTap()"><v-icon small left>mdi-play-circle-outline</v-icon>{{ t(armed ? 'power.resume_confirm' : 'power.resume_btn') }}</v-btn>
 							<span v-if="canResume && resumeWhy" class="text-caption machine-faint">{{ t(resumeWhy) }}</span>
+							<lock-reason v-if="!canResume" :ops="accessOps.resume" min="technician" :subject="$t('plugins.WorkshopMachine.subjects.power_resume')" />
 						</div>
 						<error-notice :error="resumeError" />
 						<v-alert v-if="resumeSent" dense outlined type="success" class="mt-2 mb-0">{{ t('power.resume_sent') }}</v-alert>
@@ -101,10 +102,11 @@ import { createPlanFlow } from '../state/plan-flow.js'
 import { isWorking } from '../state/plan-state.js'
 import { KIND_POWER, KIND_PROLOGUE, POWER_RANGE, ACK_KEYS, powerDraft, powerChange, powerState, fileLines, prologueFacts, resumeRows, resumeBlock } from '../lib/power.js'
 import RoleNote from './RoleNote.vue'
+import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
 	mixins: [textMixin],
-	components: { RoleNote, ErrorNotice, PlanReview },
+	components: { RoleNote, LockReason, ErrorNotice, PlanReview },
 	props: {
 		api: { type: Object, required: true },
 		canEdit: { type: Boolean, default: false }, // admin (workshopCan): the two voltages

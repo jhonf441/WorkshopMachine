@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('offsets.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ tx('offsets.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<role-note v-if="!canWrite" min="technician" class="mb-3" />
+		<role-note v-if="!canWrite" min="technician" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.offsets')" />
 		<template v-if="os.data">
 			<v-card outlined class="mb-4">
 				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.tools_title') }}</v-card-title>
@@ -40,7 +40,7 @@
 			<v-card v-if="pair.available" outlined class="mb-4">
 				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.pointer_title') }}</v-card-title>
 				<v-card-text>
-					<laser-pointer :pointer="os.pointer" :pair="pair" :can-run="canRun" :busy="working" @mark="mark" @capture="capture" @clear="clearMark" />
+					<laser-pointer :pointer="os.pointer" :pair="pair" :can-run="canMark" :busy="working" @mark="mark" @capture="capture" @clear="clearMark" />
 				</v-card-text>
 			</v-card>
 		</template>
@@ -83,7 +83,8 @@ export default {
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
 		canWrite: { type: Boolean, default: false }, // workshopCan('machine.config.apply', config.g10): the technician
-		canRun: { type: Boolean, default: false }, // technician: the cross mark
+		canRun: { type: Boolean, default: false }, // technician: machine.run (the camera verification)
+		canMark: { type: Boolean, default: false }, // technician: machine.mark_cross (the laser cross)
 		toolPair: { type: Object, default: null }, // the pair the profile declares (normalizeState toolPair)
 		published: { type: Object, default: null }, // normalizeRuns of the plugin data `machine` (the camera verification is a run)
 		measure: { type: Boolean, default: null }, // machine.state vision.measure: Vision can measure a mark (null = not known)

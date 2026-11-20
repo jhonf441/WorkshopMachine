@@ -94,7 +94,7 @@ export function mockPreview(spec) {
 	if (s.power_max) lines.push('; laser maximum power ' + s.power_max + ' %')
 	lines.push('G10 P' + s.number + ' X0 Y0 Z0')
 	if (heaters.length) warnings.push({ code: 'heater_off_until_tuned' })
-	return { lines, files: ['sys/config.g'], warnings, errors }
+	return { lines, files: ['sys/workshop/machine.g', 'sys/config.g'], warnings, errors }
 }
 
 // the plan of the preview, as machine.config.plan answers it
@@ -102,14 +102,14 @@ export function mockPlan(spec) {
 	const p = mockPreview(spec)
 	return {
 		plan_id: 'mock-plan-1', kind: 'config.tool', role_needed: 'technician', expires: 0, warnings: p.warnings.map(w => w.code), can_apply_now: false, restart_needed: true,
-		files: [{ path: 'sys/config.g', changed: true, exists: true, diff: ['--- a/sys/config.g', '+++ b/sys/config.g', '@@ -20,0 +21,' + p.lines.length + ' @@'].concat(p.lines.map(l => '+' + l)) }]
+		files: [{ path: '0:/sys/workshop/machine.g', changed: true, exists: false, diff: ['--- a/sys/workshop/machine.g', '+++ b/sys/workshop/machine.g', '@@ -0,0 +1,' + p.lines.length + ' @@'].concat(p.lines.map(l => '+' + l)) }]
 	}
 }
 
 // call(op, args) -> the raw answer of the service for the operations of the assistant
 export function mockCall(op, args) {
 	const a = obj(args)
-	if (op === 'machine.tool.get') return { tools: TOOLS, next_number: 2, family_hint: 'fff' }
+	if (op === 'machine.tool.get') return { tools: TOOLS, next_number: 2, family_hint: 'fff', modes: ['Laser', 'CNC', 'FFF'], machine_file: { exists: false, broken: false, blocks: [] } }
 	if (op === 'machine.tool.pins') return { free: FREE, used: USED, drivers: { free: ['0.5', '0.6'] } }
 	if (op === 'machine.tool.preview') return mockPreview(a.spec)
 	if (op === 'machine.config.plan') return mockPlan(obj(a.values).spec)

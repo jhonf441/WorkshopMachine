@@ -16,7 +16,7 @@
 			<v-btn color="primary" :disabled="!ready" :loading="starting" @click="go()">
 				<v-icon left>mdi-play</v-icon>{{ starting ? t('run.starting') : label || t('run.start') }}
 			</v-btn>
-			<lock-reason v-if="!allowed" min="technician" />
+			<lock-reason v-if="!allowed" min="technician" :subject="$t('plugins.WorkshopMachine.subjects.run_start')" />
 			<span v-else-if="disabledText" class="text-caption warning--text">{{ disabledText }}</span>
 			<span v-else-if="!autoOk" class="text-caption error--text">{{ t('run.auto_blocked') }}</span>
 		</div>

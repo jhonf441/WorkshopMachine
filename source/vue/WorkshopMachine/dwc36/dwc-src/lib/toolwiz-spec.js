@@ -4,6 +4,8 @@
 // The service decides (machine.tool.*, docs-internal/TOOL-WIZARD-CONTRACT.md); these checks only keep the person from walking into a refusal.
 // Every check answers {field, code}; the text of a code is toolwiz.err_<code>.
 
+import { checkModes, specModes } from './config-modes.js'
+
 export const TOOL_RANGE = { numberMin: 0, numberMax: 49, nameMax: 32, tempMin: 50, tempMax: 450, rpmMax: 100000, powerMax: 100, freqMin: 1, freqMax: 65535 }
 
 // What each type may carry: the driver of an extruder, heaters, fans, temperature sensors, a PWM/digital output. `mode` is the machine mode it belongs to.
@@ -19,8 +21,8 @@ export const TOOL_TYPES = {
 export const HELP_PARTS = ['what', 'why', 'missing', 'how']
 
 // the rows that have a help (toolwiz.h_<topic>_<part>) and the codes of the checks of the fields (toolwiz.err_<code>): the texts are looked up by these names
-export const HELP_TOPICS = ['type', 'file', 'number', 'name', 'driver', 'output', 'rpm', 'power', 'sensor', 'maxtemp', 'fan', 'pin', 'pin_sensor', 'preview', 'checks', 'autotune', 'off', 'apply']
-export const ERROR_CODES = ['type', 'name', 'tool_number', 'tool_exists', 'driver_unknown', 'driver_used', 'too_many', 'heater_no_sensor', 'heater_no_max', 'heater_max_range', 'sensor_preset', 'freq', 'rpm_range', 'power_range', 'laser_mode', 'pin_missing', 'pin_used', 'pin_unknown', 'pin_capability', 'pin_duplicate', 'preview_stale', 'preview_no_max', 'preview_activates', 'not_applied', 'values', 'other']
+export const HELP_TOPICS = ['type', 'file', 'modes', 'number', 'name', 'driver', 'output', 'rpm', 'power', 'sensor', 'maxtemp', 'fan', 'pin', 'pin_sensor', 'preview', 'checks', 'autotune', 'off', 'apply']
+export const ERROR_CODES = ['type', 'modes_none', 'name', 'tool_number', 'tool_exists', 'driver_unknown', 'driver_used', 'too_many', 'heater_no_sensor', 'heater_no_max', 'heater_max_range', 'sensor_preset', 'freq', 'rpm_range', 'power_range', 'laser_mode', 'pin_missing', 'pin_used', 'pin_unknown', 'pin_capability', 'pin_duplicate', 'preview_stale', 'preview_no_max', 'preview_activates', 'not_applied', 'values', 'other']
 
 export const TYPE_IDS = Object.keys(TOOL_TYPES)
 
@@ -53,7 +55,8 @@ export function emptySensor() {
 export function newDraft(nextNumber) {
 	return {
 		type: '', number: nextNumber === undefined || nextNumber === null ? '' : String(nextNumber), name: '', driver: '', heaters: [], fans: [], sensors: [],
-		output: { pin: '', freq: '5000', inverted: false }, rpmMax: '', powerMax: '', ackAutotune: false, ackOff: false
+		output: { pin: '', freq: '5000', inverted: false }, rpmMax: '', powerMax: '', ackAutotune: false, ackOff: false,
+		modes: null // the modes it exists in (see config-modes.js); null until the person (or the mode of the machine) sets them
 	}
 }
 
@@ -77,7 +80,7 @@ export function whole(v) {
 
 // ctx: {usedNumbers: [n], freeDrivers: [id] | null, laserMode: bool}
 export function checkType(draft) {
-	return typeInfo(draft.type) ? [] : [{ field: 'type', code: 'type' }]
+	return (typeInfo(draft.type) ? [] : [{ field: 'type', code: 'type' }]).concat(checkModes(draft.modes))
 }
 
 export function checkName(draft, ctx) {
@@ -137,6 +140,8 @@ export function toSpec(draft) {
 	if (draft.heaters.length) spec.heaters = draft.heaters.map(h => ({ pin: h.pin, sensor: { preset: h.sensorPreset, pin: h.sensorPin }, max_temp: toNumber(h.maxTemp) }))
 	if (draft.fans.length) spec.fans = draft.fans.map(f => ({ pin: f.pin, freq: whole(f.freq), inverted: !!f.inverted }))
 	if (draft.sensors.length) spec.sensors = draft.sensors.map(s => ({ preset: s.preset, pin: s.pin }))
+	const modes = specModes(draft.modes)
+	if (modes) spec.modes = modes
 	if (draft.type === 'spindle') spec.rpm_max = whole(draft.rpmMax)
 	if (draft.type === 'laser') spec.power_max = toNumber(draft.powerMax)
 	return spec

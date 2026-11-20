@@ -1,4 +1,32 @@
 {
+	"subjects": {
+		"laser_marks": "Laser pointer marks",
+		"maintenance": "Maintenance log",
+		"mesh_library": "Mesh library",
+		"machine_modes": "Machine modes",
+		"power_resume": "Resuming after a power cut",
+		"ringing_test": "Resonance test",
+		"run_start": "Starting the run",
+		"safety_checks": "Safety checks",
+		"shaping_tuner": "Input shaping tuner",
+		"camera_check": "Camera check",
+		"overview": "Machine overview",
+		"area": "Work area",
+		"bed_edit": "Bed editing",
+		"beds": "Beds",
+		"calibration": "Calibration",
+		"height": "Tool height",
+		"level": "Bed leveling",
+		"limits": "Axis limits",
+		"mesh": "Bed mesh",
+		"motion": "Motion settings",
+		"offsets": "Offsets",
+		"power_admin": "Power settings",
+		"probe": "Probe",
+		"shaping": "Input shaping",
+		"steps": "Steps per mm assistant",
+		"tool_wizard": "Tool wizard"
+	},
 	"beds": {
 		"title": "Heated bed zones",
 		"intro": "The bed is a single one, split into zones. Define in the configuration the zones it needs: the sensor, the heater and the M140 P H link of each. You pick the pins among the free ones, see the exact lines and the file they go in, and create a plan with a backup; the board restarts to read it.",
@@ -685,7 +713,15 @@
 		"warn_entries_differ_from_z_motors": "The M671 entries do not match the Z motors of M584.",
 		"warn_replaces_whole_file": "The whole file is replaced.",
 		"warn_structure": "The structure of the file is not recognised.",
-		"warn_without_m671": "The configuration has no M671."
+		"warn_without_m671": "The configuration has no M671.",
+		"warn_machine_file_new": "sys/workshop/machine.g is created: the workshop file for what is created from this page.",
+		"warn_machine_hook_added": "config.g gets a block that calls machine.g (added once; nothing else of config.g changes).",
+		"warn_machine_hook_before_m501": "The block goes right before the last M501, so what M500 saved still wins.",
+		"warn_machine_hook_before_stop": "The block goes before the command that ends config.g (M99, M2 or M0): after it, it would not run.",
+		"warn_machine_hook_manual": "config.g already has a line of yours that calls machine.g: it is left as it is.",
+		"err_machine_file_broken": "machine.g has a block marker without its pair: fix it by hand before creating anything new.",
+		"err_machine_hook_edited": "The block of config.g that calls machine.g was edited: restore it or remove it before creating anything new.",
+		"err_machine_hook_broken": "The block of config.g that calls machine.g has markers without a pair: fix it by hand before creating anything new."
 	},
 	"report": {
 		"title": "Printable report",
@@ -1771,7 +1807,7 @@
 		"type_generic": "Generic",
 		"type_generic_about": "One heater, one sensor and one fan.",
 		"file_row": "File it is written to",
-		"file_note": "A backup is saved before touching it.",
+		"file_note": "It is a workshop file that config.g calls once, near its end: nothing you already have in config.g is moved. A backup of the files that change is saved before writing.",
 		"name_title": "2. Name and number",
 		"name_intro": "The number identifies the tool (T0, T1...). Only the free ones are offered.",
 		"number_row": "Tool number",
@@ -1918,10 +1954,10 @@
 		"h_type_why": "It defines which resources can be added and which lines are written.",
 		"h_type_missing": "Without a type you cannot continue.",
 		"h_type_how": "Tap the card that looks like what you installed.",
-		"h_file_what": "The board configuration file, read at start-up.",
-		"h_file_why": "That is where the board learns the tool exists.",
-		"h_file_missing": "Without those lines the tool does not exist after a restart.",
-		"h_file_how": "It is not chosen: the service decides and a backup is saved first.",
+		"h_file_what": "machine.g, the workshop file where everything created from this page is written. config.g only calls it once, near its end (before M501).",
+		"h_file_why": "That keeps what was created together, lets you see and remove it without touching your config.g, and nothing you already had in config.g moves.",
+		"h_file_missing": "Without that file and its call in config.g, the tool does not exist after a restart.",
+		"h_file_how": "It is not chosen: the service decides. The first time it creates machine.g and adds to config.g the block that calls it; a backup of both is saved first.",
 		"h_number_what": "The T number of the tool (T0, T1...).",
 		"h_number_why": "You select the tool with it from DWC and from jobs.",
 		"h_number_missing": "If you repeat one, the service rejects the plan.",
@@ -1985,6 +2021,18 @@
 		"h_apply_what": "It builds the plan: it shows the file and the changes, without writing.",
 		"h_apply_why": "It is the final review with a backup before touching the machine.",
 		"h_apply_missing": "If something changed, the plan is dropped and has to be built again.",
-		"h_apply_how": "Press the button; then review and apply. The service asks for confirmation."
+		"h_apply_how": "Press the button; then review and apply. The service asks for confirmation.",
+		"h_modes_what": "The machine modes (3D, laser, CNC) this tool exists in.",
+		"h_modes_why": "A CNC tool must not be defined when the machine starts in laser mode: its pin may be used by something else.",
+		"h_modes_missing": "If you choose none, the service does not know in which modes to create it: keep at least one.",
+		"h_modes_how": "The mode the machine is in now is ticked by default. Tick all of them if the tool always exists.",
+		"err_modes_none": "Choose at least one mode it exists in."
+	},
+	"config_include": {
+		"modes_row": "In which modes does it exist?",
+		"modes_all": "It exists in every mode.",
+		"modes_all_short": "every mode",
+		"modes_some": "It only exists in: {list}.",
+		"created_tools": "Already created from here: {list}."
 	}
 }

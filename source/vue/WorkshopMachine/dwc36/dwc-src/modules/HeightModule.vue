@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('height.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('height.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<role-note v-if="!canWrite" min="technician" class="mb-3" />
+		<role-note v-if="!canWrite" min="technician" :ops="accessOps.height" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.height')" />
 		<template v-if="h">
 			<v-alert v-if="missing.length" dense outlined type="warning" class="mb-3">
 				<div>{{ t('height.hook_missing', { files: missing.join(', ') }) }}</div>

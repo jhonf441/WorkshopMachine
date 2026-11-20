@@ -19,7 +19,7 @@
 			</div>
 			<div class="text-caption machine-faint mt-1">{{ vs.form.target === 'tool' ? t('verify.tool_note') : t('verify.system_note') }}</div>
 			<div class="text-caption machine-faint">{{ t('verify.moves_note') }}</div>
-			<lock-reason min="technician" />
+			<lock-reason :ops="accessOps.run" min="technician" :subject="$t('plugins.WorkshopMachine.subjects.camera_check')" />
 			<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 			<v-alert v-if="lastResult" dense outlined :type="lastResult.view.outcome === 'ok' ? 'success' : 'warning'" class="mt-3">{{ t('verify.last_' + lastResult.view.outcome) }}</v-alert>
 			<div v-if="!rows.length" class="text-body-2 machine-faint mt-3">{{ t('verify.no_rows') }}</div>

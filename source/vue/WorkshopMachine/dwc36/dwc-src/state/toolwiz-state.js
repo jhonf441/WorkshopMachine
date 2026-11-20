@@ -77,6 +77,13 @@ export function back(w) {
 
 // ---- edits (refused once applied) ----
 
+// the modes the tool exists in (a list of ids, or null = not chosen yet); refused once applied
+export function setModes(w, modes) {
+	if (w.applied) return false
+	w.draft.modes = Array.isArray(modes) ? modes.slice() : null
+	return true
+}
+
 export function setType(w, type) {
 	if (w.applied || !typeInfo(type)) return false
 	const d = w.draft

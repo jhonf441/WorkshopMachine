@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('limits.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('limits.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<role-note v-if="!canEdit" min="admin" class="mb-3" />
+		<role-note v-if="!canEdit" min="admin" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.limits')" />
 		<v-alert v-for="w in warnings" :key="w.code + w.axis" dense outlined type="warning" class="mb-2">{{ t(w.textKey) }}<span v-if="w.axis"> ({{ w.axis }})</span></v-alert>
 		<v-alert v-if="limits && !limits.configRead" dense outlined type="info" class="mb-2">{{ t('limits.config_unread') }}</v-alert>
 		<div v-if="!rows.length" class="text-body-2 machine-faint">{{ t('limits.no_axes') }}</div>

@@ -1,4 +1,32 @@
 {
+	"subjects": {
+		"laser_marks": "Marcas del puntero laser",
+		"maintenance": "Registro de mantenimiento",
+		"mesh_library": "Biblioteca de mallas",
+		"machine_modes": "Modos de la máquina",
+		"power_resume": "Reanudar tras un corte de luz",
+		"ringing_test": "Prueba de resonancia",
+		"run_start": "Iniciar la prueba",
+		"safety_checks": "Verificaciónes de seguridad",
+		"shaping_tuner": "Ajuste del input shaping",
+		"camera_check": "Verificación de la cámara",
+		"overview": "Resumen de la máquina",
+		"area": "Área de trabajo",
+		"bed_edit": "Edición de la cama",
+		"beds": "Camas",
+		"calibration": "Calibración",
+		"height": "Altura de la herramienta",
+		"level": "Nivelación de la cama",
+		"limits": "Límites de los ejes",
+		"mesh": "Malla de la cama",
+		"motion": "Ajustes de movimiento",
+		"offsets": "Desplazamientos",
+		"power_admin": "Ajustes de energía",
+		"probe": "Sonda",
+		"shaping": "Input shaping",
+		"steps": "Asistente de pasos por mm",
+		"tool_wizard": "Asistente de herramientas"
+	},
 	"beds": {
 		"title": "Zonas de la cama caliente",
 		"intro": "La cama es una sola, dividida en zonas. Define en la configuración las zonas que necesita: el sensor, el calentador y el enlace M140 P H de cada una. Eliges los pines entre los libres, ves las líneas exactas y el archivo donde irán, y creas un plan con respaldo; la placa se reinicia para leerlo.",
@@ -685,7 +713,15 @@
 		"warn_entries_differ_from_z_motors": "Las entradas de M671 no coinciden con los motores de Z de M584.",
 		"warn_replaces_whole_file": "Se reemplaza el archivo completo.",
 		"warn_structure": "La estructura del archivo no se reconoce.",
-		"warn_without_m671": "La configuración no tiene M671."
+		"warn_without_m671": "La configuración no tiene M671.",
+		"warn_machine_file_new": "Se crea sys/workshop/machine.g, el archivo del taller para lo que se crea desde esta página.",
+		"warn_machine_hook_added": "config.g recibe un bloque que llama a machine.g (se agrega una sola vez; nada más de config.g cambia).",
+		"warn_machine_hook_before_m501": "El bloque va justo antes del último M501, para que lo guardado con M500 siga mandando.",
+		"warn_machine_hook_before_stop": "El bloque va antes de la orden que termina config.g (M99, M2 o M0): después de ella no se ejecutaría.",
+		"warn_machine_hook_manual": "config.g ya tiene una línea tuya que llama a machine.g: se deja como está.",
+		"err_machine_file_broken": "machine.g tiene una marca de bloque sin su pareja: arréglalo a mano antes de crear algo nuevo.",
+		"err_machine_hook_edited": "El bloque de config.g que llama a machine.g fue editado: restáuralo o quítalo antes de crear algo nuevo.",
+		"err_machine_hook_broken": "El bloque de config.g que llama a machine.g tiene marcas sin pareja: arréglalo a mano antes de crear algo nuevo."
 	},
 	"report": {
 		"title": "Informe imprimible",
@@ -1771,7 +1807,7 @@
 		"type_generic": "Genérica",
 		"type_generic_about": "Un calentador, un sensor y un ventilador.",
 		"file_row": "Archivo donde se escribe",
-		"file_note": "Se guarda un respaldo antes de tocarlo.",
+		"file_note": "Es un archivo del taller que config.g invoca una sola vez, cerca del final: no se mueve nada de lo que ya tienes en config.g. Antes de escribir se guarda un respaldo de los archivos que cambian.",
 		"name_title": "2. Nombre y número",
 		"name_intro": "El número identifica la herramienta (T0, T1...). Solo se ofrecen los que están libres.",
 		"number_row": "Número de herramienta",
@@ -1918,10 +1954,10 @@
 		"h_type_why": "Define qué recursos se pueden agregar y qué líneas se escriben.",
 		"h_type_missing": "Sin tipo no se puede seguir.",
 		"h_type_how": "Toca la tarjeta que se parece a lo que instalaste.",
-		"h_file_what": "El archivo de configuración de la placa, que se lee al arrancar.",
-		"h_file_why": "Ahí la placa aprende que existe la herramienta.",
-		"h_file_missing": "Sin esas líneas la herramienta no existe después de reiniciar.",
-		"h_file_how": "No se elige: lo decide el servicio y antes se guarda un respaldo.",
+		"h_file_what": "machine.g, el archivo del taller donde se escribe todo lo que se crea desde esta página. config.g solo lo llama una vez, cerca del final (antes de M501).",
+		"h_file_why": "Así lo creado queda junto, se puede ver y quitar sin tocar tu config.g, y lo que ya tenías en config.g no se mueve.",
+		"h_file_missing": "Sin ese archivo y su llamada en config.g, la herramienta no existe después de reiniciar.",
+		"h_file_how": "No se elige: lo decide el servicio. La primera vez se crea machine.g y se agrega a config.g el bloque que lo llama; antes se guarda un respaldo de los dos.",
 		"h_number_what": "El número T de la herramienta (T0, T1...).",
 		"h_number_why": "Con él eliges la herramienta desde DWC y desde los trabajos.",
 		"h_number_missing": "Si repites uno, el servicio rechaza el plan.",
@@ -1985,6 +2021,18 @@
 		"h_apply_what": "Arma el plan: muestra el archivo y los cambios, sin escribir.",
 		"h_apply_why": "Es el repaso final con respaldo antes de tocar la máquina.",
 		"h_apply_missing": "Si algo cambió, el plan se descarta y hay que armarlo otra vez.",
-		"h_apply_how": "Pulsa el botón; luego revisa y aplica. El servicio pide confirmación."
+		"h_apply_how": "Pulsa el botón; luego revisa y aplica. El servicio pide confirmación.",
+		"h_modes_what": "Los modos de la máquina (3D, láser, CNC) en los que existe esta herramienta.",
+		"h_modes_why": "Una herramienta de CNC no debe definirse cuando la máquina arranca en modo láser: su pin lo puede usar otra cosa.",
+		"h_modes_missing": "Si no eliges ninguno, el servicio no sabe en qué modos crearla: hay que dejar al menos uno.",
+		"h_modes_how": "Por defecto está marcado el modo en que está la máquina ahora. Marca todos si la herramienta existe siempre.",
+		"err_modes_none": "Elige al menos un modo en el que exista."
+	},
+	"config_include": {
+		"modes_row": "¿En qué modos existe?",
+		"modes_all": "Existe en todos los modos.",
+		"modes_all_short": "todos los modos",
+		"modes_some": "Solo existe en: {list}.",
+		"created_tools": "Ya creadas desde aquí: {list}."
 	}
 }

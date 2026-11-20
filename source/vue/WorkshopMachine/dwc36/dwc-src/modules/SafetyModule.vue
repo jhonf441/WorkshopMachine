@@ -5,7 +5,7 @@
 		<div class="d-flex align-center flex-wrap" style="gap:8px">
 			<v-btn color="primary" :disabled="!startAllowed" :loading="busy" @click="start(kind, {})"><v-icon left>mdi-shield-search</v-icon>{{ t('safety.run') }}</v-btn>
 			<span class="text-caption machine-faint">{{ t('safety.no_motion') }}</span>
-			<lock-reason min="technician" />
+			<lock-reason :ops="accessOps.run" min="technician" :subject="$t('plugins.WorkshopMachine.subjects.safety_checks')" />
 		</div>
 		<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 		<template v-if="result">

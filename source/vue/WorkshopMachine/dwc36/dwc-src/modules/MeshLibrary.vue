@@ -25,7 +25,7 @@
 				</tr>
 			</tbody>
 		</v-simple-table>
-		<lock-reason min="technician" class="mt-2" />
+		<lock-reason :ops="accessOps.mesh" min="technician" class="mt-2" :subject="$t('plugins.WorkshopMachine.subjects.mesh_library')" />
 		<template v-if="canWrite">
 			<div class="d-flex align-start flex-wrap mt-3" style="gap:8px">
 				<v-text-field v-model="name" :label="t('mesh.save_name')" dense outlined hide-details="auto" style="max-width:240px" :error-messages="nameError" />

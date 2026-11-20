@@ -11,7 +11,7 @@
 		<div v-if="canGenerate" class="mt-3">
 			<v-btn small color="primary" :loading="loading" @click="generate()">{{ t('shaping.ringing_generate') }}</v-btn>
 		</div>
-		<lock-reason v-else min="technician" class="mt-3" />
+		<lock-reason v-else :ops="accessOps.shapingTest" min="technician" class="mt-3" :subject="$t('plugins.WorkshopMachine.subjects.ringing_test')" />
 		<error-notice :error="error" />
 		<gcode-block v-if="test" class="mt-3" :title="t('shaping.ringing_gcode')" :text="test.gcode" />
 		<div class="text-body-2 font-weight-medium mt-4">{{ t('shaping.ringing_measure') }}</div>

@@ -7,7 +7,7 @@
 			<v-btn v-if="heightMapOn" small outlined to="/Plugins/HeightMap"><v-icon small left>mdi-cube-scan</v-icon>{{ t('mesh.open_height_map') }}</v-btn>
 		</div>
 		<p class="text-body-2 machine-faint">{{ t('mesh.intro') }}</p>
-		<role-note v-if="!canRun" min="technician" class="mb-3" />
+		<role-note v-if="!canRun" min="technician" :ops="accessOps.run" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.mesh')" />
 		<v-card outlined class="mb-4 pa-3">
 			<mesh-bed
 				:model="bedModel" :inputs="rs.inputs" :form="form" :grid="grid" :previous="previous" :service-mesh="serviceMesh" :result-signal="resultSignal"

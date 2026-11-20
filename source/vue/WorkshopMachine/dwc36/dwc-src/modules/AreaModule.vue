@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('workarea.title') }}</div>
 		<help-guide :title="t('common.how_it_works')"><p class="text-body-2">{{ tx('workarea.intro') }}</p></help-guide>
 		<error-notice :error="st.loadError" retry @retry="reload()" />
-		<role-note v-if="!canWrite" min="technician" class="mb-3" />
+		<role-note v-if="!canWrite" min="technician" :ops="accessOps.area" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.area')" />
 		<template v-if="st.data">
 			<v-alert v-if="macrosMissing" dense outlined type="warning" class="mb-3">{{ tx('workarea.macros_missing') }}</v-alert>
 			<v-alert v-if="!st.data.file" dense outlined type="info" class="mb-3">{{ t('workarea.file_missing') }}</v-alert>

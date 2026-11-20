@@ -5,6 +5,7 @@
 // saves a round trip and says what is missing in the person's words. The pins are NEVER guessed: the person picks them from the free ones. Pure.
 
 import { KIND_DIRECT, RELAY_KINDS, kindIssue } from './bed-output.js'
+import { checkModes, specModes } from './config-modes.js'
 
 // The sensor types of a zone (RRF 3.x M308; the service takes them in machine_sensors.py). The ids use underscores (they are part of text keys); the service ids are
 // in PRESET_SERVICE. Syntax and ranges: Duet3D GCode dictionary M308 and the pages Connecting thermistors / PT100 / thermocouples.
@@ -88,7 +89,7 @@ export function emptyBed(bed) {
 // (a row that was always there looked like a zone that was already being created). `firstFree` is kept for the callers; it no longer makes a row.
 export function createDraft(beds, firstFree) { // eslint-disable-line no-unused-vars
 	const list = (Array.isArray(beds) ? beds : []).filter((n, i, a) => Number.isInteger(n) && a.indexOf(n) === i)
-	return { beds: list.map(emptyBed) }
+	return { beds: list.map(emptyBed), modes: null } // modes: the modes the new zones exist in (config-modes.js); null until set
 }
 
 const whole = v => (/^\d+$/.test(String(v === null || v === undefined ? '' : v).trim()) ? parseInt(String(v).trim(), 10) : null)
@@ -130,7 +131,8 @@ function sensorOf(b) {
 
 // {beds: [{bed, name?, sensor: {preset, pin, t?, b?}, output: {kind, pin}, max_temp}]}: what the service takes
 export function toSpec(draft) {
-	return {
+	const modes = specModes(draft.modes)
+	return Object.assign(modes ? { modes } : {}, {
 		beds: draft.beds.map(b => {
 			const out = {
 				bed: whole(b.bed), sensor: sensorOf(b), output: { kind: b.outputKind, pin: b.outputPin }, max_temp: number(b.maxTemp)
@@ -138,7 +140,7 @@ export function toSpec(draft) {
 			if (String(b.name || '').trim()) out.name = String(b.name).trim()
 			return out
 		})
-	}
+	})
 }
 
 // the same draft always gives the same text: a change of it makes the preview and the plan under review stale
@@ -185,7 +187,7 @@ function sensorIssues(b) {
 
 // the checks of the form: [{field, code, params?}]; `ctx` = {definedBeds: [numbers the board or a file already has], pins: {free, used}, canWrite, busy, maxBeds?: the beds the board supports (bed numbers are below it)}
 export function bedIssues(draft, ctx) {
-	const out = []
+	const out = checkModes(draft.modes)
 	const c = ctx || {}
 	const pins = c.pins || { free: [], used: [] }
 	const defined = c.definedBeds || []

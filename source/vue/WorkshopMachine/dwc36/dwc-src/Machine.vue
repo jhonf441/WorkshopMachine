@@ -22,36 +22,38 @@
 					<side-tabs v-model="section" :items="sideItems" />
 					<!-- one module at a time, mounted only while it is open (DESIGN.md 3) -->
 					<div :key="sessionKey" class="st-body">
-						<locked-cover v-if="lockedNow" :needed="lockedNow" />
+						<!-- the modules of the extruder and the bed work in FFF: in another mode (or while it is not known) the module stays for reading and what runs is off (mode-gate.js) -->
+						<mode-notice v-if="fffOnlySection && !lockedNow" :needs="['FFF']" />
+						<locked-cover v-if="lockedNow" :needed="lockedNow" :items="sideItems" :value="section" />
 						<template v-else-if="section === 'overview'">
 							<overview-card :overview="snapshot" :failed="!!loadError" :lock-kind="overviewCause" />
 							<v-alert v-if="unavailable.length" dense outlined type="warning" class="mt-3">
 								<div class="font-weight-medium">{{ t('page.unavailable_title') }}</div>
 								<div v-for="u in unavailable" :key="u.id" class="text-body-2">{{ u.name }}: {{ u.reason }}</div>
 							</v-alert>
-							<role-note v-if="!caps.read && !overviewCause" min="operator" class="mt-3" />
+							<role-note v-if="!caps.read && !overviewCause" min="operator" class="mt-3" :subject="$t('plugins.WorkshopMachine.subjects.overview')" />
 						</template>
-						<probe-module v-else-if="section === 'probe'" :api="api" :published="published" :can-run="caps.run" :thresholds="snapshot && snapshot.thresholds" :axes="axes" :now="now" />
-						<level-module v-else-if="section === 'level'" :api="api" :published="published" :can-run="caps.run" :can-write="caps.run" :ready="snapshot && snapshot.ready" :profile="snapshot && snapshot.levelling" :axes="axes" :now="now" />
+						<probe-module v-else-if="section === 'probe'" :api="api" :published="published" :can-run="ok('run')" :thresholds="snapshot && snapshot.thresholds" :axes="axes" :now="now" />
+						<level-module v-else-if="section === 'level'" :api="api" :published="published" :can-run="ok('run')" :can-write="ok('run')" :ready="snapshot && snapshot.ready" :profile="snapshot && snapshot.levelling" :axes="axes" :now="now" />
 						<mesh-module
-							v-else-if="section === 'mesh'" :api="api" :published="published" :can-run="caps.run" :can-write="caps.meshWrite" :ready="snapshot && snapshot.ready"
+							v-else-if="section === 'mesh'" :api="api" :published="published" :can-run="ok('run')" :can-write="ok('mesh')" :ready="snapshot && snapshot.ready"
 							:axes="axes" :quality="snapshot && snapshot.meshQuality" :now="now" @changed="load()"
 						/>
-						<offsets-module v-else-if="section === 'offsets'" :api="api" :can-write="caps.configure('config.g10')" :can-run="caps.run" :tool-pair="snapshot && snapshot.toolPair" :published="published" :measure="visionMeasure" :now="now" />
-						<height-module v-else-if="section === 'height'" :api="api" :can-write="caps.run" :asked="askedPoint" />
+						<offsets-module v-else-if="section === 'offsets'" :api="api" :can-write="caps.configure('config.g10')" :can-run="ok('run')" :can-mark="ok('mark')" :tool-pair="snapshot && snapshot.toolPair" :published="published" :measure="visionMeasure" :now="now" />
+						<height-module v-else-if="section === 'height'" :api="api" :can-write="ok('height')" :asked="askedPoint" />
 						<limits-module
-							v-else-if="section === 'limits'" :api="api" :published="published" :can-edit="caps.configure('config.m208')" :can-run="caps.run"
+							v-else-if="section === 'limits'" :api="api" :published="published" :can-edit="caps.configure('config.m208')" :can-run="ok('run')"
 							:now="now" @changed="load()"
 						/>
-						<area-module v-else-if="section === 'workarea'" :api="api" :can-write="caps.run" :axes="axes" />
-						<calibration-module v-else-if="section === 'calibration'" :api="api" :configure="caps.configure" :can-write="caps.run" />
+						<area-module v-else-if="section === 'workarea'" :api="api" :can-write="ok('area')" :axes="axes" />
+						<calibration-module v-else-if="section === 'calibration'" :api="api" :configure="caps.configure" :can-write="ok('testMove')" />
 						<motion-module v-else-if="section === 'motion'" :api="api" :configure="caps.configure" :trial="caps.trial" :is-admin="caps.admin" :asked="askedParam" :now="now" />
 						<shaping-module
-							v-else-if="section === 'shaping'" :api="api" :published="published" :configure="caps.configure" :trial="caps.trial" :can-run="caps.run" :now="now"
+							v-else-if="section === 'shaping'" :api="api" :published="published" :configure="caps.configure" :trial="caps.trial" :can-run="ok('run')" :can-test="ok('shapingTest')" :now="now"
 						/>
-						<power-module v-else-if="section === 'power'" :api="api" :can-edit="caps.configure('config.m911')" :can-create="caps.configure('config.prologue')" :can-resume="caps.run" />
-						<safety-module v-else-if="section === 'safety'" :api="api" :published="published" :can-run="caps.run" :now="now" @goto="section = $event" />
-						<maintenance-module v-else-if="section === 'maintenance'" :api="api" :can-mark="caps.maintenanceDone" :can-edit="caps.maintenanceEdit" />
+						<power-module v-else-if="section === 'power'" :api="api" :can-edit="caps.configure('config.m911')" :can-create="caps.configure('config.prologue')" :can-resume="ok('resume')" />
+						<safety-module v-else-if="section === 'safety'" :api="api" :published="published" :can-run="ok('run')" :now="now" @goto="section = $event" />
+						<maintenance-module v-else-if="section === 'maintenance'" :api="api" :can-mark="canOp('machine.maintenance.done')" :can-edit="canOp('machine.maintenance.plan.set')" />
 						<modes-module v-else-if="section === 'modes'" :can-write="caps.run" />
 						<tool-wizard-module v-else-if="section === 'toolwiz'" :api="api" :can-write="caps.configure('config.tool')" :busy="!!runningKind" />
 						<beds-module v-else-if="section === 'beds'" :api="api" :can-write="caps.configure('config.bed_heaters')" :busy="!!runningKind" :asked="askedBeds" :model="model" />
@@ -102,7 +104,10 @@ import ModesStartup from './modules/ModesStartup.vue'
 import ToolWizardModule from './modules/ToolWizardModule.vue'
 import BedsModule from './modules/BedsModule.vue'
 import ReportModule from './modules/ReportModule.vue'
-import { roleMixin } from './role-mixin.js'
+import { accessCanMixin } from './reason-mixin.js' // what the role and the service say (vue/_shared36)
+import { modeActionMixin } from './mode-gate-mixin.js' // vue/_shared36: which mode the machine is in; what runs follows it
+import ModeNotice from './ModeNotice.vue' // vue/_shared36
+import { GROUPS, SCREEN_OPS, groupAllowed } from './access-groups.js'
 import { pluginOf } from './workshop-ids.js'
 import { machineApi } from './api/machine-client.js'
 import { normalizeRuns } from './api/machine-api.js'
@@ -117,6 +122,9 @@ import { querySection, askedPoint as askedPointOf, askedParam as askedParamOf, a
 
 const SECTION_KEY = 'workshopMachineSection' // this page's own memory of the last module (no other plugin writes it: they send ?layout=)
 const RELOAD_MS = 250
+// the modules that are the extruder and the bed (FFF), and the groups of operations of them that run or move (an unknown mode denies them)
+const FFF_ONLY_MODULES = ['level', 'mesh', 'shaping', 'beds']
+const ACTING_GROUPS = ['run', 'mesh', 'shapingTest']
 
 // the module to open: the one the route query asks for (the Workbench sends ?layout=..&x=..&y=.., lib/cross-page.js), else the last one
 function savedSection(query) {
@@ -130,15 +138,19 @@ function savedSection(query) {
 }
 
 export default {
-	mixins: [roleMixin],
+	mixins: [accessCanMixin, modeActionMixin],
 	// what the person who left had read must not stay (ESTANDAR 3): the modules are mounted again by sessionKey, the page keeps these
 	sessionData: ['snapshot', 'loadError', 'reportTarget', 'askedPoint', 'askedParam', 'askedBeds'],
 	sessionErrors: ['loadError'], // what a refusal or a failure said: cleared when the person signs in, out or changes role (role-mixin.js)
-	components: { RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, LockedCover, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, BedsModule, ReportModule },
+	components: { ModeNotice, RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, LockedCover, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, BedsModule, ReportModule },
 	data() {
 		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), askedBeds: askedBedsOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null, sessionKey: 0 }
 	},
 	computed: {
+		// the open module is one of the extruder / the bed (FFF only)
+		fffOnlySection() {
+			return FFF_ONLY_MODULES.indexOf(this.section) >= 0
+		},
 		secStyle() {
 			return { '--wf-sec': sectionColor(this.section) }
 		},
@@ -230,6 +242,8 @@ export default {
 		}
 	},
 	created() {
+		// ONE call to auth.can for every group and reading of the page (the modules ask the same cache)
+		this.wantCan(SCREEN_OPS)
 		useRoleName(() => roleLabel(workshopRole(), ts))
 		this.answerQuery(this.$route && this.$route.query)
 		this.load()
@@ -240,6 +254,15 @@ export default {
 		clearTimeout(this.reloadTimer)
 	},
 	methods: {
+		// the answer of the service for a group of operations (the table of the role until it answers)
+		// the groups that RUN or write something that moves or heats (the reading ones, like the mesh library, stay open in any mode)
+		ok(name) {
+			if (this.fffOnlySection && ACTING_GROUPS.indexOf(name) >= 0 && this.machineMode !== 'FFF') return false
+			return groupAllowed(GROUPS[name], op => this.canDo(op))
+		},
+		canOp(op) {
+			return this.canDo(op)
+		},
 		t(key, params) {
 			return this.$t('plugins.WorkshopMachine.' + key, withLockParams(key, params))
 		},

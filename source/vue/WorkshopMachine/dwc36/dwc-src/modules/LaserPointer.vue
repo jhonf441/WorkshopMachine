@@ -25,7 +25,7 @@
 			<div v-if="pointer.captured.previous" class="text-caption">{{ t('offsets.pointer_previous', { text: previous }) }}</div>
 		</v-alert>
 		<div class="text-caption machine-faint mt-2">{{ t('offsets.pointer_sign') }}</div>
-		<lock-reason min="technician" class="mt-2" />
+		<lock-reason :ops="accessOps.mark" min="technician" class="mt-2" :subject="$t('plugins.WorkshopMachine.subjects.laser_marks')" />
 	</div>
 </template>
 

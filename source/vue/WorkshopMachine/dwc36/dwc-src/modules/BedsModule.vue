@@ -2,7 +2,7 @@
 	<div class="beds-module">
 		<div class="text-h6 mb-1">{{ t('beds.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('beds.intro') }}</p>
-		<role-note v-if="!canWrite" min="technician" class="text-body-2" />
+		<role-note v-if="!canWrite" min="technician" class="text-body-2" :subject="$t('plugins.WorkshopMachine.subjects.beds')" />
 		<v-alert v-if="busy && !applied" dense outlined type="warning" class="text-body-2">{{ t('beds.block_busy') }}</v-alert>
 		<error-notice :error="loadError" retry @retry="load()" />
 
@@ -27,6 +27,12 @@
 			<bed-edit-card v-if="d.loaded" class="mt-2" :api="api" :row="d" :can-write="canWrite" :busy="busy" :model="model" :zones="definedList" @applied="load()" />
 		</v-card>
 
+		<div v-if="draft.beds.length" class="beds-modes mb-3">
+			<div class="beds-label"><span class="text-subtitle-2">{{ t('config_include.modes_row') }}</span><help-tip :title="t('config_include.modes_row')" :what="t('toolwiz.h_modes_what')" :why="t('toolwiz.h_modes_why')" :if-missing="t('toolwiz.h_modes_missing')" :how="t('toolwiz.h_modes_how')" /></div>
+			<modes-picker v-model="draft.modes" :active="activeMode" :disabled="!!applied" />
+			<div v-if="modesError" class="text-caption error--text">{{ t('toolwiz.err_modes_none') }}</div>
+			<div class="text-caption machine-faint mt-1"><v-icon x-small class="mr-1">mdi-file-document-outline</v-icon><code>sys/workshop/machine.g</code> {{ t('toolwiz.file_note') }}</div>
+		</div>
 		<v-card v-for="(b, i) in draft.beds" :key="i" outlined class="pa-3 mb-3">
 			<div class="d-flex align-center mb-2" style="gap: 8px">
 				<span class="text-subtitle-1 font-weight-medium">{{ bedTitle(b) }}</span>
@@ -135,6 +141,7 @@ import BedEditCard from './BedEditCard.vue'
 import { textMixin } from './text-mixin.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { isWorking } from '../state/plan-state.js'
+import ModesPicker from './ModesPicker.vue'
 import { PRESET_GROUPS, OUTPUT_LIST_NEED, MAX_BED, sensorNeed, boardLimits, definedRows, dropDefined, createDraft, emptyBed, toSpec, specKey, pinChoices, bedIssues, formIssues, fieldOfError } from '../lib/beds-spec.js'
 import { KIND_DIRECT, RELAY_KINDS, kindForPin, outputOptionKey, outputRole, directFree, directTaken, serviceKindError } from '../lib/bed-output.js'
 import { lineKind } from '../lib/toolwiz-preview.js'
@@ -144,7 +151,7 @@ const NO_PINS = { free: [], used: [], freeDrivers: null }
 
 export default {
 	mixins: [textMixin],
-	components: { ErrorNotice, HelpTip, RoleNote, PlanReview, BedEditCard, BedSensorFields },
+	components: { ErrorNotice, HelpTip, RoleNote, PlanReview, BedEditCard, BedSensorFields, ModesPicker },
 	props: {
 		api: { type: Object, required: true },
 		canWrite: { type: Boolean, default: false }, // technician: creating the plan (the service checks again)
@@ -156,6 +163,13 @@ export default {
 		return { draft: createDraft(this.asked), info: null, pins: NO_PINS, loadError: null, tried: false, preview: null, previewLoading: false, previewError: null, applied: null, ps: null, flow: null, timer: null }
 	},
 	computed: {
+		// the mode the machine is in now (the default of the modes of the new zones)
+		activeMode() {
+			return String(((this.model || {}).state || {}).machineMode || '')
+		},
+		modesError() {
+			return this.tried && Array.isArray(this.draft.modes) && this.draft.modes.length === 0
+		},
 		// how many beds THIS board supports: its own limit (object model limits.bedHeaters), else what the service read from it, else the highest number RRF allows
 		maxBeds() {
 			return boardLimits(this.model).beds || (this.info && this.info.maxBeds) || MAX_BED + 1

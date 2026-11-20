@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('calibration.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('calibration.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<role-note v-if="!canWrite" min="technician" class="mb-3" />
+		<role-note v-if="!canWrite" min="technician" :ops="accessOps.testMove" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.calibration')" />
 		<v-btn-toggle v-model="tab" mandatory dense class="mb-4">
 			<v-btn v-for="a in ASSISTANTS" :key="a" :value="a" small>{{ t('calibration.tab_' + a) }}</v-btn>
 		</v-btn-toggle>

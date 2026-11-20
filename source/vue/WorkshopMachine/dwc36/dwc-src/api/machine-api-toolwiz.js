@@ -26,13 +26,21 @@ function list(v) {
 	return Array.isArray(v) ? v : []
 }
 
+// machine.g as the service describes it: {exists, broken, blocks: [{id, kind: tool|bed, number, modes: [..] | null, edited}]}
+export function normalizeMachineFile(raw) {
+	const r = obj(raw)
+	return { exists: r.exists === true, broken: r.broken === true, blocks: list(r.blocks).map(b => ({ id: String(obj(b).id || ''), kind: String(obj(b).kind || ''), number: Number(obj(b).number), modes: Array.isArray(obj(b).modes) ? obj(b).modes.map(String) : null, edited: obj(b).edited === true })) }
+}
+
 export function normalizeTools(raw) {
 	const r = obj(raw)
 	const next = Number(r.next_number)
 	return {
-		tools: list(r.tools).map(t => ({ number: Number(obj(t).number), name: String(obj(t).name || ''), heaters: list(obj(t).heaters), drives: list(obj(t).drives), fans: list(obj(t).fans) })).filter(t => Number.isInteger(t.number)),
+		tools: list(r.tools).map(t => ({ number: Number(obj(t).number), name: String(obj(t).name || ''), heaters: list(obj(t).heaters), drives: list(obj(t).drives), fans: list(obj(t).fans), modes: Array.isArray(obj(t).modes) ? obj(t).modes.map(String) : null })).filter(t => Number.isInteger(t.number)),
 		nextNumber: Number.isInteger(next) ? next : null,
-		familyHint: String(r.family_hint || '')
+		familyHint: String(r.family_hint || ''),
+		modes: list(r.modes).map(String),
+		machineFile: normalizeMachineFile(r.machine_file)
 	}
 }
 

@@ -6,7 +6,7 @@
 		</div>
 		<p class="text-body-2 machine-faint">{{ t('motion.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<role-note v-if="!canEdit" min="admin" class="mb-3" />
+		<role-note v-if="!canEdit" min="admin" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.motion')" />
 		<v-alert v-if="motion && !motion.configRead" dense outlined type="info" class="mb-3">{{ t('motion.config_unread') }}</v-alert>
 		<div v-if="!rows.length" class="text-body-2 machine-faint">{{ t('motion.no_axes') }}</div>
 		<div v-else style="overflow-x:auto"><motion-table :rows="rows" :highlight="param" /></div>

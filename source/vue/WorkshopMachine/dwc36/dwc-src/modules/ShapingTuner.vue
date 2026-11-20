@@ -10,7 +10,7 @@
 				<v-select v-if="accelerometer.count > 1" v-model="index" :items="indexes" :label="t('shaping.tuner_index')" dense outlined hide-details style="max-width:160px" />
 			</div>
 			<run-start v-if="canRun" class="mt-3" :allowed="canRun" :checks="['homed', 'clear', 'bed', 'estop']" :busy="!startAllowed" :starting="rs.status === 'starting'" :label="t('shaping.tuner_start')" @start="start(kind, params())" />
-			<lock-reason v-else min="technician" class="mt-2" />
+			<lock-reason v-else :ops="accessOps.run" min="technician" class="mt-2" :subject="$t('plugins.WorkshopMachine.subjects.shaping_tuner')" />
 			<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 			<v-card v-if="tuning" outlined class="mt-3">
 				<v-card-text>

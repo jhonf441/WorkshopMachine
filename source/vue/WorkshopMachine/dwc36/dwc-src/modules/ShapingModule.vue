@@ -3,7 +3,7 @@
 		<div class="text-h6 mb-1">{{ t('shaping.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('shaping.intro') }}</p>
 		<error-notice :error="loadError" retry @retry="load()" />
-		<role-note v-if="!canEdit" min="technician" class="mb-3" />
+		<role-note v-if="!canEdit" min="technician" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.shaping')" />
 		<v-card outlined class="mb-4">
 			<v-card-title class="text-subtitle-1 pb-0">{{ t('shaping.current_title') }}</v-card-title>
 			<v-card-text>
@@ -43,7 +43,7 @@
 		<shaping-tuner :api="api" :published="published" :accelerometer="shaping.accelerometer" :can-run="canRun" :now="now" />
 
 		<div class="text-subtitle-1 mt-6 mb-1">{{ t('shaping.ringing_title') }}</div>
-		<ringing-test :api="api" :can-generate="canRun" @use="useFrequency" />
+		<ringing-test :api="api" :can-generate="canTest" @use="useFrequency" />
 	</div>
 </template>
 
@@ -77,7 +77,8 @@ export default {
 		published: { type: Object, default: null },
 		configure: { type: Function, required: true }, // capabilitiesOf(...).configure(kind)
 		trial: { type: Function, required: true }, // capabilitiesOf(...).trial(gcodeKind)
-		canRun: { type: Boolean, default: false }, // technician
+		canRun: { type: Boolean, default: false }, // technician: machine.run (the tuner)
+		canTest: { type: Boolean, default: false }, // technician: machine.shaping.test (the ringing test file)
 		now: { type: Number, default: 0 }
 	},
 	data() {

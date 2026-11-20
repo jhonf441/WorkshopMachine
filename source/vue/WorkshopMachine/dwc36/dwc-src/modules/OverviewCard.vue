@@ -2,7 +2,7 @@
 	<v-card outlined class="overview-card">
 		<v-card-title class="text-subtitle-1 pb-1">{{ t('overview.title') }}</v-card-title>
 		<v-card-text>
-			<session-notice v-if="!overview && lockKind" :kind="lockKind" needed="operator" />
+			<session-notice v-if="!overview && lockKind" :kind="lockKind" needed="operator" :subject="$t('plugins.WorkshopMachine.subjects.overview')" />
 			<div v-else-if="!overview" class="text-body-2 machine-faint">{{ failed ? t('overview.no_data') : t('common.loading') }}</div>
 			<template v-else>
 				<v-alert v-if="!overview.ready.live" dense outlined type="warning" class="mb-3">{{ t('overview.no_live') }}</v-alert>

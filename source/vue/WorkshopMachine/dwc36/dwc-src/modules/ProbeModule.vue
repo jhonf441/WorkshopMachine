@@ -2,7 +2,7 @@
 	<div class="probe-module">
 		<div class="text-h6 mb-1">{{ t('probe.title') }}</div>
 		<p class="text-body-2 machine-faint">{{ t('probe.intro') }}</p>
-		<role-note v-if="!canRun" min="technician" class="mb-3" />
+		<role-note v-if="!canRun" min="technician" :ops="accessOps.run" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.probe')" />
 		<v-card outlined class="mb-4 pa-3"><probe-bed :model="bedModel" /></v-card>
 		<v-row v-if="canRun" dense>
 			<v-col cols="6" sm="3">

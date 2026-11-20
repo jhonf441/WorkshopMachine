@@ -4,7 +4,7 @@
 			<!-- ONE button that opens and closes the form (an open form can always be closed, even once the machine got busy) -->
 			<v-btn small outlined :disabled="!editing && !canOpen" :aria-expanded="editing ? 'true' : 'false'" :aria-controls="'bed-edit-form-' + row.bed" @click="toggle()"><v-icon small left>{{ editing ? 'mdi-close' : 'mdi-pencil-outline' }}</v-icon>{{ editing ? t('beds.edit_close') : t('beds.edit_btn') }}</v-btn>
 			<span v-if="reason" class="text-caption warning--text bed-edit-reason">{{ reason }}</span>
-			<role-note v-if="!canWrite" min="technician" class="text-caption" />
+			<role-note v-if="!canWrite" min="technician" class="text-caption" :subject="$t('plugins.WorkshopMachine.subjects.bed_edit')" />
 		</div>
 		<div v-if="editing" :id="'bed-edit-form-' + row.bed" class="mt-3 bed-edit-form">
 			<div class="text-subtitle-2 mb-1">{{ t('beds.edit_title', { n: row.bed }) }}</div>

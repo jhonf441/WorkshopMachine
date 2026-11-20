@@ -28,7 +28,7 @@
 							<span class="text-caption machine-faint">{{ ms.data.notify ? t('maintenance.notify_on') : t('maintenance.notify_off') }}</span>
 						</div>
 					</template>
-					<lock-reason v-if="!canMark || !canEdit" min="technician" class="mt-2" />
+					<lock-reason v-if="!canMark || !canEdit" :ops="accessOps.maintenance" min="technician" class="mt-2" :subject="$t('plugins.WorkshopMachine.subjects.maintenance')" />
 				</v-card-text>
 			</v-card>
 			<v-card outlined class="mb-4">

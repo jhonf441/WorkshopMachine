@@ -1,5 +1,65 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.17.0 -- 2026-11-20
+
+- The assistants ask in which modes the tool or bed exists and write to machine.g (config.g calls it once)
+
+## 1.16.13 -- 2026-11-20
+
+- Own calendar in the date range picker (no native date/time fields); PiHealth: the stored-data table moves to the service
+
+## 1.16.12 -- 2026-11-18
+
+- accessRev: the page asks whoami at once when the service says the access changed
+
+## 1.16.11 -- 2026-11-18
+
+- Access changes (users or roles switched off or on, a role changed) reach the page: it asks whoami again while in view
+
+## 1.16.10 -- 2026-11-18
+
+- Session sign-in buttons with their icon and a softer blink (shared notice); WorkshopMachine rebuilt
+
+## 1.16.9 -- 2026-11-18
+
+- Session sign-in buttons with their icon and a softer blink (shared notice); WorkshopMachine rebuilt
+
+## 1.16.8 -- 2026-11-17
+
+- Back to the previous look: the family design pieces of the last rounds are removed (steppers, docks, big readings, token fills)
+
+## 1.16.7 -- 2026-11-13
+
+- Phase 6: family design pieces (docks, step numbers, fills and dark palette as shared tokens)
+
+## 1.16.6 -- 2026-11-13
+
+- Access notices name what they lock (JS and Vue), locked covers say which section they cover
+
+## 1.16.5 -- 2026-11-13
+
+- Access notices name what they lock (JS and Vue), locked covers say which section they cover
+
+## 1.16.4 -- 2026-11-13
+
+- Safe state and accent colors moved to family tokens; off-scale sizes and monospace fonts aligned
+
+## 1.16.3 -- 2026-11-12
+
+- Session reconcile, access notices name what they lock, kiosk native number keyboard
+
+## 1.16.2 -- 2026-11-12
+
+- Kiosk PIN: read-only field and number pad only, no full keyboard
+
+## 1.16.1 -- 2026-11-11
+
+- Owner report 2026-11-11: shutdown without session, kiosk PIN pad, hive confirm color, wheel release and Z keys, version in every page bar
+
+## 1.16.0 -- 2026-11-11
+
+- Block with reason: procedures, mesh library, height, work area, maintenance, resume after a power cut, laser cross, ringing test and the steps test move say why they are blocked (auth.can, one call per screen); configuration changes keep their role sentence and their confirmations; no stop control is asked or blocked
+
 ## 1.15.0 -- 2026-11-11
 
 - History: restoring a snapshot is for administrators only; for anybody else the restore buttons are disabled and say which role is needed.

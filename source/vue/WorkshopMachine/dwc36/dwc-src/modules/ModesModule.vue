@@ -11,7 +11,7 @@
 		<div class="wf-note is-info mb-3" role="note"><v-icon :size="16" class="wf-note-icon" aria-hidden="true">mdi-information-outline</v-icon><span>{{ t('modes.profile_note') }}</span></div>
 
 		<!-- the profile could not be read because of who the person is: say it instead of the question "which modes?" -->
-		<session-notice v-if="lockCause" :kind="lockCause" needed="technician" class="mb-3" />
+		<session-notice v-if="lockCause" :kind="lockCause" needed="technician" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.machine_modes')" />
 		<v-alert v-else-if="loaded && !state.answered" dense outlined type="info" class="mb-3">
 			<div class="font-weight-medium">{{ t('modes.none_title') }}</div>
 			<div class="text-body-2">{{ t('modes.none_text') }}</div>
@@ -40,7 +40,7 @@
 				</v-card>
 			</v-col>
 		</v-row>
-		<lock-reason v-if="!lockCause" min="technician" class="mt-2" />
+		<lock-reason v-if="!lockCause" min="technician" class="mt-2" :subject="$t('plugins.WorkshopMachine.subjects.machine_modes')" />
 
 		<div v-if="loaded && allReady" class="text-body-2 mt-3">{{ t('modes.all_ready') }}</div>
 		<div class="text-caption machine-faint mt-3">{{ t('modes.files_note') }}</div>
