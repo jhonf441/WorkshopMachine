@@ -17,17 +17,19 @@
 			</v-alert>
 			<v-row dense>
 				<v-col cols="12" md="8">
-					<bed-svg :bed="model.bed" :include="screws" :reach="model.reach" :label="t('bed.level_label')" @pointer="onPointer">
+					<bed-svg :bed="model.bed" :include="screws" :reach="model.reach" :grid-step="100" :label="t('bed.level_label')" @pointer="onPointer">
 						<template #default="{ frame }">
-							<bed-screws :frame="frame" :screws="screws" :corrections="corrections" :links="links" />
+							<bed-screws :frame="frame" :screws="screws" :corrections="corrections" :links="links" :reach="model.reach" :selected="selectedScrew" @select="onSelectScrew" />
 							<bed-points :frame="frame" :points="points" :selected="selected" :draggable="editable" :show-path="true" @select="onSelect" @nudge="nudgePoint" />
 						</template>
 					</bed-svg>
-					<bed-legend class="mt-2" :ids="['measure', 'clipped', 'outside_reach']" :counts="counts" />
+					<bed-legend class="mt-2" :ids="legendIds" :counts="counts" />
+					<bed-positions class="mt-3" :screws="screws" :points="points" :reach="model.reach" />
 				</v-col>
 				<v-col cols="12" md="4">
+					<screw-detail v-if="screwChosen" :screw="screwChosen" :reach="model.reach" :correction="screwCorrection" :nearest="screwNearest" class="mb-3" @close="selectedScrew = null" />
 					<point-detail :point="point" :title="title" :rows="rows" @close="selected = ''">
-						<v-btn v-if="editable && point" small outlined color="error" class="mt-2" style="min-height:44px" @click="remove()"><v-icon small left>mdi-delete-outline</v-icon>{{ t('bed.remove_point') }}</v-btn>
+						<v-btn v-if="editable && point" small outlined color="error" class="mt-2" @click="remove()"><v-icon small left>mdi-delete-outline</v-icon>{{ t('bed.remove_point') }}</v-btn>
 						<template #actions="slotProps"><slot name="actions" v-bind="slotProps" /></template>
 					</point-detail>
 					<point-sets
@@ -60,6 +62,8 @@ import BedSvg from './BedSvg.vue'
 import BedPoints from './BedPoints.vue'
 import BedScrews from './BedScrews.vue'
 import BedLegend from './BedLegend.vue'
+import BedPositions from './BedPositions.vue'
+import ScrewDetail from './ScrewDetail.vue'
 import PointDetail from './PointDetail.vue'
 import PointModeBar from './PointModeBar.vue'
 import PointSets from './PointSets.vue'
@@ -67,6 +71,7 @@ import LevelPassStrip from './LevelPassStrip.vue'
 import { textMixin } from '../modules/text-mixin.js'
 import { validatePoints, serviceIssues, correctionsOf, nearestScrew } from '../lib/bed-level-plan.js'
 import { countsOf, inside } from '../lib/bed-mesh-plan.js'
+import { levelScrewMixin } from './level-screw-mixin.js'
 import { pointsForBed } from '../lib/point-sets.js'
 import { pointsOf, movePoint, removePoint, resetPoints, MAX_POINTS } from '../state/level-points-state.js'
 import * as edit from '../state/point-edit-state.js'
@@ -75,8 +80,8 @@ import { createDrag, begin, update, finish, cancel, isTap } from '../state/regio
 import { normalizePasses, normalizeHeights } from '../api/machine-api-p6.js'
 
 export default {
-	components: { BedSvg, BedPoints, BedScrews, BedLegend, PointDetail, PointModeBar, PointSets, LevelPassStrip },
-	mixins: [textMixin],
+	components: { BedSvg, BedPoints, BedScrews, BedLegend, BedPositions, ScrewDetail, PointDetail, PointModeBar, PointSets, LevelPassStrip },
+	mixins: [textMixin, levelScrewMixin],
 	props: {
 		model: { type: Object, required: true }, // state/bed-state.js modelOf(...)
 		lp: { type: Object, required: true }, // state/level-points-state.js createLevelPoints()
@@ -93,6 +98,7 @@ export default {
 		screws() {
 			return this.model.screws
 		},
+
 		points() {
 			return pointsOf(this.lp, this.screws, this.model.reach, this.serviceLevel)
 		},
@@ -141,6 +147,7 @@ export default {
 		},
 		onSelect(id) {
 			this.selected = this.selected === id ? '' : id
+			if (this.selected) this.selectedScrew = null
 		},
 		area() {
 			return this.model.reach || this.model.bed
@@ -169,6 +176,7 @@ export default {
 			edit.endMove(this.lp)
 			finish(this.drag)
 			if (hit.indexOf('p:') === 0 && tap) this.onSelect(hit.slice(2))
+			else if (hit.indexOf('s:') === 0 && tap) this.onSelectScrew(parseInt(hit.slice(2), 10))
 			else if (hit === '' && tap && this.editable) this.addAt(ev.wx, ev.wy)
 		},
 		addAt(x, y) {

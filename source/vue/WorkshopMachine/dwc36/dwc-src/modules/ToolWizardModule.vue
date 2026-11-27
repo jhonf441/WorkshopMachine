@@ -1,11 +1,10 @@
 <template>
 	<div class="toolwiz-module">
-		<div class="text-h6 mb-1">{{ t('toolwiz.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('toolwiz.intro') }}</p>
+		<card-head icon="mdi-wrench-cog-outline" :title="t('toolwiz.title')" />
 		<v-alert v-if="api.toolwiz.mock" dense outlined type="info" class="text-body-2">{{ t('toolwiz.mock_notice') }}</v-alert>
 		<role-note v-if="!canWrite" min="technician" class="text-body-2" :subject="$t('plugins.WorkshopMachine.subjects.tool_wizard')" />
 		<v-alert v-if="busy && !w.applied" dense outlined type="warning" class="text-body-2">{{ t('toolwiz.block_busy') }}</v-alert>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<section-notice :error="loadError" retry @retry="load()" />
 
 		<!-- the steps: the colour says where each one is (done, on show, pending); a step opens only when the ones before it are clean -->
 		<div class="d-flex flex-wrap mb-3" style="gap: 6px">
@@ -31,6 +30,8 @@
 			<v-btn small outlined :disabled="w.step === 'type'" @click="goBack()"><v-icon small left>mdi-chevron-left</v-icon>{{ t('toolwiz.back') }}</v-btn>
 			<v-btn v-if="w.step !== 'apply' && !previewBlocked" small color="primary" @click="goNext()">{{ t('toolwiz.next') }}<v-icon small right>mdi-chevron-right</v-icon></v-btn>
 		</div>
+		<!-- ONE help for the section, at the foot: what the wizard is, then what the rows of the step mean (each row registers itself, see ToolRow.vue) -->
+		<help-fold :title="t('toolwiz.title')" :what="t('toolwiz.intro')" :items="helpItems" class="mt-4" />
 	</div>
 </template>
 
@@ -42,7 +43,7 @@
 // the service plan (config.tool): the page never sends loose G-code. The rules that block (heater without sensor / maximum temperature / autotune,
 // role, busy machine) are in lib/toolwiz-safety.js; the service enforces them again. The service operations are behind api.toolwiz (api/machine-api-toolwiz.js).
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import ToolStepType from './ToolStepType.vue'
 import ToolStepName from './ToolStepName.vue'
 import ToolStepCarries from './ToolStepCarries.vue'
@@ -55,20 +56,26 @@ import { createPlanFlow } from '../state/plan-flow.js'
 import { STEPS, createWizard, stepIssues, canGo, go, next, back, setPreview, markApplied } from '../state/toolwiz-state.js'
 import { toSpec, specKey } from '../lib/toolwiz-spec.js'
 import RoleNote from './RoleNote.vue'
+import HelpFold from '../HelpFold.vue' // vue/_shared36
+import CardHead from '../CardHead.vue' // vue/_shared36
 
 const STEP_ICONS = { type: 'mdi-shape-outline', name: 'mdi-form-textbox', carries: 'mdi-fire', pins: 'mdi-pin-outline', preview: 'mdi-file-eye-outline', apply: 'mdi-content-save-check-outline', tests: 'mdi-clipboard-check-outline' }
 const NO_PINS = { free: [], used: [], freeDrivers: null }
 
 export default {
 	mixins: [textMixin],
-	components: { RoleNote, ErrorNotice, ToolStepType, ToolStepName, ToolStepCarries, ToolStepPins, ToolStepPreview, ToolStepApply, ToolStepTests },
+	components: { CardHead, RoleNote, SectionNotice, HelpFold, ToolStepType, ToolStepName, ToolStepCarries, ToolStepPins, ToolStepPreview, ToolStepApply, ToolStepTests },
 	props: {
 		api: { type: Object, required: true },
 		canWrite: { type: Boolean, default: false }, // technician: creating the plan (the service checks again)
 		busy: { type: Boolean, default: false } // a procedure is running: the machine is not free
 	},
+	// the rows of the step on show tell it that they exist (ToolRow.vue): the step has ONE help for all of them
+	provide() {
+		return { toolHelp: { add: row => this.helpRows.push(row), remove: row => { const i = this.helpRows.indexOf(row); if (i >= 0) this.helpRows.splice(i, 1) } } }
+	},
 	data() {
-		return { w: createWizard(null), tools: { tools: [], nextNumber: null, familyHint: '', modes: [], machineFile: null }, pins: NO_PINS, loadError: null, tried: false, previewLoading: false, previewError: null, ps: null, flow: null }
+		return { helpRows: [], w: createWizard(null), tools: { tools: [], nextNumber: null, familyHint: '', modes: [], machineFile: null }, pins: NO_PINS, loadError: null, tried: false, previewLoading: false, previewError: null, ps: null, flow: null }
 	},
 	computed: {
 		ctx() {
@@ -93,6 +100,15 @@ export default {
 		},
 		specText() {
 			return specKey(this.w.draft)
+		},
+		// one block per row of the step, in the order they are on screen, a topic once
+		helpItems() {
+			const seen = new Set()
+			return this.helpRows
+				.filter(r => r.$el && r.$el.compareDocumentPosition)
+				.sort((a, b) => (a.$el.compareDocumentPosition(b.$el) & 4 ? -1 : 1))
+				.filter(r => !seen.has(r.topic) && seen.add(r.topic))
+				.map(r => ({ title: r.label, what: this.t('toolwiz.h_' + r.topic + '_what'), why: this.t('toolwiz.h_' + r.topic + '_why'), ifMissing: this.t('toolwiz.h_' + r.topic + '_missing'), how: this.t('toolwiz.h_' + r.topic + '_how') }))
 		}
 	},
 	watch: {

@@ -1,51 +1,52 @@
 <template>
 	<div class="offsets-module">
-		<div class="text-h6 mb-1">{{ t('offsets.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ tx('offsets.intro') }}</p>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<card-head icon="mdi-axis-arrow" :title="t('offsets.title')" />
+		<section-notice :error="loadError" retry @retry="load()" />
 		<role-note v-if="!canWrite" min="technician" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.offsets')" />
 		<template v-if="os.data">
-			<v-card outlined class="mb-4">
-				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.tools_title') }}</v-card-title>
-				<v-card-text>
+			<div class="wf-group mb-4">
+				<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ t('offsets.tools_title') }}</div>
+				<div>
 					<offsets-table
 						:sets="os.data.tools" :axes="toolAxes" :draft="os.drafts.tools" :editable="canWrite" :per-row="canWrite" :first-column="t('offsets.col_tool')"
 						:empty-text="t('offsets.no_tools')" :reviewing="reviewKey" :saved="savedKey" @review="proposeTool"
 					/>
 					<div v-if="canWrite" class="text-caption machine-faint mt-1">{{ t('offsets.one_tool') }}</div>
-				</v-card-text>
-			</v-card>
+				</div>
+			</div>
 			<!-- the work systems are read only here: they are the work zones of the Workbench (lib/cross-page.js) -->
-			<v-card outlined class="mb-4">
-				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.work_title') }}</v-card-title>
-				<v-card-text>
+			<div class="wf-group mb-4">
+				<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ t('offsets.work_title') }}</div>
+				<div>
 					<offsets-table :sets="os.data.workplaces" :axes="workAxes" :draft="noDraft" :current="os.data.current" :first-column="t('offsets.col_system')" :empty-text="t('offsets.no_work')" />
 					<div class="text-caption machine-faint mt-2">{{ tx('offsets.work_hint') }}</div>
 					<div v-if="workbenchOn" class="d-flex align-center flex-wrap mt-2" style="gap:8px"><workbench-link :zone="os.data.current" /></div>
-				</v-card-text>
-			</v-card>
+				</div>
+			</div>
 			<plan-review v-if="ps.status !== 'idle'" class="mb-4" :state="ps" :title="reviewKey ? t('offsets.plan_title_tool', { tool: reviewLabel }) : t('offsets.plan_title')" :role-ok="canWrite" @apply="applyPlan()" @reset="resetPlan()" />
-			<v-card v-if="canWrite" outlined class="mb-4">
-				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.snapshots_title') }}</v-card-title>
-				<v-card-text>
-					<offsets-snapshots :api="api" :snapshots="os.snapshots" :pick="os.pick" :last="os.data.lastSnapshot" :taken="taken" :can-write="canWrite" :busy="working" @snapshot="snapshot()" />
-				</v-card-text>
-			</v-card>
+			<div v-if="canWrite" class="wf-group mb-4">
+				<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ t('offsets.snapshots_title') }}</div>
+				<div>
+					<offsets-snapshots :api="api" :snapshots="os.snapshots" :pick="os.pick" :last="os.data.lastSnapshot" :taken="taken" :can-write="canWrite" :busy="working" :action="snapshotAct" @snapshot="snapshotAct.run({})" />
+					<wf-result :action="snapshotAct" :retry="false" class="mt-2" />
+				</div>
+			</div>
 			<!-- the verification measures with the camera of Vision: nothing about it when Vision is not installed or not enabled -->
-			<v-card v-if="visionOn" outlined class="mb-4">
-				<v-card-title class="text-subtitle-1 pb-0">{{ t('verify.title') }}</v-card-title>
-				<v-card-text><verify-camera :api="api" :published="published" :can-run="canRun" :measure="measure" :now="now" /></v-card-text>
-			</v-card>
+			<div v-if="visionOn" class="wf-group mb-4">
+				<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ t('verify.title') }}</div>
+				<div><verify-camera :api="api" :published="published" :can-run="canRun" :measure="measure" :now="now" /></div>
+			</div>
 			<!-- shown only when the machine declares a laser tool AND a pointer tool and the board reports a laser -->
-			<v-card v-if="pair.available" outlined class="mb-4">
-				<v-card-title class="text-subtitle-1 pb-0">{{ t('offsets.pointer_title') }}</v-card-title>
-				<v-card-text>
+			<div v-if="pair.available" class="wf-group mb-4">
+				<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ t('offsets.pointer_title') }}</div>
+				<div>
 					<laser-pointer :pointer="os.pointer" :pair="pair" :can-run="canMark" :busy="working" @mark="mark" @capture="capture" @clear="clearMark" />
-				</v-card-text>
-			</v-card>
+				</div>
+			</div>
 		</template>
 		<div v-if="notice" class="text-body-2 success--text">{{ notice }}</div>
 		<div v-if="opError" class="text-body-2 error--text">{{ opError }}</div>
+		<help-fold :title="t('offsets.title')" class="mt-4">{{ tx('offsets.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -57,7 +58,7 @@
 // there), snapshots to compare and the laser <-> pointer assistant. An operator reads the tables; a technician edits the tools. Nothing
 // here moves the machine except the cross mark of the assistant (a service procedure).
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import OffsetsTable from './OffsetsTable.vue'
 import OffsetsSnapshots from './OffsetsSnapshots.vue'
 import LaserPointer from './LaserPointer.vue'
@@ -66,7 +67,7 @@ import VerifyCamera from './VerifyCamera.vue'
 import WorkbenchLink from './WorkbenchLink.vue'
 import { textMixin } from './text-mixin.js'
 import { pluginActive } from '../workshop-ids.js' // vue/_shared36
-import { createOffsetsState, loadBegin, loaded, loadFailed, axesFor, changesFor, pointerMarked, pointerCaptured, pointerReset } from '../state/offsets-state.js'
+import { createOffsetsState, loadBegin, loaded, loadFailed, axesFor, changesFor, resetDrafts, pointerMarked, pointerCaptured, pointerReset } from '../state/offsets-state.js'
 import { createPlanFlow } from '../state/plan-flow.js'
 import { toolValues, toolChange, keyOf, setLabel, KIND_TOOLS } from '../lib/offsets.js'
 import { pairOf, crossReasonKey } from '../lib/laser-pointer.js'
@@ -74,12 +75,18 @@ import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
 import { detailOf } from '../lib/refusal.js'
 import RoleNote from './RoleNote.vue'
+import { draftGuardMixin } from './draft-guard-mixin.js'
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
+import WfResult from '../WfResult.vue' // vue/_shared36
+import { createAction } from '../workshop-action.js' // vue/_shared36
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 const NO_DRAFT = {} // the work table is never edited here
 
 export default {
-	components: { RoleNote, ErrorNotice, OffsetsTable, OffsetsSnapshots, LaserPointer, PlanReview, VerifyCamera, WorkbenchLink },
-	mixins: [textMixin],
+	components: { CardHead, HelpFold, WfActionButton, WfResult, RoleNote, SectionNotice, OffsetsTable, OffsetsSnapshots, LaserPointer, PlanReview, VerifyCamera, WorkbenchLink },
+	mixins: [textMixin, draftGuardMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
 		canWrite: { type: Boolean, default: false }, // workshopCan('machine.config.apply', config.g10): the technician
@@ -124,7 +131,11 @@ export default {
 			}
 		}
 	},
+	beforeDestroy() {
+		this.snapshotAct.dispose()
+	},
 	created() {
+		this.snapshotAct = createAction({ run: () => this.doSnapshot() })
 		this.flow = createPlanFlow({ apply: plan => this.api.config.apply(plan.id, plan.kind) })
 		this.ps = this.flow.state
 		this.load()
@@ -160,12 +171,26 @@ export default {
 			this.savedKey = ''
 			return this.flow.propose(async () => ({ plan: await this.api.config.plan(KIND_TOOLS, values), conflict: null }))
 		},
+		// unsaved-changes guard (draft-guard-mixin.js): typed offsets that were not reviewed and applied; the tools go one by one, so "save" only takes one tool
+		guardDirty() {
+			return this.canWrite && changesFor(this.os).length > 0
+		},
+		guardSave() {
+			const all = changesFor(this.os)
+			const asked = all.length === 1 ? this.proposeTool(all[0].key) : null
+			return asked ? asked.then(() => 'later') : false
+		},
+		guardDiscard() {
+			resetDrafts(this.os)
+			this.resetPlan()
+		},
 		async applyPlan() {
 			await this.flow.apply(this.canWrite)
 			if (this.ps.status === 'done') {
 				this.savedKey = this.reviewKey // the row says it was saved (and the notice of the plan says where: the configuration of the machine)
 				this.reviewKey = ''
 				await this.load()
+				this.guardApplied()
 			}
 		},
 		resetPlan() {
@@ -193,9 +218,15 @@ export default {
 			const cross = crossReasonKey(reason)
 			return cross === 'offsets.cross_other' ? planErrorKey(reason) : cross
 		},
-		async snapshot() {
-			this.taken = await this.act(() => this.api.offsets.snapshot(), 'offsets.done_snapshot')
-			await this.loadSnapshots()
+		// the snapshot is a write of the family: its answer is the control's own line (WfResult), not notice / opError
+		async doSnapshot() {
+			try {
+				this.taken = await this.api.offsets.snapshot()
+				await this.loadSnapshots()
+				return { text: this.t('offsets.done_snapshot') }
+			} catch (e) {
+				throw Object.assign(new Error(this.t(this.reasonKey(e)) + (detailOf(e) ? ' (' + detailOf(e) + ')' : '')), { code: 'internal' })
+			}
 		},
 		async mark(power) {
 			const out = await this.act(() => this.api.pointer.mark(power), 'offsets.done_mark')

@@ -2,7 +2,7 @@
   "id": "WorkshopMachine",
   "name": "Machine",
   "author": "jhonf441",
-  "version": "1.17.0",
+  "version": "1.20.0",
   "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/jhonf441/WorkshopMachine",
   "tags": [
@@ -20,9 +20,9 @@
     "permissions.json"
   ],
   "dwcFiles": [
-    "css/WorkshopMachine.928f46b7.css",
-    "css/WorkshopMachine.928f46b7.css.gz",
-    "js/WorkshopMachine.972a59fa.js",
-    "js/WorkshopMachine.972a59fa.js.gz"
+    "css/WorkshopMachine.79ffeb6f.css",
+    "css/WorkshopMachine.79ffeb6f.css.gz",
+    "js/WorkshopMachine.a1000100.js",
+    "js/WorkshopMachine.a1000100.js.gz"
   ]
 }

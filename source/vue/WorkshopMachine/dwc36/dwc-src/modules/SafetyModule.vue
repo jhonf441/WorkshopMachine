@@ -1,7 +1,6 @@
 <template>
 	<div class="safety-module">
-		<div class="text-h6 mb-1">{{ t('safety.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('safety.intro') }}</p>
+		<card-head icon="mdi-shield-check-outline" :title="t('safety.title')" />
 		<div class="d-flex align-center flex-wrap" style="gap:8px">
 			<v-btn color="primary" :disabled="!startAllowed" :loading="busy" @click="start(kind, {})"><v-icon left>mdi-shield-search</v-icon>{{ t('safety.run') }}</v-btn>
 			<span class="text-caption machine-faint">{{ t('safety.no_motion') }}</span>
@@ -39,6 +38,7 @@
 			</v-simple-table>
 		</template>
 		<div v-else-if="!busy" class="text-body-2 machine-faint mt-3">{{ t('safety.not_run') }}</div>
+		<help-fold :title="t('safety.title')" class="mt-4">{{ t('safety.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -56,9 +56,11 @@ import { RUN_KINDS2, normalizeSafety } from '../api/machine-api-p2.js'
 import { checkRows, summaryOf, severityView, detailText, SEVERITIES } from '../lib/safety.js'
 import { formatDate } from '../lib/format.js'
 import LockReason from '../LockReason.vue' // vue/_shared36
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
-	components: { LockReason, RunProgress },
+	components: { CardHead, HelpFold, LockReason, RunProgress },
 	mixins: [runModule([RUN_KINDS2.safetyCheck], {})],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

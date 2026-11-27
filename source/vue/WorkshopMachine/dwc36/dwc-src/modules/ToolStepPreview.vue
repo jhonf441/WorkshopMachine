@@ -4,7 +4,7 @@
 		<p class="text-body-2 machine-faint">{{ t('toolwiz.preview_intro') }}</p>
 		<tool-row :label="t('toolwiz.preview_row')" topic="preview">
 			<div v-if="loading" class="text-body-2 machine-faint"><v-progress-circular indeterminate size="16" width="2" class="mr-2" />{{ t('toolwiz.preview_loading') }}</div>
-			<error-notice :error="error" retry @retry="$emit('reload')" />
+			<section-notice :error="error" retry @retry="$emit('reload')" />
 			<template v-if="data && !loading">
 				<div class="mb-2">
 					<span class="text-caption machine-faint mr-1">{{ t('toolwiz.preview_goes_to') }}</span>
@@ -31,14 +31,14 @@
 <script>
 'use strict'
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import ToolRow from './ToolRow.vue'
 import { textMixin } from './text-mixin.js'
 import { previewIssues, stepOfError } from '../lib/toolwiz-preview.js'
 
 export default {
 	mixins: [textMixin],
-	components: { ToolRow, ErrorNotice },
+	components: { ToolRow, SectionNotice },
 	props: { w: { type: Object, required: true }, ctx: { type: Object, required: true }, loading: { type: Boolean, default: false }, error: { type: Object, default: null } },
 	computed: {
 		data() {

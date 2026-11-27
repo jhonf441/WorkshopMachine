@@ -4,15 +4,18 @@
 			<marker :id="uid + 'a'" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="bedv-fill-faint" /></marker>
 			<marker :id="uid + 'o'" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="bedv-fill-info" /></marker>
 		</defs>
+		<!-- the measured frame (bed + Z motors) holds the grid and the ticks; the bed is the rectangle inside it (owner, 2026-11-23) -->
+		<rect v-if="d.view.w !== d.limits.w || d.view.h !== d.limits.h" :x="d.view.x" :y="d.view.y" :width="d.view.w" :height="d.view.h" class="bedv-view" />
 		<rect :x="d.limits.x" :y="d.limits.y" :width="d.limits.w" :height="d.limits.h" class="bedv-limits" />
 		<g class="bedv-grid">
-			<line v-for="g in d.grid.vertical" :key="'v' + g.v" :x1="g.px" :x2="g.px" :y1="d.limits.y" :y2="d.limits.y + d.limits.h" />
-			<line v-for="g in d.grid.horizontal" :key="'h' + g.v" :y1="g.px" :y2="g.px" :x1="d.limits.x" :x2="d.limits.x + d.limits.w" />
+			<line v-for="g in d.grid.vertical" :key="'v' + g.v" :x1="g.px" :x2="g.px" :y1="d.view.y" :y2="d.view.y + d.view.h" />
+			<line v-for="g in d.grid.horizontal" :key="'h' + g.v" :y1="g.px" :y2="g.px" :x1="d.view.x" :x2="d.view.x + d.view.w" />
 		</g>
 		<g class="bedv-ticks">
-			<text v-for="g in d.grid.vertical" :key="'tv' + g.v" :x="g.px" :y="d.limits.y + d.limits.h + 12" text-anchor="middle">{{ g.v }}</text>
-			<text v-for="g in d.grid.horizontal" :key="'th' + g.v" :x="d.limits.x - 5" :y="g.px + 3" text-anchor="end">{{ g.v }}</text>
+			<text v-for="g in d.grid.vertical" :key="'tv' + g.v" :x="g.px" :y="d.view.y + d.view.h + 12" text-anchor="middle">{{ g.v }}</text>
+			<text v-for="g in d.grid.horizontal" :key="'th' + g.v" :x="d.view.x - 5" :y="g.px + 3" text-anchor="end">{{ g.v }}</text>
 		</g>
+		<rect v-if="d.view.w !== d.limits.w || d.view.h !== d.limits.h" :x="d.view.x" :y="d.view.y" :width="d.view.w" :height="d.view.h" class="bedv-view-line" />
 		<rect :x="d.limits.x" :y="d.limits.y" :width="d.limits.w" :height="d.limits.h" class="bedv-limits-line" />
 		<g v-if="d.reach">
 			<rect :x="d.reach.x" :y="d.reach.y" :width="d.reach.w" :height="d.reach.h" class="bedv-reach" />
@@ -53,7 +56,7 @@ import { textMixin } from '../modules/text-mixin.js'
 import { backdropOf, offsetVector } from '../lib/bed-frame.js'
 
 let counter = 0
-const CHAR_PX = 6.2 // width of a letter of the caption (11 px font), a little generous
+const CHAR_PX = 6.8 // width of a letter of the caption (12 px font, the family's floor), a little generous
 
 export default {
 	mixins: [textMixin],

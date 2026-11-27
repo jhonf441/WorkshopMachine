@@ -1,10 +1,9 @@
 <template>
 	<div class="beds-module">
-		<div class="text-h6 mb-1">{{ t('beds.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('beds.intro') }}</p>
+		<card-head icon="mdi-radiator" :title="t('beds.title')" />
 		<role-note v-if="!canWrite" min="technician" class="text-body-2" :subject="$t('plugins.WorkshopMachine.subjects.beds')" />
 		<v-alert v-if="busy && !applied" dense outlined type="warning" class="text-body-2">{{ t('beds.block_busy') }}</v-alert>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<section-notice :error="loadError" retry @retry="load()" />
 
 		<div v-if="info" class="text-body-2 mb-3">
 			<span v-if="info.defined.length">{{ t('beds.defined_now') }}</span>
@@ -12,7 +11,7 @@
 			<span v-if="!info.defined.length">{{ t('beds.defined_none') }}</span>
 			<div v-if="info.inFiles.length" class="machine-faint">{{ t('beds.in_files', { list: info.inFiles.join(', ') }) }}</div>
 		</div>
-		<v-card v-for="d in definedList" :key="'dc' + d.bed" outlined class="pa-3 mb-3 beds-defined" :data-bed="d.bed">
+		<div v-for="d in definedList" :key="'dc' + d.bed" class="wf-group mb-3 beds-defined" :data-bed="d.bed">
 			<div class="d-flex align-center" style="gap: 8px">
 				<v-icon small>mdi-check-circle-outline</v-icon>
 				<span class="text-subtitle-1 font-weight-medium">{{ t('beds.bed_n', { n: d.bed }) }}</span>
@@ -25,23 +24,25 @@
 				<span v-if="d.state"> · {{ d.state }}</span>
 			</div>
 			<bed-edit-card v-if="d.loaded" class="mt-2" :api="api" :row="d" :can-write="canWrite" :busy="busy" :model="model" :zones="definedList" @applied="load()" />
-		</v-card>
+		</div>
 
 		<div v-if="draft.beds.length" class="beds-modes mb-3">
-			<div class="beds-label"><span class="text-subtitle-2">{{ t('config_include.modes_row') }}</span><help-tip :title="t('config_include.modes_row')" :what="t('toolwiz.h_modes_what')" :why="t('toolwiz.h_modes_why')" :if-missing="t('toolwiz.h_modes_missing')" :how="t('toolwiz.h_modes_how')" /></div>
+			<div class="beds-label"><span class="text-subtitle-2">{{ t('config_include.modes_row') }}</span></div>
+			<help-fold :items="[{ title: t('config_include.modes_row'), what: t('toolwiz.h_modes_what'), why: t('toolwiz.h_modes_why'), ifMissing: t('toolwiz.h_modes_missing'), how: t('toolwiz.h_modes_how') }]" class="mb-1" />
 			<modes-picker v-model="draft.modes" :active="activeMode" :disabled="!!applied" />
 			<div v-if="modesError" class="text-caption error--text">{{ t('toolwiz.err_modes_none') }}</div>
 			<div class="text-caption machine-faint mt-1"><v-icon x-small class="mr-1">mdi-file-document-outline</v-icon><code>sys/workshop/machine.g</code> {{ t('toolwiz.file_note') }}</div>
 		</div>
-		<v-card v-for="(b, i) in draft.beds" :key="i" outlined class="pa-3 mb-3">
+		<div v-for="(b, i) in draft.beds" :key="i" class="wf-group mb-3">
 			<div class="d-flex align-center mb-2" style="gap: 8px">
 				<span class="text-subtitle-1 font-weight-medium">{{ bedTitle(b) }}</span>
 				<v-spacer />
 				<v-btn icon small :disabled="!!applied" :aria-label="t('beds.remove_bed')" :title="t('beds.remove_bed')" @click="removeBed(i)"><v-icon small>mdi-delete-outline</v-icon></v-btn>
 			</div>
+			<help-fold :items="helpItems(b)" class="mb-2" />
 			<div class="beds-grid">
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-bed-' + i" class="text-caption">{{ t('beds.f_bed') }}</label><help-tip :title="t('beds.f_bed')" :what="t('beds.help.bed_what')" :why="t('beds.help.bed_why')" :if-missing="t('beds.help.bed_missing')" :how="t('beds.help.bed_how')" /></div>
+					<div class="beds-label"><label :for="'bd-bed-' + i" class="text-caption">{{ t('beds.f_bed') }}</label></div>
 					<v-text-field :id="'bd-bed-' + i" v-model="b.bed" dense outlined hide-details inputmode="numeric" :disabled="!!applied" :error="shown(i, 'bed')" :aria-label="t('beds.f_bed')" />
 					<div v-if="shown(i, 'bed')" class="text-caption error--text">{{ message(i, 'bed') }}</div>
 				</div>
@@ -51,34 +52,34 @@
 					<div v-if="shown(i, 'name')" class="text-caption error--text">{{ message(i, 'name') }}</div>
 				</div>
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-preset-' + i" class="text-caption">{{ t('beds.f_sensor_preset') }}</label><help-tip :title="t('beds.preset_' + b.sensorPreset)" :what="t('beds.help.sensor_' + b.sensorPreset + '_what')" :why="t('beds.help.sensor_' + b.sensorPreset + '_why')" :if-missing="t('beds.help.sensor_' + b.sensorPreset + '_missing')" :how="t('beds.help.sensor_' + b.sensorPreset + '_how')" /></div>
+					<div class="beds-label"><label :for="'bd-preset-' + i" class="text-caption">{{ t('beds.f_sensor_preset') }}</label></div>
 					<v-select :id="'bd-preset-' + i" v-model="b.sensorPreset" :items="presetItems" dense outlined hide-details :disabled="!!applied" :aria-label="t('beds.f_sensor_preset')" @change="presetChanged(b, $event)" />
 				</div>
 				<bed-sensor-fields :bed="b" :index="i" :disabled="!!applied" :shown="shown" :message="message" />
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-spin-' + i" class="text-caption">{{ t('beds.f_sensor_pin') }}</label><help-tip :title="t('beds.f_pins')" :what="t('beds.help.pins_what')" :why="t('beds.help.pins_why')" :if-missing="t('beds.help.pins_missing')" :how="t('beds.help.pins_how')" /></div>
+					<div class="beds-label"><label :for="'bd-spin-' + i" class="text-caption">{{ t('beds.f_sensor_pin') }}</label></div>
 					<v-select :id="'bd-spin-' + i" v-model="b.sensorPin" :items="pinItems(sensorNeed(b.sensorPreset), b.sensorPin)" dense outlined hide-details :placeholder="t('beds.pin_pick')" :no-data-text="t('beds.pin_no_free')" :disabled="!!applied" :error="shown(i, 'sensorPin')" :aria-label="t('beds.f_sensor_pin')" />
 					<div v-if="shown(i, 'sensorPin')" class="text-caption error--text">{{ message(i, 'sensorPin') }}</div>
 				</div>
 				<!-- the output pin comes first: the page deduces from it whether the heater hangs from a MOSFET of the board (no relay, nothing to ask) or needs a relay -->
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-opin-' + i" class="text-caption">{{ t('beds.f_output_pin') }}</label><help-tip :title="t('beds.f_output_pin')" :what="t('beds.help.output_what')" :why="t('beds.help.output_why')" :if-missing="t('beds.help.output_missing')" :how="t('beds.help.output_how')" /></div>
+					<div class="beds-label"><label :for="'bd-opin-' + i" class="text-caption">{{ t('beds.f_output_pin') }}</label></div>
 					<v-select :id="'bd-opin-' + i" v-model="b.outputPin" :items="outputItems(b)" dense outlined hide-details :placeholder="t('beds.pin_pick')" :no-data-text="t('beds.pin_no_free')" :disabled="!!applied" :error="shown(i, 'outputPin')" :aria-label="t('beds.f_output_pin')" @change="outputPinChanged(b, $event)" />
 					<div v-if="shown(i, 'outputPin')" class="text-caption error--text">{{ message(i, 'outputPin') }}</div>
 				</div>
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-kind-' + i" class="text-caption">{{ t('beds.f_output_kind') }}</label><help-tip :title="t('beds.f_output_kind')" :what="t('beds.help.kind_what')" :why="t('beds.help.kind_why')" :if-missing="t('beds.help.kind_missing')" :how="t('beds.help.kind_how')" /></div>
+					<div class="beds-label"><label :for="'bd-kind-' + i" class="text-caption">{{ t('beds.f_output_kind') }}</label></div>
 					<div v-if="isDirect(b)" :id="'bd-kind-' + i" class="text-body-2 beds-direct" data-direct="1">{{ t('beds.kind_direct_note', directParams(b)) }}</div>
 					<v-select v-else :id="'bd-kind-' + i" v-model="b.outputKind" :items="relayItems" dense outlined hide-details :disabled="!!applied" :error="shown(i, 'outputKind')" :aria-label="t('beds.f_output_kind')" />
 					<div v-if="shown(i, 'outputKind')" class="text-caption error--text">{{ message(i, 'outputKind') }}</div>
 				</div>
 				<div class="beds-field">
-					<div class="beds-label"><label :for="'bd-max-' + i" class="text-caption">{{ t('beds.f_max_temp') }}</label><help-tip :title="t('beds.f_max_temp')" :what="t('beds.help.max_what')" :why="t('beds.help.max_why')" :if-missing="t('beds.help.max_missing')" :how="t('beds.help.max_how')" /></div>
+					<div class="beds-label"><label :for="'bd-max-' + i" class="text-caption">{{ t('beds.f_max_temp') }}</label></div>
 					<v-text-field :id="'bd-max-' + i" v-model="b.maxTemp" dense outlined hide-details suffix="°C" inputmode="decimal" :disabled="!!applied" :error="shown(i, 'maxTemp')" :aria-label="t('beds.f_max_temp')" />
 					<div v-if="shown(i, 'maxTemp')" class="text-caption error--text">{{ message(i, 'maxTemp') }}</div>
 				</div>
 			</div>
-		</v-card>
+		</div>
 		<div v-if="!draft.beds.length" class="text-body-2 machine-faint mb-3">{{ t('beds.empty') }}</div>
 		<!-- no bed or heater MOSFET of the board is free any more: said once, with who has them (the 18 A one first), so a relay is no surprise -->
 		<div v-if="draft.beds.length && directNote" class="wf-note is-info mb-3 beds-direct-none" role="note"><v-icon :size="16" class="wf-note-icon" aria-hidden="true">mdi-information-outline</v-icon><span>{{ directNote }}</span></div>
@@ -87,14 +88,14 @@
 			<!-- the limit says where it comes from (the board, the service's read of it, or the RRF ceiling); the "?" tells how the count is made -->
 			<span class="d-inline-flex align-center" style="gap: 2px">
 				<span class="text-caption beds-count" :class="{ 'warning--text': roomLeft <= 0 }">{{ roomLeft <= 0 ? t('beds.beds_limit', { max: maxBeds }) : t('beds.beds_count', { n: definedCount + draft.beds.length, max: maxBeds }) }} · {{ t('beds.limit_src_' + limitSource) }}</span>
-				<help-tip :title="t('beds.limit_title')" :what="t('beds.limit_' + limitSource, { max: maxBeds })" :why="t('beds.limit_why')" :how="t('beds.limit_count', { defined: definedCount, draft: draft.beds.length })" />
 			</span>
 		</div>
+		<help-fold :items="[{ title: t('beds.title'), what: t('beds.intro') }, { title: t('beds.limit_title'), what: t('beds.limit_' + limitSource, { max: maxBeds }), why: t('beds.limit_why'), how: t('beds.limit_count', { defined: definedCount, draft: draft.beds.length }) }]" class="mb-4" />
 
 		<div class="text-subtitle-1 font-weight-medium mb-1">{{ t('beds.lines_title') }}</div>
 		<div v-if="!ready" class="text-body-2 machine-faint">{{ t('beds.lines_wait') }}</div>
 		<div v-else-if="previewLoading" class="text-body-2 machine-faint"><v-progress-circular indeterminate size="16" width="2" class="mr-2" />{{ t('beds.lines_loading') }}</div>
-		<error-notice :error="previewError" retry @retry="loadPreview()" />
+		<section-notice :error="previewError" retry @retry="loadPreview()" />
 		<template v-if="ready && preview && !previewLoading">
 			<div class="mb-2">
 				<span class="text-caption machine-faint mr-1">{{ t('beds.lines_goes_to') }}</span>
@@ -132,8 +133,9 @@
 // configuration (preview of the diff, backup, history, the machine restarts to read it). The page never sends loose G-code. The service operations are behind api.beds
 // (api/machine-api-beds.js); the checks that block are in lib/beds-spec.js and the service enforces them again.
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
-import HelpTip from '../HelpTip.vue' // vue/_shared36
+import SectionNotice from './SectionNotice.vue' // one notice per cause
+import HelpFold from '../HelpFold.vue' // vue/_shared36
+import { bedHelpItems } from '../lib/beds-help.js'
 import RoleNote from './RoleNote.vue'
 import PlanReview from './PlanReview.vue'
 import BedSensorFields from './BedSensorFields.vue'
@@ -146,12 +148,13 @@ import { PRESET_GROUPS, OUTPUT_LIST_NEED, MAX_BED, sensorNeed, boardLimits, defi
 import { KIND_DIRECT, RELAY_KINDS, kindForPin, outputOptionKey, outputRole, directFree, directTaken, serviceKindError } from '../lib/bed-output.js'
 import { lineKind } from '../lib/toolwiz-preview.js'
 import { pinOptionText, pinKindKey } from '../lib/pin-kinds.js'
+import CardHead from '../CardHead.vue' // vue/_shared36
 
 const NO_PINS = { free: [], used: [], freeDrivers: null }
 
 export default {
 	mixins: [textMixin],
-	components: { ErrorNotice, HelpTip, RoleNote, PlanReview, BedEditCard, BedSensorFields, ModesPicker },
+	components: { CardHead, SectionNotice, HelpFold, RoleNote, PlanReview, BedEditCard, BedSensorFields, ModesPicker },
 	props: {
 		api: { type: Object, required: true },
 		canWrite: { type: Boolean, default: false }, // technician: creating the plan (the service checks again)
@@ -249,6 +252,10 @@ export default {
 		clearTimeout(this.timer)
 	},
 	methods: {
+		// one fold per bed card with what its fields mean (lib/beds-help.js)
+		helpItems(bed) {
+			return bedHelpItems(bed, this.t)
+		},
 		// the rows of the form for the beds asked: the ones the board already has are not new rows (they have their own card above)
 		seed(beds) {
 			const d = dropDefined(createDraft(beds, this.firstFree()), this.definedBeds)

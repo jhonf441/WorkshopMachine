@@ -1,8 +1,7 @@
 <template>
 	<div class="history-module">
-		<div class="text-h6 mb-1">{{ t('history.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('history.intro') }}</p>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<card-head icon="mdi-history" :title="t('history.title')" />
+		<section-notice :error="loadError" retry @retry="load()" />
 		<history-list :filters="hs.filters" :records="hs.records" :selected="hs.selected" :total="hs.total" :loading="hs.status === 'loading'" @apply="load()" @toggle="toggle" @open="open" />
 		<div class="d-flex align-center flex-wrap mt-3" style="gap:8px">
 			<v-btn small outlined :disabled="!pair" @click="comparing = true"><v-icon small left>mdi-compare</v-icon>{{ t('history.compare') }}</v-btn>
@@ -13,6 +12,7 @@
 		<record-detail v-if="hs.detail" class="mt-3" :record="hs.detail.record" :restore="hs.detail.restore" :allowed="allowedFor(hs.detail.record.kind)" @close="closeRecord()" @report="$emit('report', $event)" @restore="restore" />
 		<!-- restore: only builds a plan; the diff is reviewed here and the service asks its own confirmation when it is applied -->
 		<plan-review v-if="ps.status !== 'idle'" class="mt-3" :state="ps" :title="t('history.restore_title')" :role-ok="restoreAllowed" @set-accept="flow.accept($event)" @replan="flow.proposeAccepted()" @apply="applyPlan()" @reset="flow.reset()" />
+		<help-fold :title="t('history.title')" class="mt-4">{{ t('history.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -24,7 +24,7 @@
 // shows the diff, handles "the file changed on the SD" with the comparison and an explicit acceptance, and applies only through
 // machine.config.apply, which the service confirms.
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import HistoryList from './HistoryList.vue'
 import RecordDetail from './RecordDetail.vue'
 import RecordCompare from './RecordCompare.vue'
@@ -36,9 +36,11 @@ import { listArgs } from '../lib/history.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
 import { detailOf } from '../lib/refusal.js'
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
-	components: { ErrorNotice, HistoryList, RecordDetail, RecordCompare, PlanReview },
+	components: { CardHead, HelpFold, SectionNotice, HistoryList, RecordDetail, RecordCompare, PlanReview },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

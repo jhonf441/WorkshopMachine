@@ -5,10 +5,10 @@
 		<div class="d-flex flex-wrap align-center" style="gap:12px">
 			<v-select v-model="axis" :items="axisItems" :label="t('calibration.axis')" dense outlined hide-details style="max-width:120px" />
 			<wf-field id="backlash-multiplier" :label="t('calibration.backlash_multiplier')" style="max-width:210px" :message="msg(multiplier, RANGE_MULT)[0] || ''" level="error">
-				<template #help><help-tip :title="t('calibration.backlash_multiplier')" :what="t('calibration.backlash_multiplier_hint')" /></template>
 				<v-text-field id="backlash-multiplier" v-model="multiplier" type="number" :min="1" :max="100" step="any" inputmode="decimal" :aria-label="t('calibration.backlash_multiplier')" dense outlined hide-details @keydown="blockKey" />
 			</wf-field>
 		</div>
+		<help-line :text="t('calibration.backlash_multiplier') + ': ' + t('calibration.backlash_multiplier_hint')" class="mt-1" />
 		<v-simple-table dense class="mt-3">
 			<thead>
 				<tr>
@@ -29,14 +29,14 @@
 		</v-simple-table>
 		<v-btn small text class="mt-1" :disabled="entries.length >= max" @click="entries.push(blank())"><v-icon small left>mdi-plus</v-icon>{{ t('calibration.backlash_add') }}</v-btn>
 		<v-alert v-if="result.errorKey && !fieldError(result.errorKey)" dense outlined type="warning" class="mt-3">{{ t(result.errorKey) }}</v-alert>
-		<v-card v-if="result.n" outlined class="mt-3">
-			<v-card-text>
+		<div v-if="result.n" class="wf-group mt-3">
+			<div>
 				<div class="text-body-2">{{ t('calibration.backlash_stats', { n: result.n, mean: result.mean, stdev: result.stdev, min: result.min, max: result.max }) }}</div>
 				<div class="text-subtitle-1 mt-1">{{ t('calibration.backlash_new', { line: result.line }) }}</div>
 				<v-alert v-if="result.inconsistent && !calc" dense outlined type="warning" class="mt-2 mb-0">{{ t('calibration.warn_inconsistent') }}</v-alert>
 				<v-alert v-if="result.big && !calc" dense outlined type="warning" class="mt-2 mb-0">{{ t('calibration.warn_big_backlash') }}</v-alert>
-			</v-card-text>
-		</v-card>
+			</div>
+		</div>
 		<div class="d-flex align-center flex-wrap mt-3" style="gap:8px">
 			<v-btn small color="primary" :disabled="!result.ok || flowBusy" @click="review()">{{ t('calibration.review') }}</v-btn>
 		</div>
@@ -57,10 +57,10 @@ import { planModule } from './plan-module.js'
 import { FIELD_ERRORS, fieldInvalid, fieldMessage, blockKey } from '../lib/number-field.js'
 import { backlashResult, backlashInput, emptyEntry, CALC_BACKLASH, SAMPLES_MAX } from '../lib/backlash-calc.js'
 import WfField from '../WfField.vue' // vue/_shared36
-import HelpTip from '../HelpTip.vue' // vue/_shared36
+import HelpLine from '../HelpLine.vue' // vue/_shared36
 
 export default {
-	components: { WfField, HelpTip, PlanReview, CalcWarnings },
+	components: { WfField, HelpLine, PlanReview, CalcWarnings },
 	mixins: [planModule()],
 	props: {
 		api: { type: Object, required: true },

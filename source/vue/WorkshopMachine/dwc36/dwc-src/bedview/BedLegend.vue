@@ -8,7 +8,10 @@
 		</template>
 		<span v-for="s in items" :key="s.id" class="text-body-2 bedv-legend-item" role="listitem">
 			<svg width="20" height="20" viewBox="-10 -10 20 20" aria-hidden="true" class="bedv-legend-glyph">
-				<circle v-if="s.shape === 'disc'" r="7" :class="s.cls" />
+				<circle v-if="s.shape === 'screw'" r="8" class="bedv-lg-screw" />
+				<g v-else-if="s.shape === 'screw_out'"><circle r="8" class="bedv-lg-screw" /><circle r="8" class="bedv-ignored-mark" /></g>
+				<rect v-else-if="s.shape === 'reach'" x="-9" y="-6" width="18" height="12" class="bedv-reach" />
+				<circle v-else-if="s.shape === 'disc'" r="7" :class="s.cls" />
 				<rect v-else-if="s.shape === 'diamond'" x="-6" y="-6" width="12" height="12" transform="rotate(45)" :class="s.cls" />
 				<g v-else-if="s.shape === 'cross'"><circle r="7" :class="s.cls" /><path d="M-3,-3 L3,3 M3,-3 L-3,3" class="bedv-mark" /></g>
 				<circle v-else r="7" :class="s.cls" />
@@ -39,7 +42,7 @@
 
 import { textMixin } from '../modules/text-mixin.js'
 
-const SHAPES = { measure: 'disc', measured: 'disc', clipped: 'diamond', outside_reach: 'cross', unknown: 'dash', missing: 'dash', duplicate: 'dash' }
+const SHAPES = { screw: 'screw', screw_out: 'screw_out', probe: 'disc', reach: 'reach', measure: 'disc', measured: 'disc', clipped: 'diamond', outside_reach: 'cross', unknown: 'dash', missing: 'dash', duplicate: 'dash' }
 
 export default {
 	mixins: [textMixin],
@@ -51,7 +54,7 @@ export default {
 	},
 	computed: {
 		items() {
-			return this.ids.map(id => ({ id, shape: SHAPES[id] || 'dash', cls: 'bedv-st-' + id, count: typeof this.counts[id] === 'number' ? this.counts[id] : null }))
+			return this.ids.map(id => ({ id, shape: SHAPES[id] || 'dash', cls: id === 'probe' ? 'bedv-st-measure' : 'bedv-st-' + id, count: typeof this.counts[id] === 'number' ? this.counts[id] : null }))
 		}
 	},
 	methods: {
@@ -65,5 +68,6 @@ export default {
 <style>
 .bedv-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
 .bedv-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.bedv .bedv-lg-screw { fill: var(--bv-info); fill-opacity: 0.12; stroke: var(--bv-info); stroke-width: 2; }
 .bedv-swatch { display: inline-block; width: 14px; height: 14px; border: 1px solid rgba(128, 128, 128, 0.6); }
 </style>

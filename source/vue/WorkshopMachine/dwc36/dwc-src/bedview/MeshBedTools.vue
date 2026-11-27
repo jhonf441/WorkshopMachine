@@ -5,17 +5,17 @@
 		</template>
 		<template v-if="view === 'plan' && editable && resizable">
 			<span class="text-caption machine-faint">{{ t('bed.size') }}</span>
-			<v-btn small outlined style="min-height:44px" :title="t('bed.smaller_tip')" @click="$emit('resize', -10)"><v-icon small left>mdi-minus</v-icon>{{ t('bed.smaller') }}</v-btn>
-			<v-btn small outlined style="min-height:44px" :title="t('bed.bigger_tip')" @click="$emit('resize', 10)"><v-icon small left>mdi-plus</v-icon>{{ t('bed.bigger') }}</v-btn>
+			<v-btn small outlined :title="t('bed.smaller_tip')" @click="$emit('resize', -10)"><v-icon small left>mdi-minus</v-icon>{{ t('bed.smaller') }}</v-btn>
+			<v-btn small outlined :title="t('bed.bigger_tip')" @click="$emit('resize', 10)"><v-icon small left>mdi-plus</v-icon>{{ t('bed.bigger') }}</v-btn>
 			<span class="text-caption machine-faint">{{ t('bed.presets') }}</span>
-			<v-btn v-for="p in presets" :key="p.id" small outlined :disabled="!p.region" :title="p.region ? '' : t('bed.preset_unavailable')" style="min-height:44px" @click="$emit('preset', p.id)">
+			<v-btn v-for="p in presets" :key="p.id" small outlined :disabled="!p.region" :title="p.region ? '' : t('bed.preset_unavailable')" @click="$emit('preset', p.id)">
 				<v-icon small left>{{ p.icon }}</v-icon>{{ t('bed.preset_' + p.id) }}
 			</v-btn>
 			<mesh-region-fields class="mt-1" style="flex-basis:100%" :region="region" :bed="model.bed" :area="area" @region="$emit('region', $event)" />
 		</template>
 		<template v-if="view === 'result'">
-			<v-btn v-if="editable && hasArea" small outlined style="min-height:44px" :title="t('bed.edit_area_tip')" @click="$emit('edit-area')"><v-icon small left>mdi-resize</v-icon>{{ t('bed.edit_area') }}</v-btn>
-			<v-btn small outlined :input-value="compare" :disabled="!canCompare" style="min-height:44px" @click="$emit('compare', !compare)"><v-icon small left>mdi-compare</v-icon>{{ t('bed.compare') }}</v-btn>
+			<v-btn v-if="editable && hasArea" small outlined :title="t('bed.edit_area_tip')" @click="$emit('edit-area')"><v-icon small left>mdi-resize</v-icon>{{ t('bed.edit_area') }}</v-btn>
+			<v-btn small outlined :input-value="compare" :disabled="!canCompare" @click="$emit('compare', !compare)"><v-icon small left>mdi-compare</v-icon>{{ t('bed.compare') }}</v-btn>
 			<span v-if="!canCompare && compareReason" class="text-caption machine-faint">{{ t('bed.compare_' + compareReason) }}</span>
 		</template>
 	</div>

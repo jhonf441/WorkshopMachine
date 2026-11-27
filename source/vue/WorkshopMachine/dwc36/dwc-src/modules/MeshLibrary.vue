@@ -4,9 +4,7 @@
 			<v-chip small outlined :color="compensationOn ? 'success' : 'grey'">
 				<v-icon x-small left>{{ compensationOn ? 'mdi-grid' : 'mdi-grid-off' }}</v-icon>{{ compensationOn ? t('mesh.compensation_on') : t('mesh.compensation_off') }}
 			</v-chip>
-			<v-btn small outlined :disabled="!canWrite || !compensationOn || busy" @click="$emit('clear')">
-				<v-icon small left>mdi-close</v-icon>{{ t('mesh.clear') }}
-			</v-btn>
+			<wf-action-button :action="acts.clear" danger :label="t('mesh.clear')" :arm-label="t('mesh.clear_confirm')" :disabled="!canWrite || !compensationOn || busy" @run="$emit('clear')" />
 		</div>
 		<div v-if="unavailable" class="text-body-2 machine-faint">{{ t('mesh.no_service_meshes') }}</div>
 		<div v-else-if="!meshes.length" class="text-body-2 machine-faint">{{ t('mesh.library_empty') }}</div>
@@ -20,7 +18,7 @@
 					<td class="text-caption machine-faint">{{ m.user }}</td>
 					<td class="text-right">
 						<v-btn x-small text :disabled="busy" @click="$emit('show', m.id)">{{ t('mesh.show') }}</v-btn>
-						<v-btn x-small text color="primary" :disabled="!canWrite || busy || m.active" @click="$emit('load', m.id)">{{ t('mesh.load') }}</v-btn>
+						<wf-action-button variant="text" :action="loadingId === m.id ? acts.load : null" :label="t('mesh.load')" :disabled="!canWrite || busy || m.active" @run="$emit('load', m.id)" />
 					</td>
 				</tr>
 			</tbody>
@@ -29,17 +27,16 @@
 		<template v-if="canWrite">
 			<div class="d-flex align-start flex-wrap mt-3" style="gap:8px">
 				<v-text-field v-model="name" :label="t('mesh.save_name')" dense outlined hide-details="auto" style="max-width:240px" :error-messages="nameError" />
-				<v-btn small color="primary" :disabled="busy || !nameCheck.ok" @click="$emit('save', nameCheck.name)">
-					<v-icon small left>mdi-content-save</v-icon>{{ t('mesh.save') }}
-				</v-btn>
+				<wf-action-button :action="acts.save" main :label="t('mesh.save')" :disabled="busy || !nameCheck.ok" @run="$emit('save', nameCheck.name)" />
 			</div>
 			<div class="d-flex align-start flex-wrap mt-3" style="gap:8px">
 				<v-text-field v-model="taper" :label="t('mesh.taper')" type="number" dense outlined hide-details="auto" style="max-width:160px" :error-messages="taperError" />
-				<v-btn small outlined :disabled="busy || !taperCheck.ok" @click="$emit('taper', taperCheck.height)">{{ t('mesh.taper_apply') }}</v-btn>
+				<wf-action-button :action="acts.taper" :label="t('mesh.taper_apply')" :disabled="busy || !taperCheck.ok" @run="$emit('taper', taperCheck.height)" />
 			</div>
 			<div class="text-caption machine-faint mt-1">{{ t('mesh.taper_hint') }}</div>
 		</template>
-		<div v-if="notice" class="text-body-2 success--text mt-2">{{ notice }}</div>
+		<!-- what happened to each write: the family line (empty when idle); `error` is a failure of a READ (the list, a mesh to show) -->
+		<wf-result v-for="k in ['load', 'clear', 'save', 'taper']" :key="k" :action="acts[k]" :retry="false" class="mt-2" />
 		<div v-if="error" class="text-body-2 error--text mt-2">{{ error }}</div>
 	</div>
 </template>
@@ -54,9 +51,11 @@
 import { textMixin } from './text-mixin.js'
 import { saveName, taperParams } from '../lib/mesh-grid.js'
 import LockReason from '../LockReason.vue' // vue/_shared36
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
+import WfResult from '../WfResult.vue' // vue/_shared36
 
 export default {
-	components: { LockReason },
+	components: { LockReason, WfActionButton, WfResult },
 	mixins: [textMixin],
 	props: {
 		meshes: { type: Array, default: () => [] },
@@ -64,7 +63,8 @@ export default {
 		canWrite: { type: Boolean, default: false },
 		busy: { type: Boolean, default: false },
 		unavailable: { type: Boolean, default: false }, // the service does not have the library yet
-		notice: { type: String, default: '' },
+		acts: { type: Object, default: () => ({ load: null, clear: null, save: null, taper: null }) }, // { load, clear, save, taper }: createAction of each write (MeshModule owns them)
+		loadingId: { type: String, default: '' }, // the mesh of the row whose Load was touched last (that row shows the state)
 		error: { type: String, default: '' }
 	},
 	data() {

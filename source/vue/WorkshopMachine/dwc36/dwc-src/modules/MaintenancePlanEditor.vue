@@ -15,7 +15,7 @@
 			<v-btn small outlined @click="add()"><v-icon small left>mdi-plus</v-icon>{{ t('maintenance.add') }}</v-btn>
 			<v-spacer />
 			<v-btn small text :disabled="state.saving" @click="$emit('cancel')">{{ t('maintenance.cancel') }}</v-btn>
-			<v-btn small color="primary" :disabled="!saveReady" :loading="state.saving" @click="$emit('save')">{{ t('maintenance.save_plan') }}</v-btn>
+			<wf-action-button :action="action" main :label="t('maintenance.save_plan')" :disabled="!saveReady" @run="$emit('save')" />
 		</div>
 	</div>
 </template>
@@ -25,13 +25,16 @@
 
 // The plan editor: one row per item (the whole plan is sent at once), the opt-in phone notice; the checks mirror the service's and are shown when saving.
 
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
 import { textMixin } from './text-mixin.js'
 import { addDraft, removeDraft, canSave } from '../state/maintenance-state.js'
 import { UNITS, BASES, AXES, errorKey } from '../lib/maintenance-plan.js'
 
 export default {
+	components: { WfActionButton },
 	mixins: [textMixin],
 	props: {
+		action: { type: Object, default: null }, // createAction of the Save (workshop-action.js)
 		state: { type: Object, required: true } // the state of state/maintenance-state.js (drafts are edited in place)
 	},
 	computed: {

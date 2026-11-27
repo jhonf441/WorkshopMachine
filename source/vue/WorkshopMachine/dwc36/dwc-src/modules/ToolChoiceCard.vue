@@ -22,7 +22,7 @@ export default {
 .toolwiz-cards--wide { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); grid-auto-rows: auto; }
 .toolwiz-cards--compact { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
 .toolwiz-card { box-sizing: border-box; min-width: 0; min-height: 88px; padding: 12px; display: flex; flex-direction: column; justify-content: center; }
-.toolwiz-cards--compact .toolwiz-card { min-height: 44px; align-items: center; }
+.toolwiz-cards--compact .toolwiz-card { min-height: var(--wf-hit, 40px); align-items: center; }
 .toolwiz-card--click { cursor: pointer; }
 .toolwiz-clamp-1, .toolwiz-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .toolwiz-clamp-1 { -webkit-line-clamp: 1; }

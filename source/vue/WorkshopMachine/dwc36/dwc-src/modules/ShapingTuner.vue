@@ -12,14 +12,14 @@
 			<run-start v-if="canRun" class="mt-3" :allowed="canRun" :checks="['homed', 'clear', 'bed', 'estop']" :busy="!startAllowed" :starting="rs.status === 'starting'" :label="t('shaping.tuner_start')" @start="start(kind, params())" />
 			<lock-reason v-else :ops="accessOps.run" min="technician" class="mt-2" :subject="$t('plugins.WorkshopMachine.subjects.shaping_tuner')" />
 			<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
-			<v-card v-if="tuning" outlined class="mt-3">
-				<v-card-text>
+			<div v-if="tuning" class="wf-group mt-3">
+				<div>
 					<div class="text-body-2">{{ t('shaping.tuner_result', { axis: tuning.axis, samples: tuning.samples === null ? '-' : tuning.samples, moves: tuning.moves === null ? '-' : tuning.moves }) }}</div>
 					<div class="text-body-2 mt-1">{{ t('shaping.tuner_folder', { folder: tuning.folder || '-' }) }}</div>
 					<div class="text-caption machine-faint mt-1">{{ t('shaping.tuner_next') }}</div>
 					<pre v-if="tuning.report" class="tuner-report">{{ tuning.report }}</pre>
-				</v-card-text>
-			</v-card>
+				</div>
+			</div>
 		</template>
 	</div>
 </template>

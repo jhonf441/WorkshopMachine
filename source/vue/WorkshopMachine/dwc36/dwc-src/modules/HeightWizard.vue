@@ -17,7 +17,7 @@
 				</template>
 				<template v-else-if="s === 'lower'">
 					<div class="d-flex flex-wrap" style="gap:6px">
-						<v-btn v-for="d in steps_dz" :key="d" small outlined :disabled="busy" style="min-width:56px;min-height:44px" @click="jog(d)">{{ (d > 0 ? '+' : '') + d }}</v-btn>
+						<v-btn v-for="d in steps_dz" :key="d" small outlined :disabled="busy" style="min-width:48px" @click="jog(d)">{{ (d > 0 ? '+' : '') + d }}</v-btn>
 					</div>
 					<v-btn color="primary" small class="mt-2" :disabled="busy" @click="mark()">{{ t(kind === 'k0' ? 'height.mark_k0' : 'height.mark_paper', { paper: paper }) }}</v-btn>
 				</template>
@@ -27,7 +27,7 @@
 				<template v-else>
 					<div class="text-body-2 mb-1">{{ t('height.measured_text', { med: measured, prev: prevText, mode: view.mode }) }}</div>
 					<v-alert v-if="shift.suspicious" dense outlined type="warning" class="mb-2">{{ t('height.shift_warning', { d: shift.diff }) }}</v-alert>
-					<v-btn color="primary" small :disabled="busy" @click="$emit('save-k0', record)">{{ t('height.save_k0') }}</v-btn>
+					<wf-action-button :action="action" main :label="t('height.save_k0')" :disabled="busy" @run="$emit('save-k0', record)" />
 				</template>
 			</div>
 		</div>
@@ -43,13 +43,16 @@
 // trigger height) and paper (the same without the probe). Every movement is one step of the service (machine.height.step: reserved, refused during a
 // job); the numbers and the decisions are in lib/height.js.
 
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
 import { textMixin } from './text-mixin.js'
 import { messageOf } from '../lib/refusal.js'
 import { WIZARD_STEPS, JOG_STEPS, MARK_HEIGHT, clampPoint, k0Record, triggerShift, todayText } from '../lib/height.js'
 
 export default {
+	components: { WfActionButton },
 	mixins: [textMixin],
 	props: {
+		action: { type: Object, default: null }, // createAction of the save (HeightModule owns it; its line is under the page)
 		api: { type: Object, required: true },
 		kind: { type: String, required: true }, // 'k0' | 'paper'
 		view: { type: Object, required: true }, // lib/height.js modeView

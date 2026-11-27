@@ -92,7 +92,7 @@ function cellItems(spec, tr, stats, sc, items) {
 				lineWidth: hover || out ? 2 : 1, dash: out ? [4, 3] : null, cell: { i, j, outOfTolerance: out }
 			})
 			if (spec.showValues && z !== null && b.x - a.x >= 38 && b.y - a.y >= 18) {
-				items.push({ t: 'text', x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, text: formatMm(z), align: 'center', color: textOn(fill), size: 11 })
+				items.push({ t: 'text', x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, text: formatMm(z), align: 'center', color: textOn(fill), size: 12 })
 			}
 		}
 	}
@@ -109,7 +109,7 @@ function pointItems(spec, tr, items) {
 	;(spec.markers || []).forEach(m => {
 		const c = tr.toCanvas(m.x, m.y)
 		items.push({ t: 'circle', x: c.x, y: c.y, r: 5, fill: null, stroke: spec.palette.region })
-		if (m.label) items.push({ t: 'text', x: c.x + 8, y: c.y - 8, text: m.label, align: 'left', color: spec.palette.text, size: 11 })
+		if (m.label) items.push({ t: 'text', x: c.x + 8, y: c.y - 8, text: m.label, align: 'left', color: spec.palette.text, size: 12 })
 	})
 }
 
@@ -134,8 +134,8 @@ export function renderBed(spec) {
 		items.push({ t: 'rect', x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y, fill: null, stroke: pal.region, lineWidth: 2, dash: [6, 4] })
 	}
 	pointItems(full, tr, items)
-	items.push({ t: 'text', x: tr.rect.x, y: tr.rect.y + tr.rect.h + 12, text: 'X ' + spec.bed.xmin + ' .. ' + spec.bed.xmax, align: 'left', color: pal.text, size: 11 })
-	items.push({ t: 'text', x: tr.rect.x, y: tr.rect.y - 6, text: 'Y ' + spec.bed.ymin + ' .. ' + spec.bed.ymax, align: 'left', color: pal.text, size: 11 })
+	items.push({ t: 'text', x: tr.rect.x, y: tr.rect.y + tr.rect.h + 12, text: 'X ' + spec.bed.xmin + ' .. ' + spec.bed.xmax, align: 'left', color: pal.text, size: 12 })
+	items.push({ t: 'text', x: tr.rect.x, y: tr.rect.y - 6, text: 'Y ' + spec.bed.ymin + ' .. ' + spec.bed.ymax, align: 'left', color: pal.text, size: 12 })
 	return { width: spec.size.w, height: spec.size.h, items, legend, stats, transform: tr }
 }
 

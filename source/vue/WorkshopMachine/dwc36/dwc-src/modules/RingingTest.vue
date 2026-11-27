@@ -12,7 +12,7 @@
 			<v-btn small color="primary" :loading="loading" @click="generate()">{{ t('shaping.ringing_generate') }}</v-btn>
 		</div>
 		<lock-reason v-else :ops="accessOps.shapingTest" min="technician" class="mt-3" :subject="$t('plugins.WorkshopMachine.subjects.ringing_test')" />
-		<error-notice :error="error" />
+		<section-notice :error="error" />
 		<gcode-block v-if="test" class="mt-3" :title="t('shaping.ringing_gcode')" :text="test.gcode" />
 		<div class="text-body-2 font-weight-medium mt-4">{{ t('shaping.ringing_measure') }}</div>
 		<div class="d-flex flex-wrap align-center mt-2" style="gap:12px">
@@ -32,7 +32,7 @@
 // The ringing test of the input shaping module: the G-code comes from the service (machine.shaping.test, TEXT ONLY: shown and copied, never
 // sent to the board), and the frequency is computed from the ripples the person counts on the part. Pure logic in lib/ringing.js.
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import GcodeBlock from './GcodeBlock.vue'
 import { textMixin } from './text-mixin.js'
 import { AXES_CHOICES, ringingFrequency, testOptions, RIPPLES } from '../lib/ringing.js'
@@ -40,7 +40,7 @@ import { fieldInvalid, fieldMessage, blockKey } from '../lib/number-field.js'
 import LockReason from '../LockReason.vue' // vue/_shared36
 
 export default {
-	components: { LockReason, ErrorNotice, GcodeBlock },
+	components: { LockReason, SectionNotice, GcodeBlock },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true },

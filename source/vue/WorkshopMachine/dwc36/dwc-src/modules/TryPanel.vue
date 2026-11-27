@@ -1,7 +1,7 @@
 <template>
-	<v-card outlined class="try-panel">
-		<v-card-title class="text-subtitle-1 pb-0">{{ t('try.title') }}</v-card-title>
-		<v-card-text>
+	<div class="wf-group try-panel">
+		<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ t('try.title') }}</div>
+		<div>
 			<p class="text-body-2 machine-faint">{{ t('try.intro') }}</p>
 			<template v-if="state.status === 'pending' || state.status === 'finishing'">
 				<v-alert dense outlined type="warning" class="mb-2">
@@ -11,12 +11,8 @@
 				<div class="text-body-2 mb-1">{{ t('try.values', { applied: pairs(state.trial.applied), previous: pairs(state.trial.previous) }) }}</div>
 				<div v-if="state.trial.user" class="text-caption machine-faint mb-2">{{ t('try.by', { user: state.trial.user }) }}</div>
 				<div class="d-flex flex-wrap" style="gap:8px">
-					<v-btn color="primary" :disabled="!keepAllowed || state.status === 'finishing'" :loading="state.status === 'finishing'" @click="$emit('keep')">
-						<v-icon left>mdi-check</v-icon>{{ t('try.keep') }}
-					</v-btn>
-					<v-btn color="error" outlined :disabled="!keepAllowed || state.status === 'finishing'" @click="$emit('revert')">
-						<v-icon left>mdi-undo</v-icon>{{ t('try.revert') }}
-					</v-btn>
+					<wf-action-button :action="finishAct" main :label="t('try.keep')" :disabled="!keepAllowed" @run="$emit('keep')" />
+					<wf-action-button :action="finishAct" :label="t('try.revert')" :disabled="!keepAllowed" @run="$emit('revert')" />
 				</div>
 				<div class="text-caption machine-faint mt-2">{{ t('try.keep_hint') }}</div>
 			</template>
@@ -33,15 +29,14 @@
 			<v-alert v-if="state.status === 'done' && state.outcome" dense outlined :type="state.outcome === 'kept' ? 'success' : 'info'" class="mt-2 mb-0">
 				{{ t('try.done_' + state.outcome) }}
 				<div v-if="state.persist && canPersist" class="mt-2">
-					<v-btn small color="primary" @click="$emit('persist')"><v-icon small left>mdi-content-save-outline</v-icon>{{ t('try.persist') }}</v-btn>
+					<wf-action-button :action="null" main :label="t('try.persist')" @run="$emit('persist')" />
 				</div>
 			</v-alert>
-			<v-alert v-if="state.error" dense outlined type="error" class="mt-2 mb-0">
-				{{ t(state.error.key) }}<span v-if="state.error.detail"> ({{ state.error.detail }})</span>
-			</v-alert>
+			<!-- a failure of start, keep or revert: the family line next to the controls (a failed keep leaves the trial waiting and the controls on) -->
+			<wf-result v-if="state.error" :action="failAct" :retry="false" class="mt-2" />
 			<v-btn v-if="state.status === 'done' || state.status === 'error'" small text class="mt-1" @click="$emit('reset')">{{ t('plan.close') }}</v-btn>
-		</v-card-text>
-	</v-card>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -51,11 +46,14 @@
 // person presses keep. The state is state/try-state.js; this component keeps none of its own. The remaining time comes from `now`
 // (seconds, ticks every second in the shell) against the expiry the service gave.
 
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
+import WfResult from '../WfResult.vue' // vue/_shared36
 import { textMixin } from './text-mixin.js'
 import { remainingSeconds, remainingFraction, canKeep, canStart } from '../state/try-state.js'
 import { TRY_SECONDS } from '../api/machine-api-p3.js'
 
 export default {
+	components: { WfActionButton, WfResult },
 	mixins: [textMixin],
 	props: {
 		state: { type: Object, required: true }, // createTryState()
@@ -76,6 +74,14 @@ export default {
 		percent() {
 			const f = remainingFraction(this.state, this.now)
 			return f === null ? 100 : Math.round(f * 100)
+		},
+		// the trial state read as the state of a write (WfActionButton / WfResult read `state`, `error`, `text`): finishing = sending
+		finishAct() {
+			return { state: this.state.status === 'finishing' ? 'sending' : 'idle', error: null, text: '' }
+		},
+		failAct() {
+			const e = this.state.error
+			return { state: e ? 'error' : 'idle', error: e ? { code: 'internal', message: this.t(e.key) + (e.detail ? ' (' + e.detail + ')' : '') } : null, text: '' }
 		},
 		keepAllowed() {
 			return canKeep(this.state, this.roleOk)

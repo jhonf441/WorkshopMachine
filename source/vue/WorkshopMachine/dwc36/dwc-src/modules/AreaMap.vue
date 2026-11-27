@@ -80,5 +80,5 @@ export default {
 <style>
 .area-saved .bedv-region-body { stroke: var(--bv-ok); fill: var(--bv-ok); fill-opacity: 0.08; pointer-events: none; }
 .bedv .area-mark circle { fill: #e65100; stroke: #fff; stroke-width: 1.5; }
-.bedv .area-mark text { fill: #fff; font-size: 11px; font-weight: 700; pointer-events: none; }
+.bedv .area-mark text { fill: #fff; font-size: 12px; font-weight: 700; pointer-events: none; }
 </style>

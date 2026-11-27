@@ -126,11 +126,11 @@ export default {
 .report-meta, .report-table { border-collapse: collapse; width: 100%; margin: 6px 0; }
 .report-meta th, .report-meta td, .report-table th, .report-table td { border: 1px solid #bbbbbb; padding: 3px 6px; text-align: left; font-weight: normal; }
 .report-meta th, .report-table th { background: #f0f0f0; font-weight: 600; }
-.report-path { font-family: monospace; font-size: 11px; }
+.report-path { font-family: monospace; font-size: 12px; }
 .report-note { color: #555555; margin: 2px 0; }
 .report-verdict { font-weight: 600; margin: 4px 0; }
 .report-figure { margin: 8px 0; max-width: 520px; }
-.report-figure figcaption { font-size: 11px; color: #555555; }
+.report-figure figcaption { font-size: 12px; color: #555555; }
 .report-sign { display: flex; gap: 40px; margin-top: 48px; }
 .report-sign-line { flex: 1; border-top: 1px solid #111111; padding-top: 4px; font-size: 12px; }
 @media print {

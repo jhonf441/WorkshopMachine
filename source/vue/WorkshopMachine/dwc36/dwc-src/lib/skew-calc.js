@@ -30,7 +30,7 @@ export function testSquareGcode(pair, side, feed) {
 	const a = p.axes[0]
 	const b = p.axes[1]
 	const f = Math.round(numOf(feed) > 0 ? numOf(feed) : 1500)
-	// S0: a G1 written here may be run in Laser mode, where S would be the laser power (CLAUDE.md: every new G1 carries S0)
+	// S0: a G1 written here may be run in Laser mode, where S would be the laser power (project rule: every new G1 carries S0)
 	const g = (x, y) => 'G1 ' + a + round(x) + ' ' + b + round(y) + ' F' + f + ' S0'
 	return [
 		'; square ' + s + ' mm in ' + a + b + ', then both diagonals (tool down at the start of each line)',

@@ -1,6 +1,6 @@
 <template>
-	<v-card outlined class="probe-result">
-		<v-card-text>
+	<div class="wf-group probe-result">
+		<div>
 			<!-- traffic light: colour + icon + words -->
 			<div class="d-flex align-center flex-wrap" style="gap:8px">
 				<v-chip :color="view.color" dark>
@@ -22,8 +22,8 @@
 					<circle v-for="(p, i) in chart.points" :key="i" :cx="p.x" :cy="p.y" r="2.5" fill="currentColor" />
 				</svg>
 			</div>
-		</v-card-text>
-	</v-card>
+		</div>
+	</div>
 </template>
 
 <script>

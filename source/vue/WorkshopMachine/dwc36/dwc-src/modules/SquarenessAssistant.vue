@@ -9,15 +9,15 @@
 		</div>
 		<gcode-block class="mt-3" :title="t('calibration.skew_test')" :text="gcode" />
 		<v-alert v-if="result.errorKey && !fieldError(result.errorKey)" dense outlined type="warning" class="mt-3">{{ t(result.errorKey) }}</v-alert>
-		<v-card v-if="result.formula" outlined class="mt-3">
-			<v-card-text>
+		<div v-if="result.formula" class="wf-group mt-3">
+			<div>
 				<div class="text-body-2">{{ t('calibration.skew_formula', result.formula) }}</div>
 				<div class="text-body-2 mt-1">{{ t('calibration.skew_angle', { deg: result.deg }) }}</div>
 				<div class="text-subtitle-1 mt-1">{{ t('calibration.skew_new', { line: result.line }) }}</div>
 				<v-alert v-if="result.bigSkew && result.ok" dense outlined type="warning" class="mt-2 mb-0">{{ t('calibration.skew_big') }}</v-alert>
 				<div class="text-caption machine-faint mt-1">{{ t('calibration.skew_sign') }}</div>
-			</v-card-text>
-		</v-card>
+			</div>
+		</div>
 		<div class="d-flex align-center flex-wrap mt-3" style="gap:8px">
 			<v-btn small color="primary" :disabled="!result.ok || flowBusy" @click="review()">{{ t('calibration.review') }}</v-btn>
 			<span class="text-caption machine-faint">{{ t('calibration.skew_hint') }}</span>

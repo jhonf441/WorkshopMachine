@@ -21,11 +21,14 @@
 		<div v-for="p in shownProblems" :key="p" class="text-caption error--text mt-1">{{ t(p, { min: minMm, reach: reachText }) }}</div>
 		<div v-if="dirty && !problems.length" class="text-caption machine-faint mt-1">{{ t('workarea.unsaved') }}</div>
 		<div v-if="canWrite" class="d-flex align-center flex-wrap mt-3" style="gap:8px">
-			<v-btn small color="primary" :disabled="!valid || !dirty || busy" :loading="working === 'save'" @click="$emit('save')">{{ t('workarea.save') }}</v-btn>
+			<!-- the two writes of the page: the family control and, next to it, what happened (the remove asks a double touch) -->
+			<wf-action-button :action="saveAct" main :label="t('workarea.save')" :disabled="!valid || !dirty || busy" @run="$emit('save')" />
 			<v-btn small text :disabled="!dirty || busy" @click="$emit('undo')">{{ t('workarea.undo') }}</v-btn>
 			<v-spacer />
-			<v-btn small outlined color="error" :disabled="!saved || busy" :loading="working === 'remove'" @click="$emit('remove')">{{ t('workarea.remove') }}</v-btn>
+			<wf-action-button :action="removeAct" danger :label="t('workarea.remove')" :arm-label="t('workarea.remove_confirm')" :disabled="!saved || busy" @run="$emit('remove')" />
 		</div>
+		<wf-result v-if="saveAct" :action="saveAct" class="mt-2" />
+		<wf-result v-if="removeAct" :action="removeAct" class="mt-2" />
 	</div>
 </template>
 
@@ -34,13 +37,18 @@
 
 // The numbers of the area of one mode: four boxes (X and Y, minimum and maximum), what is wrong with them and the buttons that save, undo or remove.
 
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
+import WfResult from '../WfResult.vue' // vue/_shared36
 import { textMixin } from './text-mixin.js'
 import { sizeOf } from '../lib/workarea.js'
 import { numberOf, blockExponent } from '../lib/number-field.js'
 
 export default {
+	components: { WfActionButton, WfResult },
 	mixins: [textMixin],
 	props: {
+		saveAct: { type: Object, default: null }, // createAction of the Save (workshop-action.js)
+		removeAct: { type: Object, default: null }, // and of the Remove (double touch)
 		mode: { type: String, required: true },
 		draft: { type: Object, required: true }, // {xMin, xMax, yMin, yMax} as text
 		saved: { type: Object, default: null }, // the saved rectangle of the mode or null

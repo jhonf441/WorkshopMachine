@@ -1,8 +1,7 @@
 <template>
 	<div class="power-module">
-		<div class="text-h6 mb-1">{{ t('power.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('power.intro') }}</p>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<card-head icon="mdi-flash-alert-outline" :title="t('power.title')" />
+		<section-notice :error="loadError" retry @retry="load()" />
 		<v-alert v-if="view" dense outlined :type="{ ok: 'success', warn: 'warning', info: 'info' }[state.level]" class="mb-3">{{ t(state.textKey) }}</v-alert>
 		<template v-if="view && view.m911">
 			<div class="text-subtitle-1 mb-1">{{ t('power.line_title') }}</div>
@@ -50,11 +49,13 @@
 							<v-checkbox v-for="k in ackKeys" :key="k" v-model="ack[k]" dense hide-details class="mt-0" :label="t('power.ack_' + k)" :disabled="!canResume" />
 						</div>
 						<div class="d-flex align-center flex-wrap" style="gap:8px">
-							<v-btn small :color="armed ? 'error' : 'primary'" :disabled="!canResume || !!resumeWhy || resuming" @click="resumeTap()"><v-icon small left>mdi-play-circle-outline</v-icon>{{ t(armed ? 'power.resume_confirm' : 'power.resume_btn') }}</v-btn>
+							<!-- the machine RUNS the prologue and the job: a write of the family (workshop-action.js), a double touch of 4000 ms, ONE request -->
+							<wf-action-button :action="resumeAction" main :label="t('power.resume_btn')" :arm-label="t('power.resume_confirm')" :disabled="!canResume || !!resumeWhy" @run="resumeAction.run({})" />
 							<span v-if="canResume && resumeWhy" class="text-caption machine-faint">{{ t(resumeWhy) }}</span>
 							<lock-reason v-if="!canResume" :ops="accessOps.resume" min="technician" :subject="$t('plugins.WorkshopMachine.subjects.power_resume')" />
 						</div>
-						<error-notice :error="resumeError" />
+						<wf-result v-if="resumeAction.state !== 'error'" :action="resumeAction" class="mt-2" />
+						<section-notice :error="resumeAction.error" />
 						<v-alert v-if="resumeSent" dense outlined type="success" class="mt-2 mb-0">{{ t('power.resume_sent') }}</v-alert>
 					</div>
 				</template>
@@ -84,6 +85,7 @@
 			</div>
 			<plan-review v-if="ps.status !== 'idle'" class="mt-3" :state="ps" :title="t(planFor === 'prologue' ? 'power.prologue_plan_title' : 'power.plan_title')" :role-ok="planFor === 'prologue' ? canCreate : canEdit" @apply="applyPlan()" @reset="flow.reset()" />
 		</template>
+		<help-fold :title="t('power.title')" class="mt-4">{{ t('power.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -95,7 +97,7 @@
 // and the content; the two voltages are edited through a plan (admin only: `canEdit`) and a missing prologue is created through a plan (`canCreate`, admin).
 // The server enforces both.
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import PlanReview from './PlanReview.vue'
 import { textMixin } from './text-mixin.js'
 import { createPlanFlow } from '../state/plan-flow.js'
@@ -103,10 +105,15 @@ import { isWorking } from '../state/plan-state.js'
 import { KIND_POWER, KIND_PROLOGUE, POWER_RANGE, ACK_KEYS, powerDraft, powerChange, powerState, fileLines, prologueFacts, resumeRows, resumeBlock } from '../lib/power.js'
 import RoleNote from './RoleNote.vue'
 import LockReason from '../LockReason.vue' // vue/_shared36
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36 (FASE2)
+import WfResult from '../WfResult.vue' // vue/_shared36 (FASE2)
+import { createAction } from '../workshop-action.js' // vue/_shared36 (FASE2)
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
 	mixins: [textMixin],
-	components: { RoleNote, LockReason, ErrorNotice, PlanReview },
+	components: { CardHead, HelpFold, RoleNote, LockReason, SectionNotice, PlanReview, WfActionButton, WfResult },
 	props: {
 		api: { type: Object, required: true },
 		canEdit: { type: Boolean, default: false }, // admin (workshopCan): the two voltages
@@ -114,7 +121,7 @@ export default {
 		canResume: { type: Boolean, default: false } // technician: resumes the interrupted job (the service checks again)
 	},
 	data() {
-		return { view: null, loadError: null, draft: { s: '', r: '' }, ps: null, flow: null, range: POWER_RANGE, show: { resurrect: false, prologue: false }, planFor: 'm911', ackKeys: ACK_KEYS, ack: { piece: false, tool: false, area: false }, armed: false, resuming: false, resumeError: null, resumeSent: false, armTimer: null }
+		return { view: null, loadError: null, draft: { s: '', r: '' }, ps: null, flow: null, range: POWER_RANGE, show: { resurrect: false, prologue: false }, planFor: 'm911', ackKeys: ACK_KEYS, ack: { piece: false, tool: false, area: false }, resumeSent: false }
 	},
 	computed: {
 		state() {
@@ -151,13 +158,29 @@ export default {
 	},
 	watch: {
 		// whatever changes in the list or the acknowledgements disarms the button
-		ack: { deep: true, handler() { this.disarm() } },
-		resumeWhy() { this.disarm() }
+		ack: { deep: true, handler() { this.resumeAction.cancel() } },
+		resumeWhy() { this.resumeAction.cancel() }
 	},
 	created() {
 		this.flow = createPlanFlow({ apply: plan => this.api.config.apply(plan.id, plan.kind) })
 		this.ps = this.flow.state
+		// the job resumes: ONE write of the family, armed by a double touch (4000 ms); the service checks again and the page reads the files again
+		this.resumeAction = createAction({
+			arm: 'double',
+			run: async () => {
+				if (this.resumeWhy) throw Object.assign(new Error(this.t(this.resumeWhy)), { code: 'blocked' })
+				this.resumeSent = false
+				await this.api.power.resume(Object.assign({}, this.ack))
+				this.resumeSent = true
+				ACK_KEYS.forEach(k => { this.ack[k] = false })
+				await this.load()
+				return {}
+			}
+		})
 		this.load()
+	},
+	beforeDestroy() {
+		this.resumeAction.dispose()
 	},
 	methods: {
 		async load() {
@@ -177,34 +200,6 @@ export default {
 		proposePrologue() {
 			this.planFor = 'prologue'
 			return this.flow.propose(async () => ({ plan: await this.api.config.plan(KIND_PROLOGUE, {}), conflict: null }))
-		},
-		disarm() {
-			this.armed = false
-			if (this.armTimer) clearTimeout(this.armTimer)
-			this.armTimer = null
-		},
-		// the first tap arms the button for five seconds; the second one sends
-		async resumeTap() {
-			if (this.resumeWhy || this.resuming) return
-			if (!this.armed) {
-				this.armed = true
-				this.armTimer = setTimeout(() => this.disarm(), 5000)
-				return
-			}
-			this.disarm()
-			this.resuming = true
-			this.resumeError = null
-			this.resumeSent = false
-			try {
-				await this.api.power.resume(Object.assign({}, this.ack))
-				this.resumeSent = true
-				ACK_KEYS.forEach(k => { this.ack[k] = false })
-				await this.load()
-			} catch (e) {
-				this.resumeError = e
-			} finally {
-				this.resuming = false
-			}
 		},
 		async applyPlan() {
 			await this.flow.apply(this.planFor === 'prologue' ? this.canCreate : this.canEdit)

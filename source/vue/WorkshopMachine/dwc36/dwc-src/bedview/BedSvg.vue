@@ -31,6 +31,8 @@ export default {
 		offset: { type: Object, default: null },
 		anchor: { type: Object, default: null },
 		include: { type: Array, default: () => [] }, // [{x, y}] mm drawn outside the bed (the Z motors): the margin grows to hold them
+		gridStep: { type: Number, default: 0 }, // mm between the ticks (0 = a nice step by size); the levelling bed asks 100
+		maxHeight: { type: Number, default: 0 }, // px, 0 = the default (a bit over the width)
 		label: { type: String, default: '' }
 	},
 	data() {
@@ -38,7 +40,7 @@ export default {
 	},
 	computed: {
 		frame() {
-			return this.bed.xmax > this.bed.xmin && this.bed.ymax > this.bed.ymin ? makeFrame(this.bed, this.width, { include: this.include }) : null
+			return this.bed.xmax > this.bed.xmin && this.bed.ymax > this.bed.ymin ? makeFrame(this.bed, this.width, { include: this.include, stepMm: this.gridStep, maxHeight: this.maxHeight || undefined }) : null
 		}
 	},
 	mounted() {
@@ -72,13 +74,16 @@ export default {
 .bedv { width: 100%; --bv-limits: #2f3b41; --bv-line: #78909c; --bv-grid: rgba(255, 255, 255, 0.09); --bv-text: #eceff1; --bv-faint: #b0bec5; --bv-ok: #a5d6a7; --bv-warn: #ffa726; --bv-bad: #ef9a9a; --bv-info: #64b5f6; --bv-region: #ffd54f; --bv-card: #263238; }
 .theme--light .bedv { --bv-limits: #f5f7f8; --bv-line: #546e7a; --bv-grid: rgba(0, 0, 0, 0.09); --bv-text: #212121; --bv-faint: #616161; --bv-ok: #2e7d32; --bv-warn: #b26a00; --bv-bad: #c62828; --bv-info: #1565c0; --bv-region: #8d6e00; --bv-card: #ffffff; }
 .bedv-svg { display: block; max-width: 100%; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
-.bedv text { fill: var(--bv-text); font-size: 11px; }
+.bedv text { fill: var(--bv-text); font-size: 12px; }
 .bedv-limits { fill: var(--bv-limits); }
 .bedv-limits-line { fill: none; stroke: var(--bv-line); stroke-width: 2; }
+/* the measured frame around the bed when the Z motors sit past the axis limits: a faint area with a thin edge, the bed stands out inside it */
+.bedv-view { fill: var(--bv-limits); fill-opacity: 0.35; }
+.bedv-view-line { fill: none; stroke: var(--bv-line); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.7; }
 .bedv-grid line { stroke: var(--bv-grid); stroke-width: 1; }
-.bedv-ticks text, .bedv-axes text, .bedv-scale text { fill: var(--bv-faint); font-size: 10px; }
+.bedv-ticks text, .bedv-axes text, .bedv-scale text { fill: var(--bv-faint); font-size: 12px; }
 .bedv-reach { fill: none; stroke: var(--bv-info); stroke-width: 1.5; stroke-dasharray: 7 4; }
-.bedv .bedv-reach-label { fill: var(--bv-info); font-size: 10px; }
+.bedv .bedv-reach-label { fill: var(--bv-info); font-size: 12px; }
 .bedv-axes line, .bedv-scale line { stroke: var(--bv-faint); stroke-width: 1.5; }
 .bedv-origin circle { fill: none; stroke: var(--bv-faint); stroke-width: 1.5; }
 .bedv-offset line { stroke: var(--bv-info); stroke-width: 2; }
@@ -99,7 +104,7 @@ export default {
 .bedv-job-handle { fill: var(--bv-card); stroke: var(--bv-info); stroke-width: 2; }
 .bedv-job-box:focus { outline: none; }
 .bedv-job-box:focus .bedv-job-handle { stroke-width: 4; }
-.bedv .bedv-job-label { fill: var(--bv-text); font-size: 11px; font-weight: 700; pointer-events: none; }
+.bedv .bedv-job-label { fill: var(--bv-text); font-size: 12px; font-weight: 700; pointer-events: none; }
 .bedv-ring-tol { fill: none; stroke: var(--bv-text); stroke-width: 1.5; stroke-dasharray: 3 2; }
 .bedv-point:focus .bedv-ring, .bedv-sel .bedv-ring { stroke: var(--bv-text); stroke-width: 2.5; fill: none; }
 .bedv-st-measure { fill: var(--bv-ok); stroke: var(--bv-ok); }
@@ -108,12 +113,12 @@ export default {
 .bedv-st-unknown, .bedv-st-missing, .bedv-st-duplicate { fill: none; stroke: var(--bv-faint); stroke-width: 2; stroke-dasharray: 3 2; }
 .bedv-st-measured { stroke: var(--bv-text); stroke-width: 1.5; }
 .bedv-mark { stroke: var(--bv-bad); stroke-width: 2; fill: none; }
-.bedv .bedv-order { fill: var(--bv-card); font-size: 10px; font-weight: 700; pointer-events: none; }
-.bedv .bedv-order-out { fill: var(--bv-text); font-size: 10px; pointer-events: none; }
+.bedv .bedv-order { fill: var(--bv-card); font-size: 12px; font-weight: 700; pointer-events: none; }
+.bedv .bedv-order-out { fill: var(--bv-text); font-size: 12px; pointer-events: none; }
 .bedv-path { fill: none; stroke: var(--bv-faint); stroke-width: 1.5; stroke-opacity: 0.55; stroke-dasharray: 2 4; }
 .bedv-region-body { fill: var(--bv-region); fill-opacity: 0.1; stroke: var(--bv-region); stroke-width: 2; stroke-dasharray: 7 4; }
 .bedv-accepted rect { fill: none; stroke: var(--bv-ok); stroke-width: 2; pointer-events: none; }
-.bedv .bedv-accepted text { fill: var(--bv-ok); font-size: 10px; pointer-events: none; }
+.bedv .bedv-accepted text { fill: var(--bv-ok); font-size: 12px; pointer-events: none; }
 .bedv-handle { fill: var(--bv-card); stroke: var(--bv-region); stroke-width: 2; }
 .bedv-handle-box:focus { outline: none; }
 .bedv-handle-box:focus .bedv-handle { stroke-width: 4; fill: var(--bv-region); }
@@ -126,5 +131,5 @@ export default {
 .bedv .bedv-corr-label { font-weight: 700; }
 .bedv .bedv-t-raise { fill: var(--bv-ok); }
 .bedv .bedv-t-lower { fill: var(--bv-warn); }
-.bedv .bedv-note { fill: var(--bv-faint); font-size: 11px; }
+.bedv .bedv-note { fill: var(--bv-faint); font-size: 12px; }
 </style>

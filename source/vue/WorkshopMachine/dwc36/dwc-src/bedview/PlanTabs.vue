@@ -15,7 +15,7 @@
 		<v-alert v-if="!seen" dense outlined type="info" class="mt-2 mb-0 text-body-2" role="note">
 			<div class="d-flex align-center flex-wrap" style="gap:8px">
 				<span class="flex-grow-1">{{ t('bed.tabs_hint') }}</span>
-				<v-btn small text style="min-height:44px" @click="dismiss()">{{ t('bed.tabs_hint_ok') }}</v-btn>
+				<v-btn small text @click="dismiss()">{{ t('bed.tabs_hint_ok') }}</v-btn>
 			</div>
 		</v-alert>
 	</div>

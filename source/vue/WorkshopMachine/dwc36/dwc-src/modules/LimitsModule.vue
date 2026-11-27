@@ -1,8 +1,7 @@
 <template>
 	<div class="limits-module">
-		<div class="text-h6 mb-1">{{ t('limits.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('limits.intro') }}</p>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<card-head icon="mdi-arrow-expand-horizontal" :title="t('limits.title')" />
+		<section-notice :error="loadError" retry @retry="load()" />
 		<role-note v-if="!canEdit" min="admin" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.limits')" />
 		<v-alert v-for="w in warnings" :key="w.code + w.axis" dense outlined type="warning" class="mb-2">{{ t(w.textKey) }}<span v-if="w.axis"> ({{ w.axis }})</span></v-alert>
 		<v-alert v-if="limits && !limits.configRead" dense outlined type="info" class="mb-2">{{ t('limits.config_unread') }}</v-alert>
@@ -46,6 +45,7 @@
 		<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 		<endstop-result v-if="verify" class="mt-3" :result="verify" />
 		<div v-else-if="!busy" class="text-body-2 machine-faint mt-2">{{ t('limits.verify_none') }}</div>
+		<help-fold :title="t('limits.title')" class="mt-4">{{ t('limits.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -56,7 +56,7 @@
 // only: `canEdit` is workshopCan('machine.config.apply') for config.m208, the server enforces it), and the endstop verification run
 // (homes the axes: technician, with the pre-check list) with its result table.
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import { runModule } from './run-module.js'
 import RunStart from './RunStart.vue'
 import RunProgress from './RunProgress.vue'
@@ -68,10 +68,13 @@ import { isWorking } from '../state/plan-state.js'
 import { limitRows, draftOf, changedLimits, limitsValid, planValues, travel, warningRows, KIND_LIMITS } from '../lib/limits.js'
 import RoleNote from './RoleNote.vue'
 import LockReason from '../LockReason.vue' // vue/_shared36
+import { draftGuardMixin } from './draft-guard-mixin.js'
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
-	components: { LockReason, RoleNote, ErrorNotice, RunStart, RunProgress, PlanReview, EndstopResult },
-	mixins: [runModule([RUN_KINDS2.homingVerify], {})],
+	components: { CardHead, HelpFold, LockReason, RoleNote, SectionNotice, RunStart, RunProgress, PlanReview, EndstopResult },
+	mixins: [runModule([RUN_KINDS2.homingVerify], {}), draftGuardMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
 		published: { type: Object, default: null }, // normalizeRuns of the plugin data `machine`
@@ -130,6 +133,17 @@ export default {
 		bad(letter) {
 			return this.problems.some(c => c.letter === letter)
 		},
+		// unsaved-changes guard (draft-guard-mixin.js): the table holds typed limits that were not reviewed and applied
+		guardDirty() {
+			return this.canEdit && this.changes.length > 0
+		},
+		guardSave() {
+			return this.valid ? this.propose().then(() => 'later') : false
+		},
+		guardDiscard() {
+			this.draft = draftOf(this.rows)
+			this.flow.reset()
+		},
 		propose() {
 			const values = planValues(this.changes)
 			return this.flow.propose(async () => ({ plan: await this.api.config.plan(KIND_LIMITS, values), conflict: null }))
@@ -139,6 +153,7 @@ export default {
 			if (this.ps.status === 'done') {
 				await this.load()
 				this.$emit('changed')
+				this.guardApplied()
 			}
 		}
 	}

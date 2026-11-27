@@ -1,8 +1,7 @@
 <template>
 	<div class="area-module">
-		<div class="text-h6 mb-1">{{ t('workarea.title') }}</div>
-		<help-guide :title="t('common.how_it_works')"><p class="text-body-2">{{ tx('workarea.intro') }}</p></help-guide>
-		<error-notice :error="st.loadError" retry @retry="reload()" />
+		<card-head icon="mdi-vector-rectangle" :title="t('workarea.title')" />
+		<section-notice :error="st.loadError" retry @retry="reload()" />
 		<role-note v-if="!canWrite" min="technician" :ops="accessOps.area" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.area')" />
 		<template v-if="st.data">
 			<v-alert v-if="macrosMissing" dense outlined type="warning" class="mb-3">{{ tx('workarea.macros_missing') }}</v-alert>
@@ -14,30 +13,30 @@
 				<span class="text-caption machine-faint">{{ t('workarea.mode_note', { mode: st.mode, current: st.data.mode || '?' }) }}</span>
 			</div>
 			<v-alert v-if="st.mode === 'FFF'" dense outlined type="info" class="mb-3">{{ t('workarea.fff_pointer_note') }}</v-alert>
-			<v-card outlined class="mb-3">
-				<v-card-text>
+			<div class="wf-group mb-3">
+				<div>
 					<area-fields
 						:mode="st.mode" :draft="st.draft" :saved="saved" :problems="check.problems" :reach="st.data.reach" :min-mm="st.data.minMm" :dirty="dirty"
-						:valid="check.ok" :working="st.working" :can-write="canWrite"
+						:valid="check.ok" :working="st.working" :save-act="saveAct" :remove-act="removeAct" :can-write="canWrite"
 						@field="onField" @save="doSave()" @remove="doRemove()" @undo="onUndo()"
 					/>
-				</v-card-text>
-			</v-card>
-			<v-card outlined class="mb-3">
-				<v-card-text>
+				</div>
+			</div>
+			<div class="wf-group mb-3">
+				<div>
 					<area-hand
 						:corners="st.corners" :release-block="blockedWhy('release')" :capture-block="blockedWhy('capture')" :released="st.released"
 						:working="st.working" :can-write="canWrite" :here-ok="!!toolPoint(axes)" @release="doRelease()" @capture="doCapture" @here="doHere"
 					/>
-				</v-card-text>
-			</v-card>
-			<v-card outlined class="mb-3">
-				<v-card-text>
+				</div>
+			</div>
+			<div class="wf-group mb-3">
+				<div>
 					<area-saved :positions="st.positions" :pick="st.savedPick" :can-write="canWrite" @pick="doPickSaved" />
-				</v-card-text>
-			</v-card>
-			<v-card outlined class="mb-3">
-				<v-card-text>
+				</div>
+			</div>
+			<div class="wf-group mb-3">
+				<div>
 					<div class="text-subtitle-2 mb-1">{{ t('workarea.map_title') }}</div>
 					<p class="text-body-2 machine-faint">{{ t('workarea.map_intro') }}</p>
 					<v-btn-toggle v-model="st.tool" mandatory dense class="machine-btn-wrap mb-2">
@@ -47,10 +46,10 @@
 					</v-btn-toggle>
 					<div v-if="st.tool === 'goto' && blockedWhy('goto')" class="text-caption machine-faint mb-1">{{ blockedWhy('goto') }}</div>
 					<area-map :reach="st.data.reach" :saved="saved" :draft="check.rect" :corners="st.corners" :editable="canWrite" @region="onRegion" @pick="onPick" />
-				</v-card-text>
-			</v-card>
-			<v-card outlined class="mb-3">
-				<v-card-text>
+				</div>
+			</div>
+			<div class="wf-group mb-3">
+				<div>
 					<div class="text-subtitle-2 mb-1">{{ t('workarea.frame_title') }}</div>
 					<p class="text-body-2 machine-faint">{{ t('workarea.frame_intro') }}</p>
 					<v-btn small outlined :disabled="!canWrite || !!block('frame')" :loading="st.working === 'frame'" :title="blockedWhy('frame')" @click="doFrame()">
@@ -58,11 +57,12 @@
 					</v-btn>
 					<div v-if="dirty" class="text-caption machine-faint mt-1">{{ t('workarea.frame_save_first') }}</div>
 					<div v-else-if="blockedWhy('frame') && !st.working" class="text-caption machine-faint mt-1">{{ blockedWhy('frame') }}</div>
-				</v-card-text>
-			</v-card>
+				</div>
+			</div>
 		</template>
 		<div v-if="st.notice" class="text-body-2 success--text">{{ st.notice }}</div>
 		<div v-if="st.errorKey || st.error" class="text-body-2 error--text">{{ st.errorKey ? t(st.errorKey) : st.error }}</div>
+		<help-fold :title="t('workarea.title')" class="mt-4"><p>{{ tx('workarea.intro') }}</p><div class="help-tip-title">{{ t('workarea.corners_title') }}</div><p>{{ t('workarea.corners_intro') }}</p></help-fold>
 	</div>
 </template>
 
@@ -72,7 +72,7 @@
 // Work area of each mode (it was a card of the Workbench, Zones > Cut area): the numbers, the hand measurement of two opposite corners, the pick on the
 // bed map and the walk of the saved area with the pointer. The service keeps the data and moves the machine (machine.workarea.*); this draws it.
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import AreaFields from './AreaFields.vue'
 import AreaHand from './AreaHand.vue'
 import AreaSaved from './AreaSaved.vue'
@@ -81,10 +81,12 @@ import { textMixin } from './text-mixin.js'
 import { blockKey, toolPoint } from '../lib/workarea.js'
 import { createAreaState, selectMode, setField, setRect, setCorner, savedRect, checked, isDirty, blocked, load, save, remove, release, capture, hereCorner, gotoPoint, frame, loadPositions, pickPosition } from '../state/area-state.js'
 import RoleNote from './RoleNote.vue'
-import HelpGuide from '../HelpGuide.vue' // vue/_shared36
+import { createAction } from '../workshop-action.js' // vue/_shared36
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
-	components: { HelpGuide, RoleNote, ErrorNotice, AreaFields, AreaHand, AreaSaved, AreaMap },
+	components: { CardHead, HelpFold, RoleNote, SectionNotice, AreaFields, AreaHand, AreaSaved, AreaMap },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
@@ -116,7 +118,14 @@ export default {
 		}
 	},
 	created() {
+		// Save and Remove are writes of the family (the state keeps `working` to lock the other buttons; the answer is the control's own line, not st.notice / st.error)
+		this.saveAct = createAction({ run: () => this.write(() => save(this.st, this.workarea, ''), 'workarea.saved_notice') })
+		this.removeAct = createAction({ arm: 'double', run: () => this.write(() => remove(this.st, this.workarea, ''), 'workarea.removed_notice') })
 		this.reload()
+	},
+	beforeDestroy() {
+		this.saveAct.dispose()
+		this.removeAct.dispose()
 	},
 	methods: {
 		block(action) {
@@ -145,11 +154,21 @@ export default {
 			}
 			setCorner(this.st, this.st.tool, point)
 		},
+		// the state functions answer true/false and keep the failure in st.error; a write of the family throws it instead
+		async write(call, doneKey) {
+			if (!(await call())) {
+				const text = this.st.errorKey ? this.t(this.st.errorKey) : this.st.error
+				this.st.error = ''
+				this.st.errorKey = ''
+				throw Object.assign(new Error(text), { code: 'internal' })
+			}
+			return { text: this.t(doneKey, { mode: this.st.mode }) }
+		},
 		doSave() {
-			save(this.st, this.workarea, this.t('workarea.saved_notice', { mode: this.st.mode }))
+			this.saveAct.run({})
 		},
 		doRemove() {
-			remove(this.st, this.workarea, this.t('workarea.removed_notice', { mode: this.st.mode }))
+			this.removeAct.run({})
 		},
 		doRelease() {
 			release(this.st, this.workarea)

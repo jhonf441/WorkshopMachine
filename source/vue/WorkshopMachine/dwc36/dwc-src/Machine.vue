@@ -1,36 +1,39 @@
 <template>
 	<v-container :style="secStyle" fluid class="pa-0 machine-page workshop-theme">
-		<service-notice />
 		<!-- header (DESIGN.md 3): the common page header; the health chip is the worst light of the overview -->
+		<!-- the compact bar of the family (one line, 48): the lead is not drawn, only read; its sentence is shown once, under the head of the overview -->
 		<page-header :lead="t('page.lead')" icon="mdi-tune-variant" :title="t('common.machine')" :reasons="headerReasons" :loading="!snapshot">
 			<control-holder-chip :model="model" />
 			<template v-slot:right>
 				<!-- STOP: every role, while a procedure lasts (machine.stop; it is not the emergency stop) -->
 				<template v-if="runningKind">
 					<v-chip small color="info" outlined><v-icon x-small left>mdi-cog-play-outline</v-icon>{{ t('page.running_now', { kind: kindName(runningKind) }) }}</v-chip>
-					<v-btn small color="error darken-2" :title="t('page.stop_hint')" @click="stopAll()"><v-icon small left>mdi-stop</v-icon>{{ t('page.stop_all') }}</v-btn>
+					<v-btn small color="error darken-2" class="machine-stop" :title="t('page.stop_hint')" @click="stopAll()"><v-icon small left>mdi-stop</v-icon>{{ t('page.stop_all') }}</v-btn>
 				</template>
 				<v-btn small icon :title="t('page.refresh')" :loading="loading" @click="load()"><v-icon small>mdi-refresh</v-icon></v-btn>
 			</template>
 			<!-- start-up of the machine modes: the chip is here like in every page; its cards are in the "Modes" section -->
 			<template v-slot:startup><modes-startup /></template>
 		</page-header>
+		<!-- the bar first, then the bands under it (DESIGN.md 7d): not in SBC mode / service down, then the failed call; the sections do not repeat them (SectionNotice) -->
+		<service-notice />
 		<error-notice :error="shownError" retry @retry="load()" />
 		<div class="mb-3">
 			<div>
 				<div class="st-layout">
-					<side-tabs v-model="section" :items="sideItems" />
+					<side-tabs :value="section" :items="sideItems" @input="changeSection" />
 					<!-- one module at a time, mounted only while it is open (DESIGN.md 3) -->
 					<div :key="sessionKey" class="st-body">
-						<!-- the modules of the extruder and the bed work in FFF: in another mode (or while it is not known) the module stays for reading and what runs is off (mode-gate.js) -->
+						<!-- the modules that need the FFF mode (shaping): in another mode (or while it is not known) the module stays for reading and what runs is off (mode-gate.js) -->
 						<mode-notice v-if="fffOnlySection && !lockedNow" :needs="['FFF']" />
 						<locked-cover v-if="lockedNow" :needed="lockedNow" :items="sideItems" :value="section" />
 						<template v-else-if="section === 'overview'">
-							<overview-card :overview="snapshot" :failed="!!loadError" :lock-kind="overviewCause" />
-							<v-alert v-if="unavailable.length" dense outlined type="warning" class="mt-3">
-								<div class="font-weight-medium">{{ t('page.unavailable_title') }}</div>
-								<div v-for="u in unavailable" :key="u.id" class="text-body-2">{{ u.name }}: {{ u.reason }}</div>
-							</v-alert>
+							<overview-card :overview="snapshot" :failed="!!loadError" :lock-kind="overviewCause" :lead="t('page.lead')" />
+							<div v-if="unavailable.length" class="machine-line-notice machine-line-notice--warn mt-3" role="status">
+								<v-icon small color="warning">mdi-alert-outline</v-icon>
+								<span class="font-weight-medium">{{ t('page.unavailable_title') }}:</span>
+								<span v-for="(u, i) in unavailable" :key="u.id">{{ u.name }} ({{ u.reason }}){{ i + 1 !== unavailable.length ? ',' : '' }}</span>
+							</div>
 							<role-note v-if="!caps.read && !overviewCause" min="operator" class="mt-3" :subject="$t('plugins.WorkshopMachine.subjects.overview')" />
 						</template>
 						<probe-module v-else-if="section === 'probe'" :api="api" :published="published" :can-run="ok('run')" :thresholds="snapshot && snapshot.thresholds" :axes="axes" :now="now" />
@@ -52,7 +55,7 @@
 							v-else-if="section === 'shaping'" :api="api" :published="published" :configure="caps.configure" :trial="caps.trial" :can-run="ok('run')" :can-test="ok('shapingTest')" :now="now"
 						/>
 						<power-module v-else-if="section === 'power'" :api="api" :can-edit="caps.configure('config.m911')" :can-create="caps.configure('config.prologue')" :can-resume="ok('resume')" />
-						<safety-module v-else-if="section === 'safety'" :api="api" :published="published" :can-run="ok('run')" :now="now" @goto="section = $event" />
+						<safety-module v-else-if="section === 'safety'" :api="api" :published="published" :can-run="ok('run')" :now="now" @goto="changeSection($event)" />
 						<maintenance-module v-else-if="section === 'maintenance'" :api="api" :can-mark="canOp('machine.maintenance.done')" :can-edit="canOp('machine.maintenance.plan.set')" />
 						<modes-module v-else-if="section === 'modes'" :can-write="caps.run" />
 						<tool-wizard-module v-else-if="section === 'toolwiz'" :api="api" :can-write="caps.configure('config.tool')" :busy="!!runningKind" />
@@ -65,6 +68,7 @@
 				</div>
 			</div>
 		</div>
+		<wf-unsaved-dialog />
 	</v-container>
 </template>
 
@@ -80,9 +84,12 @@ import ServiceNotice from './ServiceNotice.vue' // vue/_shared
 import PageHeader from './PageHeader.vue' // header of every page (vue/_shared)
 import { levelOfColor } from './page-health.js'
 import ErrorNotice from './ErrorNotice.vue'
+import { errorKind } from './friendly-error.js' // vue/_shared36
 import LockedCover from './LockedCover.vue' // the cover of a module the role cannot open (vue/_shared36)
 import RoleNote from './modules/RoleNote.vue'
 import SideTabs from './SideTabs.vue'
+import WfUnsavedDialog from './WfUnsavedDialog.vue' // keep editing / save and leave / discard (vue/_shared36)
+import { confirmLeave, routeGuard } from './unsaved-guard.js' // vue/_shared36: one door out of every editor with a draft
 import ControlHolderChip from './ControlHolderChip.vue'
 import OverviewCard from './modules/OverviewCard.vue'
 import ProbeModule from './modules/ProbeModule.vue'
@@ -122,8 +129,9 @@ import { querySection, askedPoint as askedPointOf, askedParam as askedParamOf, a
 
 const SECTION_KEY = 'workshopMachineSection' // this page's own memory of the last module (no other plugin writes it: they send ?layout=)
 const RELOAD_MS = 250
-// the modules that are the extruder and the bed (FFF), and the groups of operations of them that run or move (an unknown mode denies them)
-const FFF_ONLY_MODULES = ['level', 'mesh', 'shaping', 'beds']
+// the modules that only make sense in FFF, and the groups of operations of them that run or move (an unknown mode denies them). The bed
+// (levelling, mesh, bed heaters) is the same machine in any mode, so it is NOT here: what stops it is the real safety (power, access), never the mode
+const FFF_ONLY_MODULES = ['shaping']
 const ACTING_GROUPS = ['run', 'mesh', 'shapingTest']
 
 // the module to open: the one the route query asks for (the Workbench sends ?layout=..&x=..&y=.., lib/cross-page.js), else the last one
@@ -142,12 +150,21 @@ export default {
 	// what the person who left had read must not stay (ESTANDAR 3): the modules are mounted again by sessionKey, the page keeps these
 	sessionData: ['snapshot', 'loadError', 'reportTarget', 'askedPoint', 'askedParam', 'askedBeds'],
 	sessionErrors: ['loadError'], // what a refusal or a failure said: cleared when the person signs in, out or changes role (role-mixin.js)
-	components: { ModeNotice, RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, LockedCover, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, BedsModule, ReportModule },
+	// leaving the page (DWC's menu, Back) with a typed draft asks first; a change of module is changeSection
+	beforeRouteLeave(to, from, next) {
+		routeGuard(to, from, next)
+	},
+	components: { WfUnsavedDialog, ModeNotice, RoleNote, PageHeader, ServiceNotice, ErrorNotice, SideTabs, LockedCover, ControlHolderChip, OverviewCard, ProbeModule, LevelModule, MeshModule, OffsetsModule, HeightModule, LimitsModule, AreaModule, CalibrationModule, MotionModule, ShapingModule, SafetyModule, PowerModule, MaintenanceModule, HistoryModule, ModesModule, ModesStartup, ToolWizardModule, BedsModule, ReportModule },
+	// the sections ask whether this page's own band already says the service is not there (modules/SectionNotice.vue)
+	provide() {
+		const page = this
+		return { machinePage: { get serviceDown() { return page.serviceDown } } }
+	},
 	data() {
 		return { api: machineApi, section: savedSection(this.$route && this.$route.query), askedPoint: askedPointOf(this.$route && this.$route.query), askedParam: askedParamOf(this.$route && this.$route.query), askedBeds: askedBedsOf(this.$route && this.$route.query), snapshot: null, loadError: null, loading: false, reportTarget: '', now: Math.floor(Date.now() / 1000), reloadTimer: null, clock: null, sessionKey: 0 }
 	},
 	computed: {
-		// the open module is one of the extruder / the bed (FFF only)
+		// the open module needs the FFF mode
 		fffOnlySection() {
 			return FFF_ONLY_MODULES.indexOf(this.section) >= 0
 		},
@@ -182,6 +199,10 @@ export default {
 		// a refusal because of who the person is is said by the lock sentence (overview card, viewer note), not by the error notice
 		shownError() {
 			return lockKey(this.loadError) ? null : this.loadError
+		},
+		// the band of the page says the service is not there
+		serviceDown() {
+			return !!this.shownError && errorKind(this.shownError) === 'unavailable'
 		},
 		// the cause of a refused overview ('session' | 'role' | ''): the card draws the standard notice
 		overviewCause() {
@@ -254,6 +275,11 @@ export default {
 		clearTimeout(this.reloadTimer)
 	},
 	methods: {
+		// a change of module with a typed draft in the open one asks first (unsaved-guard.js)
+		changeSection(id) {
+			if (id === this.section) return
+			confirmLeave(() => { this.section = id })
+		},
 		// the answer of the service for a group of operations (the table of the role until it answers)
 		// the groups that RUN or write something that moves or heats (the reading ones, like the mesh library, stay open in any mode)
 		ok(name) {
@@ -316,3 +342,18 @@ export default {
 	}
 }
 </script>
+
+<style>
+/* Machine on the family scale and pieces (FAMILIA-REDISENO 2-3, owner's rule of 2026-11-23). The family gives every .v-btn 32 (a filled primary 36) and
+   the 40 px touch area by an invisible ::after; here only what Vuetify still sizes on its own: a default-size secondary button is 32 too, icon buttons
+   are 32 square, segments 32, and the page STOP is 48 (critical). */
+.machine-page .v-btn:not(.v-btn--icon):not(.v-btn--fab):not(.machine-stop) { height: var(--wf-size-s, 32px); }
+.machine-page .v-btn:is(.primary, .v-btn--main):not(.v-btn--icon):not(.v-btn--fab):not(.v-btn--text):not(.v-btn--outlined) { height: var(--wf-size-m, 36px); }
+.machine-page .v-btn.v-btn--icon:not(.v-btn--fab) { width: var(--wf-size-s, 32px); height: var(--wf-size-s, 32px); }
+.machine-page .v-btn.machine-stop { height: var(--wf-size-l, 48px); min-width: 96px; }
+/* the sentence of the page, out of the bar: ONE secondary line under the head of the overview */
+.machine-page .machine-lead { margin: -2px 0 8px; font-size: 13px; line-height: 18px; opacity: 0.72; }
+/* a notice of the page (no live data, a run in progress, modules the machine cannot use): one outlined line inside the section, not a full-width band */
+.machine-page .machine-line-notice { --mln: var(--wf-warn, #fb8c00); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 7px 12px; border: 1px solid color-mix(in srgb, var(--mln) 55%, transparent); border-radius: var(--wf-radius-control, 6px); font-size: 13px; line-height: 18px; }
+.machine-page .machine-line-notice--info { --mln: var(--wf-info, #1e88e5); }
+</style>

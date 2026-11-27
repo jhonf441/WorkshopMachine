@@ -26,9 +26,8 @@
 						<span v-else>{{ t('maintenance.done_by', { when: when(r.lastDone.ts), user: r.lastDone.user || '-' }) }}</span>
 					</td>
 					<td class="text-right">
-						<v-btn x-small color="primary" :disabled="!canMark || !!marking" :loading="marking === r.id" @click="$emit('done', r.id)">
-							<v-icon x-small left>mdi-check</v-icon>{{ t('maintenance.mark_done') }}
-						</v-btn>
+						<!-- a write of the family in a dense table: the word as a small control, touched over 44 px; the answer is the line under the table (the page's WfResult) -->
+						<wf-action-button variant="text" :action="marking === r.id ? action : null" :label="t('maintenance.mark_done')" :disabled="!canMark || !!marking" @run="$emit('done', r.id)" />
 					</td>
 				</tr>
 			</tbody>
@@ -41,12 +40,15 @@
 
 // The plan with its due markers and the "done" button (who and when are recorded by the service and shown in the last column).
 
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
 import { textMixin } from './text-mixin.js'
 import { formatDate, formatNumber } from '../lib/format.js'
 
 export default {
+	components: { WfActionButton },
 	mixins: [textMixin],
 	props: {
+		action: { type: Object, default: null }, // createAction of the mark (the row being marked shows its state)
 		rows: { type: Array, required: true }, // planRows(...)
 		canMark: { type: Boolean, default: false },
 		marking: { type: String, default: '' }

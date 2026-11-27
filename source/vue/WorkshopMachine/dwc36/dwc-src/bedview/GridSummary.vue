@@ -15,15 +15,15 @@
 			<ul v-if="derived.snapped.length" class="grid-summary-list mt-2" :aria-label="t('bed.grid_snapped_title')">
 				<li v-for="s in derived.snapped" :key="s.id" class="d-flex align-center" style="gap:6px">
 					<span class="text-body-2 flex-grow-1">{{ t('bed.grid_snapped', { x: mm(s.x), y: mm(s.y), nx: mm(nodeOf(s).x), ny: mm(nodeOf(s).y), d: s.distance.toFixed(1) }) }}</span>
-					<v-btn v-if="editable" small outlined style="min-height:44px" @click="$emit('use-node', s)"><v-icon small left>mdi-arrow-collapse</v-icon>{{ t('bed.grid_use_node') }}</v-btn>
-					<v-btn v-if="editable" icon :aria-label="t('bed.remove_point')" style="min-width:44px;min-height:44px" @click="$emit('remove', s.id)"><v-icon small>mdi-delete-outline</v-icon></v-btn>
+					<v-btn v-if="editable" small outlined @click="$emit('use-node', s)"><v-icon small left>mdi-arrow-collapse</v-icon>{{ t('bed.grid_use_node') }}</v-btn>
+					<v-btn v-if="editable" icon :aria-label="t('bed.remove_point')" @click="$emit('remove', s.id)"><v-icon small>mdi-delete-outline</v-icon></v-btn>
 				</li>
 			</ul>
 		</template>
 		<ul v-if="derived && derived.ignored.length" class="grid-summary-list mt-2" :aria-label="t('bed.grid_ignored_title')">
 			<li v-for="g in derived.ignored" :key="g.id" class="d-flex align-center" style="gap:6px">
 				<span class="text-body-2 flex-grow-1"><v-icon small color="error" left>mdi-close-circle</v-icon>{{ t('bed.grid_ignored', { x: mm(g.x), y: mm(g.y) }) }}</span>
-				<v-btn v-if="editable" icon :aria-label="t('bed.remove_point')" style="min-width:44px;min-height:44px" @click="$emit('remove', g.id)"><v-icon small>mdi-delete-outline</v-icon></v-btn>
+				<v-btn v-if="editable" icon :aria-label="t('bed.remove_point')" @click="$emit('remove', g.id)"><v-icon small>mdi-delete-outline</v-icon></v-btn>
 			</li>
 		</ul>
 	</div>

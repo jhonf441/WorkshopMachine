@@ -1,17 +1,17 @@
 <template>
-	<v-card outlined class="record-compare">
-		<v-card-title class="text-subtitle-1 pb-1">
+	<div class="wf-group record-compare">
+		<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">
 			{{ t('history.compare_title') }}
 			<v-spacer />
 			<v-btn x-small text @click="$emit('close')">{{ t('plan.close') }}</v-btn>
-		</v-card-title>
-		<v-card-text>
+		</div>
+		<div>
 			<div class="text-caption machine-faint">{{ t('history.compare_ab', { a: label(a), b: label(b) }) }}</div>
 			<v-alert v-if="!view.ok" dense outlined type="warning" class="mt-2">{{ t(view.reasonKey) }}</v-alert>
 			<v-alert v-else-if="failed" dense outlined type="error" class="mt-2">{{ t(failed) }}</v-alert>
 			<div v-else-if="loading" class="text-body-2 machine-faint">{{ t('common.loading') }}</div>
 			<template v-else>
-				<diff-table :rows="view.rows" :changed="view.changed" :cut="view.cut" />
+				<diff-table :rows="view.rows" :changed="view.changed" :cut="view.cut" :a-sub="label(a)" :b-sub="label(b)" />
 				<!-- two height maps: the difference map (B - A) with the same view and colour scale of one mesh -->
 				<div v-if="view.mesh" class="mt-4">
 					<div class="text-body-2 font-weight-medium mb-1">{{ t('history.mesh_diff') }}</div>
@@ -19,8 +19,8 @@
 					<mesh-map v-else-if="diffGrid && bed" :grid="diffGrid" :bed="bed" :thresholds="thresholds" />
 				</div>
 			</template>
-		</v-card-text>
-	</v-card>
+		</div>
+	</div>
 </template>
 
 <script>

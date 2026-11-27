@@ -35,8 +35,8 @@
 				<v-col cols="12" md="4">
 					<point-detail :point="point" :title="pointTitle" :rows="rows" @close="selected = ''">
 						<div v-if="canEditPoints && point" class="mt-2">
-							<v-btn v-if="chosenAtSelected.length" small outlined color="error" style="min-height:44px" @click="removeSelected()"><v-icon small left>mdi-delete-outline</v-icon>{{ t('bed.remove_point') }}</v-btn>
-							<v-btn v-else small outlined style="min-height:44px" @click="chooseSelected()"><v-icon small left>mdi-map-marker-plus-outline</v-icon>{{ t('bed.choose_point') }}</v-btn>
+							<v-btn v-if="chosenAtSelected.length" small outlined color="error" @click="removeSelected()"><v-icon small left>mdi-delete-outline</v-icon>{{ t('bed.remove_point') }}</v-btn>
+							<v-btn v-else small outlined @click="chooseSelected()"><v-icon small left>mdi-map-marker-plus-outline</v-icon>{{ t('bed.choose_point') }}</v-btn>
 						</div>
 						<template #actions="slotProps"><slot name="actions" v-bind="slotProps" /></template>
 					</point-detail>

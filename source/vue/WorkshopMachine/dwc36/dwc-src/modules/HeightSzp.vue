@@ -14,7 +14,7 @@
 			<span class="text-body-2">{{ t('height.szp_save') }}</span>
 			<v-text-field v-model="s" type="number" dense outlined hide-details class="height-field" label="S" :disabled="!canWrite" />
 			<v-text-field v-model="r" type="number" dense outlined hide-details class="height-field" label="R" :disabled="!canWrite" />
-			<v-btn small :disabled="!canWrite || busy" @click="$emit('save', { s, r })">{{ t('height.save') }}</v-btn>
+			<wf-action-button :action="action" :label="t('height.save')" :disabled="!canWrite || busy" @run="$emit('save', { s, r })" />
 		</div>
 	</div>
 </template>
@@ -24,11 +24,14 @@
 
 // The SZP (scanning Z probe, probe K1) of FFF: the two calibrations of the Duet guide (drive level, height against reading) and the S / R to save.
 
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
 import { textMixin } from './text-mixin.js'
 
 export default {
+	components: { WfActionButton },
 	mixins: [textMixin],
 	props: {
+		action: { type: Object, default: null }, // createAction of the save (HeightModule owns it)
 		view: { type: Object, required: true }, // lib/height.js modeView of FFF
 		canWrite: { type: Boolean, default: false },
 		busy: { type: Boolean, default: false },

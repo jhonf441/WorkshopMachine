@@ -1,5 +1,5 @@
 <template>
-	<v-card outlined class="job-fit pa-3" role="region" :aria-label="t('bed.job_title')">
+	<div class="wf-group job-fit" role="region" :aria-label="t('bed.job_title')">
 		<div class="text-subtitle-1">{{ t('bed.job_title') }}</div>
 		<p class="text-body-2 machine-faint mb-2">{{ t('bed.job_intro') }}</p>
 		<v-row dense>
@@ -8,8 +8,8 @@
 			</v-col>
 		</v-row>
 		<div class="d-flex flex-wrap mt-2" style="gap:8px">
-			<v-btn v-if="!hasJob" small outlined style="min-height:44px" @click="$emit('place')"><v-icon small left>mdi-vector-rectangle</v-icon>{{ t('bed.job_place') }}</v-btn>
-			<v-btn v-else small outlined style="min-height:44px" @click="$emit('clear')"><v-icon small left>mdi-close</v-icon>{{ t('bed.job_clear') }}</v-btn>
+			<v-btn v-if="!hasJob" small outlined @click="$emit('place')"><v-icon small left>mdi-vector-rectangle</v-icon>{{ t('bed.job_place') }}</v-btn>
+			<v-btn v-else small outlined @click="$emit('clear')"><v-icon small left>mdi-close</v-icon>{{ t('bed.job_clear') }}</v-btn>
 		</div>
 		<template v-if="result.valid">
 			<div class="d-flex align-center mt-3" style="gap:8px" role="status">
@@ -31,7 +31,7 @@
 				</li>
 			</ul>
 		</template>
-	</v-card>
+	</div>
 </template>
 
 <script>

@@ -1,19 +1,19 @@
 <template>
 	<div class="height-module">
-		<div class="text-h6 mb-1">{{ t('height.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('height.intro') }}</p>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<card-head icon="mdi-arrow-collapse-down" :title="t('height.title')" />
+		<section-notice :error="loadError" retry @retry="load()" />
 		<role-note v-if="!canWrite" min="technician" :ops="accessOps.height" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.height')" />
 		<template v-if="h">
 			<v-alert v-if="missing.length" dense outlined type="warning" class="mb-3">
 				<div>{{ t('height.hook_missing', { files: missing.join(', ') }) }}</div>
-				<v-btn v-if="canWrite" small color="primary" class="mt-2" :disabled="busy" :title="t('height.hook_tip')" @click="installHook()">{{ t('height.hook_apply') }}</v-btn>
+				<wf-action-button v-if="canWrite" :action="hookAct" main class="mt-2" :label="t('height.hook_apply')" :disabled="busy" @run="hookAct.run({})" />
+				<div v-if="canWrite" class="text-caption mt-1">{{ t('height.hook_tip') }}</div>
 			</v-alert>
 			<v-btn-toggle v-model="mode" mandatory dense class="mb-3">
 				<v-btn v-for="m in MODES" :key="m" :value="m" small>{{ m }}<v-icon v-if="m === h.mode" x-small right>mdi-circle-medium</v-icon></v-btn>
 			</v-btn-toggle>
-			<v-card outlined class="mb-3">
-				<v-card-text>
+			<div class="wf-group mb-3">
+				<div>
 					<div class="text-subtitle-2 mb-1">{{ t('height.card_title', { mode }) }}</div>
 					<v-alert v-if="!view.current" dense outlined type="info" class="mb-2 text-caption">{{ t('height.not_current', { mode }) }}</v-alert>
 					<div class="d-flex align-center flex-wrap mb-1" style="gap:8px">
@@ -35,8 +35,8 @@
 							<span class="text-body-2">{{ t('height.adjust') }}</span>
 							<v-text-field v-model="adjust" type="number" step="0.01" dense outlined hide-details class="height-field" :disabled="!canWrite" :error="!!adjustError" />
 							<span class="machine-faint">mm</span>
-							<v-btn v-for="n in nudges" :key="n" small outlined :disabled="!canWrite" style="min-width:56px;min-height:44px" @click="adjust = nudge(adjust, n)">{{ (n > 0 ? '+' : '') + n }}</v-btn>
-							<v-btn small color="primary" :disabled="!canWrite || busy" @click="saveAdjust()">{{ t('height.save') }}</v-btn>
+							<v-btn v-for="n in nudges" :key="n" small outlined :disabled="!canWrite" style="min-width:48px" @click="adjust = nudge(adjust, n)">{{ (n > 0 ? '+' : '') + n }}</v-btn>
+							<wf-action-button :action="saveAct" main :label="t('height.save')" :disabled="!canWrite || busy" @run="saveAdjust()" />
 						</div>
 						<div class="text-caption machine-faint">{{ adjustError ? t(adjustError) : t('height.adjust_tip') }}</div>
 					</template>
@@ -45,7 +45,7 @@
 						<div v-if="blockText('paper')" class="height-block mt-1"><v-icon x-small color="warning" class="mr-1">mdi-information-outline</v-icon>{{ blockText('paper') }}</div>
 					</template>
 					<height-szp
-						v-else :view="view" :can-write="canWrite" :busy="busy" :block="blockText('szp')" :out="szpOut" :sr="szpSR"
+						v-else :view="view" :can-write="canWrite" :busy="busy" :action="saveAct" :block="blockText('szp')" :out="szpOut" :sr="szpSR"
 						@run="runSzp" @save="saveSzp"
 					/>
 					<div v-if="view.data.method !== 'szp'" class="d-flex align-center flex-wrap mt-3" style="gap:8px">
@@ -53,19 +53,23 @@
 						<v-text-field v-model="paperText" type="number" step="0.01" dense outlined hide-details class="height-field" :disabled="!canWrite" :error="!!paperError" @change="savePaper()" />
 						<span class="text-caption machine-faint">{{ paperError ? t(paperError) : t('height.paper_tip') }}</span>
 					</div>
-				</v-card-text>
-			</v-card>
-			<v-card v-if="wiz" outlined class="mb-3">
-				<v-card-text>
+				</div>
+			</div>
+			<div v-if="wiz" class="wf-group mb-3">
+				<div>
 					<height-wizard
-						:key="wiz" :api="api" :kind="wiz" :view="view" :reach="h.reach" :z="h.z" :point="point" :paper="h.data.paper"
+						:key="wiz" :api="api" :action="saveAct" :kind="wiz" :view="view" :reach="h.reach" :z="h.z" :point="point" :paper="h.data.paper"
 						@moved="refreshQuiet()" @save-k0="saveK0" @marked="notice = t('height.paper_marked')" @close="wiz = ''"
 					/>
-				</v-card-text>
-			</v-card>
+				</div>
+			</div>
 		</template>
+		<!-- the saves and the hook: the family line of each write; notice / opError are the wizard's and the SZP run's own lines -->
+		<wf-result :action="saveAct" :retry="false" />
+		<wf-result :action="hookAct" :retry="false" />
 		<div v-if="notice" class="text-body-2 success--text">{{ notice }}</div>
 		<div v-if="opError" class="text-body-2 error--text">{{ opError }}</div>
+		<help-fold :title="t('height.title')" class="mt-4">{{ t('height.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -76,7 +80,7 @@
 // height of the BLTouch (calibrated with the paper), the fine adjustment, the thickness of the paper and the SZP of FFF. The service keeps the data
 // (machine.height.*: the saved file with revision, zcal.g, the hooks of the mode files and the movements of the assistants); this draws it.
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import HeightWizard from './HeightWizard.vue'
 import HeightSzp from './HeightSzp.vue'
 import { textMixin } from './text-mixin.js'
@@ -84,9 +88,14 @@ import { messageOf } from '../lib/refusal.js'
 import { HEIGHT_MODES } from '../api/machine-api-p8.js'
 import { modeView, blockReason, defaultPoint, parseAdjust, parsePaper, nudged, changeOf, hookMissing, szpRecord, parseSzpOutput, NUDGE, todayText } from '../lib/height.js'
 import RoleNote from './RoleNote.vue'
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
+import WfResult from '../WfResult.vue' // vue/_shared36
+import { createAction } from '../workshop-action.js' // vue/_shared36
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
-	components: { RoleNote, ErrorNotice, HeightWizard, HeightSzp },
+	components: { CardHead, HelpFold, WfActionButton, WfResult, RoleNote, SectionNotice, HeightWizard, HeightSzp },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
@@ -126,7 +135,14 @@ export default {
 		}
 	},
 	created() {
+		// the saves of the page (every change goes through one) and the install of the hook are writes of the family
+		this.saveAct = createAction({ run: args => this.doSave(args) })
+		this.hookAct = createAction({ run: () => this.doHook() })
 		this.load(true)
+	},
+	beforeDestroy() {
+		this.saveAct.dispose()
+		this.hookAct.dispose()
 	},
 	methods: {
 		nudge: nudged,
@@ -170,23 +186,26 @@ export default {
 			this.wiz = kind
 		},
 		// every change goes through the revision it was based on; a conflict reloads and says so
+		// (a write of the family: saveAct; this answers whether it was saved, the way the callers always read it)
 		async save(changes, okText) {
-			this.busy = true
+			this.notice = ''
 			this.opError = ''
+			await this.saveAct.run({ changes, okText })
+			return this.saveAct.state === 'done'
+		},
+		async doSave({ changes, okText }) {
+			this.busy = true
 			try {
 				const r = await this.api.height.save(this.h.rev, changes)
 				this.h = Object.assign({}, this.h, { rev: r.rev, data: r.data, hooks: r.hooks, applied: r.applied })
-				this.notice = okText + (r.applied ? '' : ' ' + this.t('height.not_applied_now'))
 				this.syncDrafts()
-				return true
+				return { text: okText + (r.applied ? '' : ' ' + this.t('height.not_applied_now')) }
 			} catch (e) {
 				if (e && e.code === 'conflict') {
-					this.opError = this.t('height.conflict')
 					await this.load()
-				} else {
-					this.opError = messageOf(e, k => this.t(k))
+					throw Object.assign(new Error(this.t('height.conflict')), { code: 'internal' })
 				}
-				return false
+				throw Object.assign(new Error(messageOf(e, k => this.t(k))), { code: 'internal' })
 			} finally {
 				this.busy = false
 			}
@@ -227,14 +246,16 @@ export default {
 			}
 			this.save(changeOf('FFF', { szp: rec }), this.t('height.saved_szp', { s: rec.s, r: rec.r }))
 		},
-		async installHook() {
+		async doHook() {
 			this.busy = true
+			this.notice = ''
+			this.opError = ''
 			try {
 				const r = await this.api.height.hook()
-				this.notice = this.t('height.hook_done', { files: r.added.join(', ') || '-' })
 				this.h = Object.assign({}, this.h, { hooks: r.hooks, applied: true })
+				return { text: this.t('height.hook_done', { files: r.added.join(', ') || '-' }) }
 			} catch (e) {
-				this.opError = messageOf(e, k => this.t(k))
+				throw Object.assign(new Error(messageOf(e, k => this.t(k))), { code: 'internal' })
 			} finally {
 				this.busy = false
 			}

@@ -1,11 +1,11 @@
 <template>
-	<v-card outlined class="record-detail">
-		<v-card-title class="text-subtitle-1 pb-1">
+	<div class="wf-group record-detail">
+		<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">
 			{{ kindText }}
 			<v-spacer />
 			<v-btn x-small text @click="$emit('close')">{{ t('plan.close') }}</v-btn>
-		</v-card-title>
-		<v-card-text>
+		</div>
+		<div>
 			<div class="record-meta">
 				<span>{{ t('history.col_date') }}: {{ dateText }}</span>
 				<span>{{ t('history.col_user') }}: {{ record.user || '-' }} <span v-if="record.role" class="machine-faint">({{ record.role }})</span></span>
@@ -39,8 +39,8 @@
 					<workbench-link v-if="inWorkbench" />
 				</template>
 			</div>
-		</v-card-text>
-	</v-card>
+		</div>
+	</div>
 </template>
 
 <script>

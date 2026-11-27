@@ -1,7 +1,7 @@
 <template>
 	<div class="offsets-snapshots">
 		<div class="d-flex align-center flex-wrap" style="gap:8px">
-			<v-btn small outlined :disabled="!canWrite || busy" :loading="busy" @click="$emit('snapshot')"><v-icon small left>mdi-camera-outline</v-icon>{{ t('offsets.snapshot_now') }}</v-btn>
+			<wf-action-button :action="action" :label="t('offsets.snapshot_now')" :disabled="!canWrite || busy" @run="$emit('snapshot')" />
 			<span v-if="last" class="text-caption machine-faint">{{ t('offsets.last_snapshot', { when: dateOf(last.ts), user: last.user || '-' }) }}</span>
 		</div>
 		<!-- the difference with the previous snapshot, as the service computed it when the snapshot was taken -->
@@ -17,7 +17,7 @@
 				<v-select v-model="pick.b" :items="items" :label="t('offsets.compare_b')" dense outlined hide-details clearable style="max-width:300px" />
 			</div>
 			<v-alert v-if="failed" dense outlined type="error" class="mt-2">{{ t(failed) }}</v-alert>
-			<diff-table v-if="comparison" class="mt-2" :rows="comparisonRows" :changed="comparison.results.changed + comparison.inputs.changed" :cut="comparison.results.cut || comparison.inputs.cut" :a-label="t('offsets.col_a')" :b-label="t('offsets.col_b')" />
+			<diff-table v-if="comparison" class="mt-2" :rows="comparisonRows" :changed="comparison.results.changed + comparison.inputs.changed" :cut="comparison.results.cut || comparison.inputs.cut" :a-label="t('offsets.col_a')" :b-label="t('offsets.col_b')" :a-sub="itemText(pick.a)" :b-sub="itemText(pick.b)" />
 		</template>
 		<div class="text-caption machine-faint mt-2">{{ tx('offsets.restore_hint') }}</div>
 	</div>
@@ -31,6 +31,7 @@
 // work zones of the Workbench (edited there), the tool offsets are edited in this module.
 
 import DiffTable from './DiffTable.vue'
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36
 import { textMixin } from './text-mixin.js'
 import { diffRows } from '../lib/record-compare.js'
 import { pickedPair } from '../state/offsets-state.js'
@@ -39,7 +40,7 @@ import { refusalOf } from '../api/machine-api.js'
 import { formatDate } from '../lib/format.js'
 
 export default {
-	components: { DiffTable },
+	components: { DiffTable, WfActionButton },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true },
@@ -47,6 +48,7 @@ export default {
 		pick: { type: Object, required: true }, // state.pick {a, b}, edited in place
 		last: { type: Object, default: null }, // the last snapshot as machine.offsets.get tells
 		taken: { type: Object, default: null }, // the answer of the snapshot just taken (normalizeSnapshot)
+		action: { type: Object, default: null }, // createAction of the snapshot (OffsetsModule owns it)
 		canWrite: { type: Boolean, default: false },
 		busy: { type: Boolean, default: false }
 	},
@@ -56,6 +58,13 @@ export default {
 	computed: {
 		items() {
 			return this.snapshots.map(r => ({ value: r.id, text: formatDate(r.ts) + (r.user ? ' - ' + r.user : '') }))
+		},
+		// the text of a chosen copy, for the head of its column in the comparison (note 5)
+		itemText() {
+			return id => {
+				const it = this.items.find(x => x.value === id)
+				return it ? it.text : ''
+			}
 		},
 		takenRows() {
 			return diffRows(this.taken.diff, '')

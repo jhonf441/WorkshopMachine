@@ -94,7 +94,7 @@ export function capabilitiesOf(atLeast, can) {
 	return {
 		read: atLeast('operator'),
 		run: atLeast('technician'),
-		admin: atLeast('admin'), // the Motion module edits for an administrator only (owner decision, design 2.8), whatever the table says of speed or acceleration
+		admin: atLeast('admin'), // the Motion module edits for an administrator only (project decision, design 2.8), whatever the table says of speed or acceleration
 		meshWrite: atLeast('technician'),
 		history: atLeast('technician'),
 		configure: kind => {

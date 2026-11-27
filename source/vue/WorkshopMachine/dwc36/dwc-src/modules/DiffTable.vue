@@ -6,8 +6,9 @@
 			<thead>
 				<tr>
 					<th class="text-left">{{ t('history.col_value') }}</th>
-					<th class="text-right">{{ aLabel }}</th>
-					<th class="text-right">{{ bLabel }}</th>
+					<!-- note 5 (2026-11-23): each column says WHICH record it is (its letter and, under it, its date or name), never a bare A / B -->
+					<th class="text-right"><span class="diff-col-name">{{ aLabel }}</span><span v-if="aSub" class="diff-col-sub">{{ aSub }}</span></th>
+					<th class="text-right"><span class="diff-col-name">{{ bLabel }}</span><span v-if="bSub" class="diff-col-sub">{{ bSub }}</span></th>
 					<th class="text-right">{{ bLabel }} - {{ aLabel }}</th>
 				</tr>
 			</thead>
@@ -41,7 +42,9 @@ export default {
 		changed: { type: Number, default: 0 },
 		cut: { type: Boolean, default: false },
 		aLabel: { type: String, default: 'A' },
-		bLabel: { type: String, default: 'B' }
+		bLabel: { type: String, default: 'B' },
+		aSub: { type: String, default: '' }, // what the column is: the date and person of a record, the name of a copy
+		bSub: { type: String, default: '' }
 	},
 	data() {
 		return { onlyChanged: true }
@@ -61,4 +64,6 @@ export default {
 
 <style>
 .compare-changed { background: rgba(255, 193, 7, 0.14); }
+.diff-table .diff-col-name { display: block; }
+.diff-table .diff-col-sub { display: block; font-size: 12px; font-weight: 400; text-transform: none; letter-spacing: 0; opacity: 0.8; white-space: nowrap; }
 </style>

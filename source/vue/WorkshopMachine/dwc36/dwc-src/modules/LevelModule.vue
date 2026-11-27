@@ -1,7 +1,6 @@
 <template>
 	<div class="level-module">
-		<div class="text-h6 mb-1">{{ t('level.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('level.intro') }}</p>
+		<card-head icon="mdi-stairs" :title="t('level.title')" />
 		<div class="d-flex align-center flex-wrap mb-3" style="gap:8px">
 			<span class="text-body-2">{{ t('level.detected') }}:</span>
 			<v-chip small outlined :color="detection.kinds.length ? 'primary' : 'warning'">{{ t(detection.modeKey) }}</v-chip>
@@ -9,12 +8,12 @@
 			<span v-else-if="detection.kinds.length < 3" class="text-caption machine-faint">{{ t('level.reason_' + detection.mode) }}</span>
 		</div>
 		<role-note v-if="!canRun" min="technician" :ops="accessOps.run" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.level')" />
-		<v-card outlined class="mb-4 pa-3">
+		<div class="wf-group mb-4">
 			<level-bed
 				:model="bedModel" :lp="lp" :service-level="serviceLevel" :last-level="lastLevel" :result="rs.result" :editable="canRun && !busy && detection.kinds.length > 0"
 				:sets="setsView" @save-set="saveSet($event.name, $event.points)" @delete-set="deleteSet"
 			/>
-		</v-card>
+		</div>
 		<template v-if="canRun && detection.kinds.length">
 			<v-radio-group v-model="rs.inputs.kind" :label="t('level.kind_label')" dense hide-details class="mt-0 mb-3" :disabled="busy">
 				<v-radio v-for="k in detection.kinds" :key="k" :value="k" :label="t('level.kind_' + k.split('.')[1])" />
@@ -27,12 +26,14 @@
 					<v-text-field v-model="rs.inputs.toleranceMm" :label="t('level.field_tolerance')" type="number" step="0.005" dense outlined hide-details="auto" :disabled="busy" :error-messages="errorOf('toleranceMm')" />
 				</v-col>
 			</v-row>
+			<div class="text-caption machine-faint mb-2">{{ t('level.needs_power') }}</div>
 			<run-start :allowed="canRun" :busy="!startAllowed" :starting="rs.status === 'starting'" :disabled-text="blockedText" @start="begin()" />
 		</template>
 		<run-progress class="mt-3" :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 		<div class="text-body-2 font-weight-medium mt-4 mb-2">{{ t('level.result_title') }}</div>
 		<level-passes v-if="hasPasses" :result="rs.result" />
 		<div v-else class="text-body-2 machine-faint">{{ t('level.no_result') }}</div>
+		<help-fold :title="t('level.title')" class="mt-4">{{ t('level.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -54,9 +55,11 @@ import { draftKeyOf } from '../state/bed-state.js'
 import { createLevelPoints, pointsOf } from '../state/level-points-state.js'
 import { KINDS, detect, runParams, defaultsOf } from '../lib/level.js'
 import RoleNote from './RoleNote.vue'
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
-	components: { RoleNote, RunStart, RunProgress, LevelPasses, LevelBed },
+	components: { CardHead, HelpFold, RoleNote, RunStart, RunProgress, LevelPasses, LevelBed },
 	mixins: [bedLayoutMixin(), pointSetsMixin(), runModule(KINDS, { kind: 'level.measure', maxPasses: 5, toleranceMm: 0.02 })],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

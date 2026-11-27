@@ -3,10 +3,7 @@
 		<!-- Machine modes: where a person switches on the modes this machine uses (FFF / Laser / CNC) and sets each one up.
 		     One card per mode: state, the "Use this mode" switch and, when it is on and something is missing, the guide.
 		     The answer is the machine profile (vue/_shared36/machine-modes.js); the other plugins only show the steps of the modes that are on. -->
-		<div class="d-flex align-center flex-wrap mb-2" style="gap: 8px">
-			<div class="text-h6 flex-grow-1">{{ t('modes.title') }}</div>
-		</div>
-		<div class="text-body-2 machine-faint mb-2">{{ t('modes.intro') }}</div>
+		<card-head icon="mdi-toggle-switch-outline" :title="t('modes.title')" />
 		<!-- the switches store which modes the machine uses in its profile: they never change the mode the machine is in (H4, a state of the scope) -->
 		<div class="wf-note is-info mb-3" role="note"><v-icon :size="16" class="wf-note-icon" aria-hidden="true">mdi-information-outline</v-icon><span>{{ t('modes.profile_note') }}</span></div>
 
@@ -45,6 +42,7 @@
 		<div v-if="loaded && allReady" class="text-body-2 mt-3">{{ t('modes.all_ready') }}</div>
 		<div class="text-caption machine-faint mt-3">{{ t('modes.files_note') }}</div>
 		<div v-if="info" class="text-caption machine-faint">{{ info.viaService ? t('modes.via_service') : t('modes.via_local') }}</div>
+		<help-fold :title="t('modes.title')" class="mt-4">{{ t('modes.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -58,12 +56,14 @@ import { workshopProfile } from '../machine-profile.js' // vue/_shared36
 import { causeOf } from '../lib/refusal.js'
 import SessionNotice from '../SessionNotice.vue' // vue/_shared36
 import LockReason from '../LockReason.vue' // vue/_shared36
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 const ICONS = { fff: 'mdi-printer-3d-nozzle', laser: 'mdi-laser-pointer', cnc: 'mdi-saw-blade' }
 const CHIP = { off: undefined, alone: 'primary', pending: 'warning', ready: 'success' }
 
 export default {
-	components: { LockReason, SessionNotice },
+	components: { CardHead, HelpFold, LockReason, SessionNotice },
 	mixins: [textMixin],
 	props: {
 		canWrite: { type: Boolean, default: false }

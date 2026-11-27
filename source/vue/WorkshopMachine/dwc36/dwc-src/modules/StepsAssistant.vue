@@ -15,16 +15,16 @@
 				<v-btn small outlined color="primary" :disabled="!!sendWhy || moving" :loading="moving" @click="move()"><v-icon small left>mdi-arrow-right-bold-circle-outline</v-icon>{{ t('calibration.steps_send') }}</v-btn>
 				<span class="text-caption machine-faint">{{ sendWhy ? t(sendWhy, { max: TEST_MOVE_MAX_MM }) : t('calibration.steps_send_help') }}</span>
 			</div>
-			<error-notice :error="moveError" />
+			<section-notice :error="moveError" />
 			<v-alert v-if="moved" dense outlined type="success" class="mt-2 mb-0">{{ t('calibration.steps_sent', moved) }}</v-alert>
 			<v-alert v-if="result.errorKey && !fieldError(result.errorKey)" dense outlined type="warning" class="mt-3">{{ t(result.errorKey) }}</v-alert>
-			<v-card v-if="result.formula" outlined class="mt-3">
-				<v-card-text>
+			<div v-if="result.formula" class="wf-group mt-3">
+				<div>
 					<div class="text-body-2">{{ t('calibration.steps_formula', result.formula) }}</div>
 					<div class="text-subtitle-1 mt-1">{{ t('calibration.steps_new', { axis, next: result.next, change: signed(result.change) }) }}</div>
 					<v-alert v-if="result.bigChange && result.ok" dense outlined type="warning" class="mt-2 mb-0">{{ t('calibration.steps_big') }}</v-alert>
-				</v-card-text>
-			</v-card>
+				</div>
+			</div>
 			<div class="d-flex align-center flex-wrap mt-3" style="gap:8px">
 				<v-btn small color="primary" :disabled="!result.ok || flowBusy" @click="review()">{{ t('calibration.review') }}</v-btn>
 				<span class="text-caption machine-faint">{{ t('calibration.steps_hint') }}</span>
@@ -44,14 +44,14 @@
 import PlanReview from './PlanReview.vue'
 import GcodeBlock from './GcodeBlock.vue'
 import CalcWarnings from './CalcWarnings.vue'
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import { FIELD_ERRORS, fieldInvalid, fieldMessage, blockKey, numberOf, TEST_MOVE_MAX_MM } from '../lib/number-field.js'
 import { planModule } from './plan-module.js'
 import { stepsResult, stepsInput, testMoveGcode, CALC_STEPS } from '../lib/steps-calc.js'
 import RoleNote from './RoleNote.vue'
 
 export default {
-	components: { RoleNote, PlanReview, GcodeBlock, CalcWarnings, ErrorNotice },
+	components: { RoleNote, PlanReview, GcodeBlock, CalcWarnings, SectionNotice },
 	mixins: [planModule()],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

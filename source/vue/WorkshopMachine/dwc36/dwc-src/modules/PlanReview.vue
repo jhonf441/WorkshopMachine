@@ -1,11 +1,10 @@
 <template>
-	<v-card outlined class="plan-review">
-		<v-card-title class="text-subtitle-1 pb-1">{{ title }}</v-card-title>
-		<v-card-text>
+	<div class="wf-group plan-review">
+		<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ title }}</div>
+		<div>
 			<div v-if="state.status === 'planning'" class="text-body-2 machine-faint">{{ t('plan.planning') }}</div>
-			<v-alert v-if="state.status === 'error' && state.error" dense outlined type="error">
-				{{ t(state.error.key) }}<span v-if="state.error.detail"> ({{ state.error.detail }})</span>
-			</v-alert>
+			<!-- the answer to the apply (a refusal, the plan that failed to build) is the family's line, next to the control -->
+			<wf-result v-if="state.status === 'error' && state.error" :action="applyAct" :text="errorText" :retry="false" class="mb-2" />
 			<!-- the file on the SD is not the one the record expects: compare and accept explicitly (design 5.3) -->
 			<template v-if="state.status === 'conflict'">
 				<v-alert dense outlined type="warning">{{ t('plan.conflict_intro') }}</v-alert>
@@ -45,21 +44,20 @@
 				</div>
 				<div v-if="state.plan.roleNeeded === 'admin'" class="text-caption machine-faint mb-2">{{ t('plan.admin_only') }}</div>
 				<div class="d-flex align-center flex-wrap" style="gap:8px">
-					<v-btn color="primary" :disabled="!applicable" :loading="state.status === 'applying'" @click="$emit('apply')">
-						<v-icon left>mdi-content-save-check-outline</v-icon>{{ t('plan.apply') }}
-					</v-btn>
+					<!-- the service asks its own confirmation (level 3) when this is touched: the button is a plain write of the family, no double touch on top -->
+					<wf-action-button :action="applyAct" main :label="t('plan.apply')" :disabled="!applicable" @run="$emit('apply')" />
 					<span v-if="!roleOk" class="text-caption warning--text">{{ t('plan.needs_role', { role: state.plan.roleNeeded }) }}</span>
 					<span v-else-if="!changes" class="text-caption machine-faint">{{ t('plan.nothing') }}</span>
 				</div>
 			</template>
-			<v-alert v-if="state.status === 'done' && state.result" dense outlined type="success" class="mt-2">
-				<div>{{ t('plan.done') }}</div>
+			<div v-if="state.status === 'done' && state.result" class="mt-2">
+				<wf-result :action="applyAct" :text="t('plan.done')" />
 				<div v-if="state.result.snapshot" class="text-caption">{{ t('plan.done_snapshot', { id: state.result.snapshot }) }}</div>
 				<div v-if="state.result.restartNeeded" class="text-caption">{{ t('plan.done_restart') }}</div>
-			</v-alert>
+			</div>
 			<v-btn v-if="state.status !== 'planning' && state.status !== 'applying'" small text class="mt-2" @click="$emit('reset')">{{ t('plan.close') }}</v-btn>
-		</v-card-text>
-	</v-card>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -70,13 +68,15 @@
 // is the review that comes before it. The state is state/plan-state.js; this component keeps none of its own.
 
 import PlanDiffLines from './PlanDiffLines.vue'
+import WfActionButton from '../WfActionButton.vue' // vue/_shared36 (FASE2)
+import WfResult from '../WfResult.vue' // vue/_shared36 (FASE2)
 import { textMixin } from './text-mixin.js'
 import { planStats, hasChanges } from '../lib/plan-diff.js'
 import { canApply, canAccept } from '../state/plan-state.js'
 import { formatValue } from '../lib/format.js'
 
 export default {
-	components: { PlanDiffLines },
+	components: { PlanDiffLines, WfActionButton, WfResult },
 	mixins: [textMixin],
 	props: {
 		state: { type: Object, required: true }, // createPlanState()
@@ -95,6 +95,19 @@ export default {
 		},
 		acceptable() {
 			return canAccept(this.state)
+		},
+		// the plan state read as the state of a write (WfActionButton / WfResult read `state`, `error`, `text`): applying = sending; the page keeps no loose field of its own
+		applyAct() {
+			const st = this.state.status
+			return {
+				state: st === 'applying' ? 'sending' : st === 'done' ? 'done' : st === 'error' ? 'error' : 'idle',
+				error: st === 'error' ? { code: 'internal', message: this.errorText } : null,
+				text: ''
+			}
+		},
+		errorText() {
+			const e = this.state.error
+			return e ? this.t(e.key) + (e.detail ? ' (' + e.detail + ')' : '') : ''
 		},
 		// what the record had before and after and what the file has now, per value
 		threeWay() {

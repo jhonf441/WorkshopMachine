@@ -1,5 +1,42 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.20.0 -- 2026-11-23
+
+- family redesign on the shared pieces (FAMILIA-REDISENO, owner's scale of 2026-11-23): the compact one-line bar (its sentence is read, not drawn; it is seen once, under the head of the overview); the side menu of the family, without boxes
+- every section opens with the family card head (icon in the section color, 4 % tint, actions at its right) instead of a big title and an explanation paragraph; the explanation moves into ONE help fold at the foot of the section (Motion, Maintenance, Work area and the tool wizard merge their other folds into it; Beds keeps its three form folds, the intro joins the limit one)
+- inside a section no card in a card: a Vuetify card is a group with a divider and a 13/600 title (the choice tiles of the tool wizard and the modes and the detail panels over the bed keep their frame); the overview is the section's own content
+- controls on the scale: buttons 32, the main one 36, icon buttons 32, segments 32, the page STOP 48, touch area 40 from the family; the 44 px inline sizes of the bed tools, point sets, height nudges and detail panels are gone
+- notices of the page (no live data, a run in progress, modules the machine cannot use) are one outlined line, not a full-width band
+- kept: every compare column says which record or copy it is (note 5); the Z motors sit inside the measured bed frame (note 6)
+
+## 1.19.2 -- 2026-11-23
+
+- optional files are never requested when absent
+
+## 1.19.1 -- 2026-11-22
+
+- select arrows, one focus ring per field, shared family stylesheet split
+
+## 1.19.0 -- 2026-11-22
+
+- Levelling in any mode and a to-scale bed graph with screw positions
+
+## 1.18.3 -- 2026-11-22
+
+- Rebuild with shared update: start-up card split into modules, neutral Spanish texts, service texts resynced, unused .wf-index rule dropped
+
+## 1.18.2 -- 2026-11-22
+
+- Tuteo in texts (no voseo in es.json).
+
+## 1.18.1 -- 2026-11-22
+
+- Visual review round: single hover and focus for inputs and controls (family styles), 44 px switch and checkbox rows, range picker field 44 px.
+
+## 1.18.0 -- 2026-11-22
+
+- Style unification: K0 wizard save, Height saves, offsets snapshot, Try now (Keep, Revert, Make permanent) and mesh library writes are family actions with one result line, clear asks the double touch, 44 px controls, nothing under 12 px.
+
 ## 1.17.0 -- 2026-11-20
 
 - The assistants ask in which modes the tool or bed exists and write to machine.g (config.g calls it once)
@@ -54,7 +91,7 @@
 
 ## 1.16.1 -- 2026-11-11
 
-- Owner report 2026-11-11: shutdown without session, kiosk PIN pad, hive confirm color, wheel release and Z keys, version in every page bar
+- User report 2026-11-11: shutdown without session, kiosk PIN pad, hive confirm color, wheel release and Z keys, version in every page bar
 
 ## 1.16.0 -- 2026-11-11
 

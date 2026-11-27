@@ -8,6 +8,7 @@
 export const PAD = { l: 40, r: 14, t: 14, b: 34 }
 const INCLUDE_PX = 34 // room around a thing drawn past the bed: its glyph, its correction arrow and its label
 const STEPS = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000]
+const MIN_TICK_PX = 28 // a fixed step is kept only while its ticks are at least this far apart
 
 // the first "nice" step in mm whose drawn length is at least minPx
 export function niceStep(pxPerMm, minPx) {
@@ -16,35 +17,40 @@ export function niceStep(pxPerMm, minPx) {
 	return STEPS[STEPS.length - 1]
 }
 
-// bed {xmin, xmax, ymin, ymax}, width in px -> frame with toPx / toWorld / size
+// bed {xmin, xmax, ymin, ymax}, width in px -> frame with toPx / toWorld / size.
+// Things drawn outside the bed (the Z motors can sit past the axis limits, opts.include) are drawn INSIDE the measured frame (owner, 2026-11-23,
+// note 6): the frame with the grid, the ticks and the scale is the union of the bed and those things plus room for their glyph and label
+// (frame.view); the bed (the axis limits, frame.bed) is a rectangle inside it. Without such things the frame is the bed, as before.
 export function makeFrame(bed, width, opts) {
 	const pad = Object.assign({}, PAD, (opts && opts.pad) || {})
 	const w = Math.max(240, Math.round(width))
-	const bw = bed.xmax - bed.xmin
-	const bh = bed.ymax - bed.ymin
 	const maxH = (opts && opts.maxHeight) || Math.max(260, w * 1.05)
-	let scale = Math.max(0.0001, Math.min((w - pad.l - pad.r) / bw, (maxH - pad.t - pad.b) / bh))
-	// things drawn outside the bed (the Z motors can sit past the axis limits) get room in the margin so they never overlap the bed edge
-	const keep = (opts && opts.include) || []
-	if (keep.length) {
-		const base = Object.assign({}, pad)
-		const room = (mm, px) => (mm > 0 ? mm * scale + INCLUDE_PX : px)
+	const fit = v => Math.max(0.0001, Math.min((w - pad.l - pad.r) / (v.xmax - v.xmin), (maxH - pad.t - pad.b) / (v.ymax - v.ymin)))
+	let view = bed
+	let scale = fit(view)
+	const keep = ((opts && opts.include) || []).filter(k => k && isFinite(k.x) && isFinite(k.y))
+	const outside = keep.filter(k => k.x < bed.xmin || k.x > bed.xmax || k.y < bed.ymin || k.y > bed.ymax)
+	if (outside.length) {
+		// the room in mm depends on the scale, which depends on the room: a few rounds settle it
 		for (let i = 0; i < 4; i++) {
-			pad.l = Math.max(base.l, room(bed.xmin - Math.min.apply(null, keep.map(k => k.x)), 0))
-			pad.r = Math.max(base.r, room(Math.max.apply(null, keep.map(k => k.x)) - bed.xmax, 0))
-			pad.b = Math.max(base.b, room(bed.ymin - Math.min.apply(null, keep.map(k => k.y)), 0))
-			pad.t = Math.max(base.t, room(Math.max.apply(null, keep.map(k => k.y)) - bed.ymax, 0))
-			scale = Math.max(0.0001, Math.min((w - pad.l - pad.r) / bw, (maxH - pad.t - pad.b) / bh))
+			const m = INCLUDE_PX / scale
+			const xs = keep.map(k => k.x)
+			const ys = keep.map(k => k.y)
+			view = {
+				xmin: Math.min(bed.xmin, Math.min.apply(null, xs) - m), xmax: Math.max(bed.xmax, Math.max.apply(null, xs) + m),
+				ymin: Math.min(bed.ymin, Math.min.apply(null, ys) - m), ymax: Math.max(bed.ymax, Math.max.apply(null, ys) + m)
+			}
+			scale = fit(view)
 		}
 	}
-	const innerW = bw * scale
-	const innerH = bh * scale
+	const innerW = (view.xmax - view.xmin) * scale
+	const innerH = (view.ymax - view.ymin) * scale
 	const ox = pad.l + (w - pad.l - pad.r - innerW) / 2
 	const h = Math.round(innerH + pad.t + pad.b)
 	return {
-		w, h, scale, bed, pad, rect: { x: ox, y: pad.t, w: innerW, h: innerH },
-		toPx: (x, y) => ({ x: ox + (x - bed.xmin) * scale, y: pad.t + innerH - (y - bed.ymin) * scale }),
-		toWorld: (px, py) => ({ x: bed.xmin + (px - ox) / scale, y: bed.ymin + (pad.t + innerH - py) / scale })
+		w, h, scale, bed, view, pad, rect: { x: ox, y: pad.t, w: innerW, h: innerH }, stepMm: (opts && opts.stepMm) || 0,
+		toPx: (x, y) => ({ x: ox + (x - view.xmin) * scale, y: pad.t + innerH - (y - view.ymin) * scale }),
+		toWorld: (px, py) => ({ x: view.xmin + (px - ox) / scale, y: view.ymin + (pad.t + innerH - py) / scale })
 	}
 }
 
@@ -64,8 +70,9 @@ function ticks(lo, hi, step) {
 
 // the mm grid: vertical lines (X values) and horizontal lines (Y values) with their pixel positions
 export function gridOf(frame) {
-	const step = niceStep(frame.scale, 48)
-	const b = frame.bed
+	// a fixed step (the levelling bed ticks every 100 mm) is used while it still leaves room between ticks, else the nice step
+	const step = frame.stepMm && frame.stepMm * frame.scale >= MIN_TICK_PX ? frame.stepMm : niceStep(frame.scale, 48)
+	const b = frame.view || frame.bed // the whole measured frame (bed + motors)
 	const vertical = ticks(b.xmin, b.xmax, step).map(v => ({ v, px: frame.toPx(v, b.ymin).x }))
 	const horizontal = ticks(b.ymin, b.ymax, step).map(v => ({ v, px: frame.toPx(b.xmin, v).y }))
 	return { step, vertical, horizontal }
@@ -91,10 +98,12 @@ export function offsetVector(frame, offset, anchor) {
 // everything the backdrop draws, in px
 export function backdropOf(frame, reach) {
 	const b = frame.bed
-	const origin = b.xmin <= 0 && b.xmax >= 0 && b.ymin <= 0 && b.ymax >= 0 ? frame.toPx(0, 0) : null
+	const v = frame.view || b
+	const origin = v.xmin <= 0 && v.xmax >= 0 && v.ymin <= 0 && v.ymax >= 0 ? frame.toPx(0, 0) : null
 	const r = frame.rect
 	return {
-		limits: rectPx(frame, b), reach: rectPx(frame, reach), grid: gridOf(frame), scaleBar: scaleBarOf(frame), origin,
+		// view: the measured frame (the grid lives in it); limits: the bed inside it (the same rectangle when nothing is drawn past the bed)
+		view: rectPx(frame, v), limits: rectPx(frame, b), reach: rectPx(frame, reach), grid: gridOf(frame), scaleBar: scaleBarOf(frame), origin,
 		axes: { x: { x1: r.x, y1: r.y + r.h + 8, x2: r.x + 28, y2: r.y + r.h + 8 }, y: { x1: r.x - 8, y1: r.y + r.h, x2: r.x - 8, y2: r.y + r.h - 28 } }
 	}
 }
@@ -109,6 +118,17 @@ export function glyphRadius(frame, points) {
 		}
 	}
 	return Math.max(4.5, Math.min(10, min === Infinity ? 10 : min * 0.4))
+}
+
+// is the point {x, y} (mm) inside the rectangle {xmin, xmax, ymin, ymax}? No rectangle: nothing to be outside of
+export function insideRect(rect, p) {
+	return !rect || (p.x >= rect.xmin && p.x <= rect.xmax && p.y >= rect.ymin && p.y <= rect.ymax)
+}
+
+// the physical area of a leadscrew under the bed, in px: a real size in mm, never smaller than a finger can find
+export const SCREW_AREA_MM = 20
+export function screwAreaPx(frame) {
+	return Math.max(30, SCREW_AREA_MM * frame.scale)
 }
 
 export const HIT_RADIUS = 22 // px: the touch target of a point (a 44 px circle)

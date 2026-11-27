@@ -9,15 +9,16 @@
 		<div v-if="editing" :id="'bed-edit-form-' + row.bed" class="mt-3 bed-edit-form">
 			<div class="text-subtitle-2 mb-1">{{ t('beds.edit_title', { n: row.bed }) }}</div>
 			<p class="text-body-2 machine-faint">{{ t('beds.edit_intro') }}</p>
+			<help-fold :items="helpItems" class="mb-2" />
 			<div class="bed-edit-grid">
 				<div class="bed-edit-field">
-					<div class="bed-edit-label"><label :for="'be-h-' + row.bed" class="text-caption">{{ t('beds.edit_f_heater') }}</label><help-tip :title="t('beds.edit_f_heater')" :what="t('beds.help.edit_heater_what')" :why="t('beds.help.edit_heater_why')" :if-missing="t('beds.help.edit_heater_missing')" :how="t('beds.help.edit_heater_how')" /></div>
+					<div class="bed-edit-label"><label :for="'be-h-' + row.bed" class="text-caption">{{ t('beds.edit_f_heater') }}</label></div>
 					<v-select :id="'be-h-' + row.bed" v-model="draft.heater" :items="heaterItems" dense outlined hide-details :disabled="locked" :error="!!issueOf('heater')" :aria-label="t('beds.edit_f_heater')" />
 					<div class="text-caption machine-faint">{{ t('beds.opt_heater_hint') }}</div>
 					<div v-if="issueOf('heater')" class="text-caption error--text">{{ message('heater') }}</div>
 				</div>
 				<div class="bed-edit-field">
-					<div class="bed-edit-label"><label :for="'be-s-' + row.bed" class="text-caption">{{ t('beds.edit_f_sensor') }}</label><help-tip :title="t('beds.edit_f_sensor')" :what="t('beds.help.edit_sensor_what')" :why="t('beds.help.edit_sensor_why')" :if-missing="t('beds.help.edit_sensor_missing')" :how="t('beds.help.edit_sensor_how')" /></div>
+					<div class="bed-edit-label"><label :for="'be-s-' + row.bed" class="text-caption">{{ t('beds.edit_f_sensor') }}</label></div>
 					<v-select :id="'be-s-' + row.bed" v-model="draft.sensor" :items="sensorItems" dense outlined hide-details :disabled="locked || !sensorOk" :error="!!issueOf('sensor')" :aria-label="t('beds.edit_f_sensor')" />
 					<div v-if="sensorOk" class="text-caption machine-faint">{{ t('beds.opt_sensor_hint') }}</div>
 					<div v-if="!sensorOk" class="text-caption machine-faint">{{ t('beds.edit_no_sensor') }}</div>
@@ -43,7 +44,8 @@
 // loose G-code. The service operation is behind api.beds.planEdit (api/machine-api-beds.js); the checks that block are in lib/bed-edit.js and the service enforces them again.
 // The Edit button toggles the form (Edit <-> Close); Cancel / Close inside the form fold it too and reset its state; `applied` is emitted when a change was applied.
 
-import HelpTip from '../HelpTip.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
+import { editHelpItems } from '../lib/beds-help.js'
 import RoleNote from './RoleNote.vue'
 import PlanReview from './PlanReview.vue'
 import { textMixin } from './text-mixin.js'
@@ -54,7 +56,7 @@ import { heaterOptions, sensorOptions } from '../lib/bed-edit-options.js'
 
 export default {
 	mixins: [textMixin],
-	components: { HelpTip, RoleNote, PlanReview },
+	components: { HelpFold, RoleNote, PlanReview },
 	props: {
 		api: { type: Object, required: true },
 		row: { type: Object, required: true }, // one of definedRows(): {bed, heater, fileSensor, editable, loaded, ...}
@@ -67,6 +69,9 @@ export default {
 		return { editing: false, draft: editDraft(this.row), applied: false, ps: null, flow: null }
 	},
 	computed: {
+		helpItems() {
+			return editHelpItems(this.t)
+		},
 		ctx() {
 			return { limits: editLimits(this.model), canWrite: this.canWrite, busy: this.busy }
 		},

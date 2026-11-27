@@ -1,9 +1,8 @@
 <template>
 	<div class="probe-module">
-		<div class="text-h6 mb-1">{{ t('probe.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('probe.intro') }}</p>
+		<card-head icon="mdi-target" :title="t('probe.title')" />
 		<role-note v-if="!canRun" min="technician" :ops="accessOps.run" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.probe')" />
-		<v-card outlined class="mb-4 pa-3"><probe-bed :model="bedModel" /></v-card>
+		<div class="wf-group mb-4"><probe-bed :model="bedModel" /></div>
 		<v-row v-if="canRun" dense>
 			<v-col cols="6" sm="3">
 				<v-text-field v-model="rs.inputs.probe" :label="t('probe.field_probe')" type="number" dense outlined hide-details="auto" :disabled="busy" :error-messages="errorOf('probe')" />
@@ -17,6 +16,7 @@
 		<div class="text-body-2 font-weight-medium mt-4 mb-2">{{ t('probe.result_title') }}</div>
 		<probe-result v-if="resultView" :view="resultView" />
 		<div v-else class="text-body-2 machine-faint">{{ t('probe.no_result') }}</div>
+		<help-fold :title="t('probe.title')" class="mt-4">{{ t('probe.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -35,9 +35,11 @@ import { bedLayoutMixin } from './bed-layout-mixin.js'
 import { RUN_KINDS } from '../api/machine-api.js'
 import { repeatParams, thresholdsOf, resultView } from '../lib/probe.js'
 import RoleNote from './RoleNote.vue'
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
-	components: { RoleNote, RunStart, RunProgress, ProbeResult, ProbeBed },
+	components: { CardHead, HelpFold, RoleNote, RunStart, RunProgress, ProbeResult, ProbeBed },
 	mixins: [bedLayoutMixin(), runModule([RUN_KINDS.probeRepeat], { probe: 0, samples: 10 })],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

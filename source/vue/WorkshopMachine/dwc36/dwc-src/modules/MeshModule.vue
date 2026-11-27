@@ -1,33 +1,31 @@
 <template>
 	<div class="mesh-module">
-		<div class="d-flex align-center flex-wrap" style="gap:8px">
-			<div class="text-h6">{{ t('mesh.title') }}</div>
-			<v-spacer />
+		<card-head icon="mdi-grid" :title="t('mesh.title')">
 			<!-- 3D lives in the DWC Height Map page; this page does not duplicate it -->
 			<v-btn v-if="heightMapOn" small outlined to="/Plugins/HeightMap"><v-icon small left>mdi-cube-scan</v-icon>{{ t('mesh.open_height_map') }}</v-btn>
-		</div>
-		<p class="text-body-2 machine-faint">{{ t('mesh.intro') }}</p>
+		</card-head>
 		<role-note v-if="!canRun" min="technician" :ops="accessOps.run" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.mesh')" />
-		<v-card outlined class="mb-4 pa-3">
+		<div class="wf-group mb-4">
 			<mesh-bed
 				:model="bedModel" :inputs="rs.inputs" :form="form" :grid="grid" :previous="previous" :service-mesh="serviceMesh" :result-signal="resultSignal"
 				:thresholds="thresholds" :editable="canRun && !busy" :can-run="canRun" :pe="pe" :derived="derived" :sets="setsView"
 				@save-set="saveSet($event.name, $event.points)" @delete-set="deleteSet"
 			/>
-		</v-card>
-		<v-card v-if="canRun" outlined class="mb-4">
-			<v-card-title class="text-subtitle-1 pb-0">{{ t('mesh.run_title') }}</v-card-title>
-			<v-card-text>
+		</div>
+		<div v-if="canRun" class="wf-group mb-4">
+			<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ t('mesh.run_title') }}</div>
+			<div>
 				<mesh-run-form :inputs="rs.inputs" :form="form" :disabled="busy" :locked="okDerived" />
 				<run-start class="mt-3" :allowed="canRun" :busy="!startAllowed" :starting="rs.status === 'starting'" :disabled-text="blockedText" @start="begin()" />
-			</v-card-text>
-		</v-card>
+			</div>
+		</div>
 		<run-progress :run="rs.run" :error-text="runErrorText" :foreign-text="foreignText" :now="now" @stop="stop()" />
 		<div class="text-body-2 font-weight-medium mt-2 mb-2">{{ t('mesh.library_title') }}</div>
 		<mesh-library
 			:meshes="meshes" :compensation-on="compensationOn" :can-write="canWrite" :busy="working" :unavailable="libraryOff"
-			:notice="notice" :error="opError" @show="show" @load="load" @clear="clear" @save="save" @taper="taper"
+			:acts="acts" :loading-id="loadingId" :error="opError" @show="show" @load="load" @clear="clear" @save="save" @taper="taper"
 		/>
+		<help-fold :title="t('mesh.title')" class="mt-4">{{ t('mesh.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -56,9 +54,12 @@ import { createPointEdit } from '../state/point-edit-state.js'
 import { refusalKey } from '../lib/runs.js'
 import { HEIGHT_MAP_ID, builtinEnabled } from '../lib/plugin-texts.js'
 import RoleNote from './RoleNote.vue'
+import { createAction } from '../workshop-action.js' // vue/_shared36
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 export default {
-	components: { RoleNote, RunStart, RunProgress, MeshRunForm, MeshBed, MeshLibrary },
+	components: { CardHead, HelpFold, RoleNote, RunStart, RunProgress, MeshRunForm, MeshBed, MeshLibrary },
 	mixins: [bedLayoutMixin(), pointSetsMixin(), runModule([RUN_KINDS.meshProbe], () => ({ mode: 'bed', nx: 5, ny: 5, probe: 0, region: { xmin: '', xmax: '', ymin: '', ymax: '' } }))],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
@@ -71,9 +72,16 @@ export default {
 		now: { type: Number, default: 0 }
 	},
 	data() {
-		return { layoutMode: 'mesh', pe: createPointEdit(), resultSignal: 0, meshes: [], libraryOff: false, grid: null, previous: null, working: false, notice: '', opError: '' }
+		return { layoutMode: 'mesh', pe: createPointEdit(), resultSignal: 0, meshes: [], libraryOff: false, grid: null, previous: null, loadingId: '', opError: '' }
+	},
+	beforeDestroy() {
+		Object.values(this.acts).forEach(a => a.dispose())
 	},
 	computed: {
+		// one of the writes of the library is going on: the other controls wait
+		working() {
+			return Object.values(this.acts).some(a => ['sending', 'verifying', 'confirming'].indexOf(a.state) >= 0)
+		},
 		// HeightMap is a built-in plugin of DWC that can be switched off (global list of DWC settings): no button then
 		heightMapOn() {
 			const st = this.$store && this.$store.state
@@ -133,6 +141,31 @@ export default {
 		}
 	},
 	created() {
+		// the four writes of the compensation are writes of the family, one at a time; clearing asks the double touch (it switches the compensation off)
+		const mk = (call, doneKey, arm) => {
+			const act = createAction({
+				group: 'mesh-library',
+				arm: arm || 'none',
+				run: async (args) => {
+					try {
+						await call(args)
+						await this.loadLibrary()
+						this.$emit('changed')
+						return { text: this.t(doneKey) }
+					} catch (e) {
+						if (e && e.code === 'cancelled') this.$nextTick(() => act.reset()) // the person said no to the service's own question: nothing to say
+						throw Object.assign(new Error(this.failText(e)), { code: 'internal' })
+					}
+				}
+			})
+			return act
+		}
+		this.acts = {
+			load: mk(a => this.api.mesh.load(a.id), 'mesh.done_load'),
+			clear: mk(() => this.api.mesh.clear(), 'mesh.done_clear', 'double'),
+			save: mk(a => this.api.mesh.save(a.name), 'mesh.done_save'),
+			taper: mk(a => this.api.mesh.taper(a.height), 'mesh.done_taper')
+		}
 		this.loadLibrary()
 		this.loadPointSets()
 		// the last mesh the service knows is shown at once, when nothing else is
@@ -173,33 +206,18 @@ export default {
 				this.opError = this.failText(e)
 			}
 		},
-		// one write of the compensation: the busy flag, the notice, and a fresh library and overview afterwards
-		async write(call, doneKey) {
-			this.working = true
-			this.notice = ''
-			this.opError = ''
-			try {
-				await call()
-				this.notice = this.t(doneKey)
-				await this.loadLibrary()
-				this.$emit('changed')
-			} catch (e) {
-				if (!e || e.code !== 'cancelled') this.opError = this.failText(e)
-			} finally {
-				this.working = false
-			}
-		},
 		load(id) {
-			return this.write(() => this.api.mesh.load(id), 'mesh.done_load')
+			this.loadingId = id
+			this.acts.load.run({ id })
 		},
 		clear() {
-			return this.write(() => this.api.mesh.clear(), 'mesh.done_clear')
+			this.acts.clear.run({})
 		},
 		save(name) {
-			return this.write(() => this.api.mesh.save(name), 'mesh.done_save')
+			this.acts.save.run({ name })
 		},
 		taper(height) {
-			return this.write(() => this.api.mesh.taper(height), 'mesh.done_taper')
+			this.acts.taper.run({ height })
 		}
 	}
 }

@@ -10,7 +10,7 @@
 
 Page `/Plugins/Machine` ("Machine"). It checks, calibrates and looks after the machine: probe, levelling, mesh, offsets, height, limits, work area, calibration wizards, motion tuning, input shaping, safety diagnostic, maintenance counters, machine modes, history with restore and printable reports. Every change to the configuration goes through a plan with preview and a backup (nothing is written to a driver directly).
 
-Version documented: 1.6.x on DWC 3.6.3.
+Version documented: 1.20.x on DWC 3.6.3.
 
 ## 1. Requirements
 
@@ -32,7 +32,7 @@ The page is "Machine" (side menu: Plugins > Machine). Its side bar has sixteen e
 ### Page header
 
 #### State chip and Refresh
-- What: "All fine" (or a warning) and a refresh icon that reads the machine state again.
+- What: "All fine" (or a warning), the version of the plugin and a refresh icon that reads the machine state again.
 - Where: top right of the page header (picture 1).
 - How: press the icon to refresh.
 
@@ -43,7 +43,7 @@ The page is "Machine" (side menu: Plugins > Machine). Its side bar has sixteen e
 Picture 1: "Calibrations" chips and "State of the machine" chips; the red rectangle marks the refresh icon.
 
 #### Calibrations (how old each result is)
-- What: one chip per calibration (Probe repeatability, Bed levelling (G32), Height map, Safety check): "Never measured" or "Up to date" (with the date). A result is considered old after 30 days.
+- What: one chip per calibration (Probe repeatability, Bed levelling (G32), Height map, Safety check) and one for Maintenance: "Never measured" or "Up to date" (with the date). A result is considered old after 30 days.
 - Where: card "Calibrations" (picture 1).
 - How: read it; use the matching entry of the side bar to repeat one.
 
@@ -65,7 +65,7 @@ Picture 2: the probe page: a bed map with the probe offset from the nozzle and t
 
 ![Probe checklist](img/03-probe-checklist-and-start.png)
 
-Picture 3: the fields "Probe (index)" and "Touches", the safety checklist and the Start button (red rectangles).
+Picture 3: the fields "Probe (index)" and "Touches", the checks and the checklist, and the Start button (red rectangles).
 
 #### Probe index and touches
 - What: which probe to use (default 0) and how many touches (default 10).
@@ -73,9 +73,9 @@ Picture 3: the fields "Probe (index)" and "Touches", the safety checklist and th
 - How: type the numbers.
 
 #### Safety checklist and Start
-- What: five boxes you must tick before the Start button works: the axes are homed, the probe is connected and free, free space under the head and above the bed, nothing on the bed that the probe could hit, the emergency stop is within reach. Then "Start" runs the test and the Result shows the spread.
-- Where: picture 3, checklist and "Start" (grey until all is ticked).
-- How: 1. Home the axes first. 2. Tick the five boxes. 3. Press "Start" and stay next to the machine.
+- What: the page checks by itself that the axes are homed and that the probe is ready and at rest ("Checked by itself"; if one fails, Start says it cannot start). Then three boxes you must tick before the Start button works: free space under the head and above the bed, nothing on the bed that the probe could hit, the emergency stop is within reach. Then "Start" runs the test and the Result shows the spread.
+- Where: picture 3, checks, checklist and "Start" (grey until all is ticked).
+- How: 1. Home the axes first. 2. Tick the three boxes. 3. Press "Start" and stay next to the machine.
 - Watch out: the test MOVES the machine and touches the bed.
 
 ### Levelling
@@ -136,7 +136,7 @@ Picture 6: "Tool and work offsets": Tools and "Work systems" G54 to G59.3.
 #### Tool offsets
 - What: the offset of each tool. Here "The board reports no tools". Tools are saved one at a time: each row has its own button, which writes the change to the configuration with a preview and a backup.
 - Where: card "Tools" (picture 6).
-- How: 1. Type the offsets of one tool. 2. Press "Review the change" and read the preview. 3. Apply.
+- How: 1. Type the offsets of one tool. 2. Press "Review changes" and read the preview. 3. Apply.
 
 #### Work coordinate systems G54 to G59.3 (read only)
 - What: the X, Y and Z offset of each work system (G55 is "in use"), for reading only. Each system is a work zone of the Workbench (`sys/workshop/zones/p1.g` to `p9.g`; they hold the point of the pointer and no number of the laser-pointer correction, which is one value of the machine, the one measured below): Machine writes no work offset.
@@ -199,27 +199,27 @@ Picture 8: "Axis limits" (M208) and "Endstop verification" (red rectangles).
 Picture 9: "Work area" with the mode tabs, the area fields and "Save the area" (red rectangles).
 
 #### Work area per mode
-- What: the part of the bed where the tool or pointer can work in each mode (Workbench draws it; the laser editor will not save an origin outside it). Tabs Laser / CNC / FFF; X and Y minimum and maximum; the size is shown (590 x 510 mm).
+- What: the part of the bed where the tool or pointer can work in each mode (Workbench draws it; the cut editor will not save an origin outside it). Tabs Laser / CNC / FFF; X and Y minimum and maximum; the size is shown (590 x 510 mm).
 - Where: card "Area of Laser" (picture 9).
 - How: 1. Choose the mode. 2. Type the limits. 3. Press "Save the area" (or "Undo changes").
 - Watch out: "Remove the area" deletes it.
 
 #### Measure the corners and frame
-- What: two opposite corners measured by hand (release the motors, move the pointer, measure against the end stops) and a "frame" that traces the outline with the laser off.
+- What: two opposite corners measured by hand ("Release X and Y", move the pointer, measure against the end stops) or taken with the jog (take the tool to the corner and press "Tool is at corner 1" or "Tool is at corner 2"; nothing moves), and a "frame" that traces the outline with the laser off.
 - Where: card "Measure the corners" under the area (scroll down).
-- How: follow "How it works"; the frame moves the machine.
+- How: follow "What it is and how to use it" at the bottom of the page; the frame moves the machine.
 - Watch out: "frame" moves the head; not run.
 
 ### Calibration
 
 ![Calibration](img/10-calibration-assistants.png)
 
-Picture 10: the assistants Steps per mm, Squareness and Backlash (red rectangle) and the copyable test move.
+Picture 10: the assistants Steps per mm, Squareness and Backlash (red rectangle) and the test move with its "Copy" button.
 
 #### Steps per mm
-- What: command a move of a known length, measure what the axis really travelled and the new value comes from the formula; the current value is shown (X: 80 steps/mm). The page shows the test G-code (`G91`, `G1 X100 F600 S0`, `G90`) with a "Copy" button; it does NOT send it: you run it yourself with the axis free.
+- What: command a move of a known length, measure what the axis really travelled and the new value comes from the formula; the current value is shown (X: 80 steps/mm). The page shows the test G-code (`G91`, `G1 X100 F600 S0`, `G90`) with a "Copy" button, so you can run it yourself with the axis free, and a "Send the move" button that sends it for you (it asks you to confirm first; the machine must be idle and the axis homed).
 - Where: Calibration > "Steps per mm" (picture 10).
-- How: 1. Choose the axis and the commanded length. 2. Copy the test move and run it yourself. 3. Type the measured length. 4. Press "Review the change" (the M92 line is written in the configuration with a backup).
+- How: 1. Choose the axis and the commanded length. 2. Copy the test move and run it yourself, or press "Send the move". 3. Type the measured length. 4. Press "Review the change" (the M92 line is written in the configuration with a backup).
 - Watch out: type every value as a number above zero.
 
 #### Squareness and Backlash
@@ -292,7 +292,7 @@ Picture 14: counters and the maintenance plan.
 #### Counters
 - What: power-on hours, moving hours and estimated distance in metres for the whole machine and per axis, counted by the service (not by the board) since the install date; a cross-check with the last job (estimated / planned path).
 - Where: card "Counters" (picture 14).
-- How: read it; "How it works" unfolds the explanation.
+- How: read it; "What it is and how to use it", at the bottom of the page, explains it.
 
 #### Maintenance plan, Done and Edit plan
 - What: the list of what to service and when: state, item, interval, since last time and last done (for example lubricate the Z lead screws every 100 h powered). "Done" marks an item done; "Edit plan" edits the list.
@@ -306,9 +306,9 @@ Picture 14: counters and the maintenance plan.
 
 Picture 15: the three mode switches (red rectangles).
 
-#### Use this mode (3D printing, Laser, CNC)
-- What: choose which kinds of work the machine does. Only the modes you switch on get steps, macros and settings in the plugins; each shows "On and ready" when its files exist. Switching a mode off never deletes its files. Stored in the machine profile, shared by every plugin and screen.
-- Where: Machine modes, three cards (picture 15).
+#### The machine uses this mode (3D printing, Laser, CNC)
+- What: choose which kinds of work the machine does. Only the modes you switch on get steps, macros and settings in the plugins; each card shows "On and ready" when its files exist. Switching a mode off never deletes its files. Stored in the machine profile, shared by every plugin and screen.
+- Where: Machine modes, three cards with the switch "The machine uses this mode" (picture 15).
 - How: press the switch of a mode.
 - Watch out: it changes what every plugin shows.
 
@@ -316,10 +316,10 @@ Picture 15: the three mode switches (red rectangles).
 
 ![History](img/16-calibration-history.png)
 
-Picture 16: "Calibration history" with the filters, the table and "Compare the two ticked" (red rectangles; the person column is blurred).
+Picture 16: "Calibration history" with the filters, the table and "Compare the two ticked" (red rectangles).
 
 #### Filter the history
-- What: Kind, State, Person, From and To, then "Filter".
+- What: Kind, State, Person and a date range ("No time limit" until you pick one), then "Filter".
 - Where: top of History (red rectangle, picture 16).
 
 #### Records, Open and Compare

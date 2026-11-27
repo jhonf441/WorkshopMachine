@@ -42,7 +42,7 @@ function drawCircle(ctx, it) {
 
 function drawText(ctx, it) {
 	ctx.fillStyle = it.color
-	ctx.font = (it.size || 11) + 'px sans-serif'
+	ctx.font = (it.size || 12) + 'px sans-serif'
 	ctx.textAlign = it.align || 'left'
 	ctx.textBaseline = 'middle'
 	ctx.fillText(it.text, it.x, it.y)

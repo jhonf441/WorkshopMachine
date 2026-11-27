@@ -1,11 +1,7 @@
 <template>
 	<div class="motion-module">
-		<div class="text-h6 mb-1 d-flex align-center" style="gap:4px">
-			{{ t('motion.title') }}
-			<help-tip :title="t('motion.title')">{{ t('motion.units') }}</help-tip>
-		</div>
-		<p class="text-body-2 machine-faint">{{ t('motion.intro') }}</p>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<card-head icon="mdi-engine-outline" :title="t('motion.title')" />
+		<section-notice :error="loadError" retry @retry="load()" />
 		<role-note v-if="!canEdit" min="admin" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.motion')" />
 		<v-alert v-if="motion && !motion.configRead" dense outlined type="info" class="mb-3">{{ t('motion.config_unread') }}</v-alert>
 		<div v-if="!rows.length" class="text-body-2 machine-faint">{{ t('motion.no_axes') }}</div>
@@ -43,6 +39,7 @@
 		</template>
 		<!-- a trial left running by another page or before a reload is shown here, whatever the parameter selected -->
 		<try-panel v-else-if="tf.status !== 'idle'" class="mt-4" :state="tf" :now="now" :role-ok="false" :seconds.sync="trySeconds" @reset="tryFlow.reset()" />
+		<help-fold :title="t('motion.title')" class="mt-4"><p>{{ t('motion.intro') }}</p><p>{{ t('motion.units') }}</p></help-fold>
 	</div>
 </template>
 
@@ -54,8 +51,8 @@
 // auto-revert countdown for the parameters machine.try accepts. The trial survives a page reload (state/try-flow.js).
 // Microstepping is shown but not edited here (the service has no plan kind for it).
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
-import HelpTip from '../HelpTip.vue' // vue/_shared36
+import SectionNotice from './SectionNotice.vue' // one notice per cause
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 import MotionTable from './MotionTable.vue'
 import PlanReview from './PlanReview.vue'
 import TryPanel from './TryPanel.vue'
@@ -64,9 +61,10 @@ import { trialModule } from './trial-module.js'
 import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { tableRows, PARAMS, DRIVER_MODES, paramOf, editRows, draftOf, changes, valid, planValues, previewLine, rangeOf } from '../lib/motion-table.js'
 import RoleNote from './RoleNote.vue'
+import CardHead from '../CardHead.vue' // vue/_shared36
 
 export default {
-	components: { RoleNote, HelpTip, ErrorNotice, MotionTable, PlanReview, TryPanel },
+	components: { CardHead, RoleNote, HelpFold, SectionNotice, MotionTable, PlanReview, TryPanel },
 	mixins: [planModule(), trialModule()],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

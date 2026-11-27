@@ -1,12 +1,11 @@
 <template>
 	<div class="shaping-module">
-		<div class="text-h6 mb-1">{{ t('shaping.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('shaping.intro') }}</p>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<card-head icon="mdi-sine-wave" :title="t('shaping.title')" />
+		<section-notice :error="loadError" retry @retry="load()" />
 		<role-note v-if="!canEdit" min="technician" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.shaping')" />
-		<v-card outlined class="mb-4">
-			<v-card-title class="text-subtitle-1 pb-0">{{ t('shaping.current_title') }}</v-card-title>
-			<v-card-text>
+		<div class="wf-group mb-4">
+			<div class="wf-group-title d-flex align-center flex-wrap" style="gap: 8px">{{ t('shaping.current_title') }}</div>
+			<div>
 				<div v-if="!shaping.available" class="text-body-2 machine-faint">{{ t('shaping.not_reported') }}</div>
 				<template v-else>
 					<v-chip small outlined :color="view.active ? 'success' : 'grey'" class="mb-2">{{ t(view.textKey) }}</v-chip>
@@ -14,8 +13,8 @@
 					<div v-for="d in shaping.definitions" :key="d.file + d.line" class="text-caption machine-faint shaping-line">{{ d.file }}:{{ d.line }}  {{ d.text }}</div>
 				</template>
 				<v-alert v-for="w in shaping.warnings" :key="w" dense outlined type="warning" class="mt-2 mb-0">{{ t(warningKey(w)) }}</v-alert>
-			</v-card-text>
-		</v-card>
+			</div>
+		</div>
 
 		<template v-if="canEdit">
 			<div class="text-subtitle-1 mb-1">{{ t('shaping.edit_title') }}</div>
@@ -44,6 +43,7 @@
 
 		<div class="text-subtitle-1 mt-6 mb-1">{{ t('shaping.ringing_title') }}</div>
 		<ringing-test :api="api" :can-generate="canTest" @use="useFrequency" />
+		<help-fold :title="t('shaping.title')" class="mt-4">{{ t('shaping.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -54,7 +54,7 @@
 // "try now" with the auto-revert countdown, the accelerometer data collection (only when the board reports an accelerometer) and the
 // ringing test G-code (shown, never sent). Pure logic in lib/shaping.js.
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import PlanReview from './PlanReview.vue'
 import TryPanel from './TryPanel.vue'
 import ShapingTuner from './ShapingTuner.vue'
@@ -63,6 +63,8 @@ import { planModule } from './plan-module.js'
 import { trialModule } from './trial-module.js'
 import { TYPES, KIND_SHAPING, FREQ_MIN, draftOf, check, lineOf, planValues, stateView, warningKey } from '../lib/shaping.js'
 import RoleNote from './RoleNote.vue'
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 const NOT_LOADED = {
 	available: false, current: { type: null, frequency: null, damping: null, minAcceleration: null }, types: TYPES, minFrequency: FREQ_MIN,
@@ -70,7 +72,7 @@ const NOT_LOADED = {
 }
 
 export default {
-	components: { RoleNote, ErrorNotice, PlanReview, TryPanel, ShapingTuner, RingingTest },
+	components: { CardHead, HelpFold, RoleNote, SectionNotice, PlanReview, TryPanel, ShapingTuner, RingingTest },
 	mixins: [planModule(), trialModule()],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

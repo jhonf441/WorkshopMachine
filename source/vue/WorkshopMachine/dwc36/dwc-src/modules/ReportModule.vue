@@ -1,8 +1,7 @@
 <template>
 	<div class="report-module">
 		<div>
-			<div class="text-h6 mb-1">{{ t('report.title') }}</div>
-			<p class="text-body-2 machine-faint">{{ t('report.intro') }}</p>
+			<card-head icon="mdi-file-document-outline" :title="t('report.title')" />
 			<div class="d-flex align-center flex-wrap" style="gap:8px">
 				<v-btn-toggle v-model="mode" mandatory dense>
 					<v-btn small value="full">{{ t('report.mode_full') }}</v-btn>
@@ -15,6 +14,7 @@
 			<v-alert v-if="rs.status === 'error' && rs.error" dense outlined type="error" class="mt-2">{{ t(rs.error.key) }}<span v-if="rs.error.detail"> ({{ rs.error.detail }})</span></v-alert>
 		</div>
 		<report-view v-if="report" class="mt-3" :report="report" />
+		<help-fold :title="t('report.title')" class="mt-4 d-print-none">{{ t('report.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -33,9 +33,11 @@ import { bedOf } from '../lib/mesh-grid.js'
 import { planErrorKey } from '../lib/plan-diff.js'
 import { refusalOf } from '../api/machine-api.js'
 import { detailOf } from '../lib/refusal.js'
+import CardHead from '../CardHead.vue' // family piece
+import HelpFold from '../HelpFold.vue' // family piece
 
 export default {
-	components: { ReportView },
+	components: { CardHead, HelpFold, ReportView },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)

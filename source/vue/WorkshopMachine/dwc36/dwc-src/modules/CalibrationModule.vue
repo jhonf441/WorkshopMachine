@@ -1,8 +1,7 @@
 <template>
 	<div class="calibration-module">
-		<div class="text-h6 mb-1">{{ t('calibration.title') }}</div>
-		<p class="text-body-2 machine-faint">{{ t('calibration.intro') }}</p>
-		<error-notice :error="loadError" retry @retry="load()" />
+		<card-head icon="mdi-ruler-square" :title="t('calibration.title')" />
+		<section-notice :error="loadError" retry @retry="load()" />
 		<role-note v-if="!canWrite" min="technician" :ops="accessOps.testMove" class="mb-3" :subject="$t('plugins.WorkshopMachine.subjects.calibration')" />
 		<v-btn-toggle v-model="tab" mandatory dense class="mb-4">
 			<v-btn v-for="a in ASSISTANTS" :key="a" :value="a" small>{{ t('calibration.tab_' + a) }}</v-btn>
@@ -12,6 +11,7 @@
 		<backlash-assistant v-else :api="api" :axes="letters" :can-edit="configure('config.m425')" @changed="load()" />
 		<!-- the Motors page is another plugin: nothing about it when it is not installed or not enabled -->
 		<div v-if="motorsOn" class="text-caption machine-faint mt-4">{{ t('calibration.motors_link') }}</div>
+		<help-fold :title="t('calibration.title')" class="mt-4">{{ t('calibration.intro') }}</help-fold>
 	</div>
 </template>
 
@@ -21,7 +21,7 @@
 // Calibration assistants (design 2.6): steps per mm, squareness and backlash. One assistant at a time. The current values come from the
 // service (machine.motion.get); each assistant proposes a plan and the person reviews and applies it (the role gate of each kind).
 
-import ErrorNotice from '../ErrorNotice.vue' // vue/_shared
+import SectionNotice from './SectionNotice.vue' // one notice per cause
 import StepsAssistant from './StepsAssistant.vue'
 import SquarenessAssistant from './SquarenessAssistant.vue'
 import BacklashAssistant from './BacklashAssistant.vue'
@@ -29,11 +29,13 @@ import { textMixin } from './text-mixin.js'
 import { pluginActive } from '../workshop-ids.js' // vue/_shared36
 import { tableRows } from '../lib/motion-table.js'
 import RoleNote from './RoleNote.vue'
+import CardHead from '../CardHead.vue' // vue/_shared36
+import HelpFold from '../HelpFold.vue' // vue/_shared36
 
 const ASSISTANTS = ['steps', 'skew', 'backlash']
 
 export default {
-	components: { RoleNote, ErrorNotice, StepsAssistant, SquarenessAssistant, BacklashAssistant },
+	components: { CardHead, HelpFold, RoleNote, SectionNotice, StepsAssistant, SquarenessAssistant, BacklashAssistant },
 	mixins: [textMixin],
 	props: {
 		api: { type: Object, required: true }, // createMachineApi(...)
