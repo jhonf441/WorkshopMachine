@@ -1,5 +1,9 @@
 # WorkshopMachine -- historial de versiones
 
+## 1.20.1 -- 2026-11-27
+
+- the Apply taper button has the 40 px touch area
+
 ## 1.20.0 -- 2026-11-23
 
 - family redesign on the shared pieces (FAMILIA-REDISENO, owner's scale of 2026-11-23): the compact one-line bar (its sentence is read, not drawn; it is seen once, under the head of the overview); the side menu of the family, without boxes

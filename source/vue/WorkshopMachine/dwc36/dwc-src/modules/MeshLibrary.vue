@@ -31,7 +31,7 @@
 			</div>
 			<div class="d-flex align-start flex-wrap mt-3" style="gap:8px">
 				<v-text-field v-model="taper" :label="t('mesh.taper')" type="number" dense outlined hide-details="auto" style="max-width:160px" :error-messages="taperError" />
-				<wf-action-button :action="acts.taper" :label="t('mesh.taper_apply')" :disabled="busy || !taperCheck.ok" @run="$emit('taper', taperCheck.height)" />
+				<wf-action-button :action="acts.taper" data-wf-hit :label="t('mesh.taper_apply')" :disabled="busy || !taperCheck.ok" @run="$emit('taper', taperCheck.height)" />
 			</div>
 			<div class="text-caption machine-faint mt-1">{{ t('mesh.taper_hint') }}</div>
 		</template>
